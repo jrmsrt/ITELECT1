@@ -1,0 +1,259 @@
+{% extends 'user/header.html' %}
+
+{% block content %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Book Haven Bookstore - Online</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"
+    />
+    <link rel="stylesheet" href="/static/css/index.css">
+    <link rel="icon" type="image" href="/static/media/bookhaven-logo.png">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body>
+    <!-- Index Section -->
+    <section class="index">
+        <div class="container">
+            <div class="index-content">
+                <div class="index-text">
+                    <h1>Welcome to Book Haven!</h1>
+                    <p><b>Your Sanctuary for Stories</b>
+                    <br>Step into a world where every shelf holds a new adventure, 
+                    and every page brings you closer to wonder. Whether you're looking
+                    for timeless classics, the latest bestsellers, or hidden indie gems, 
+                    Book Haven is your cozy corner for all things literary.
+                    <br>Browse. Discover. Escape.</p>
+                    <div class="user-avatars">
+                        <div class="avatar avatar-1">
+                            <img src="" alt="img"/>
+                        </div>
+                        <div class="avatar avatar-2">
+                            <img src="" alt="img"/>
+                        </div>
+                        <div class="avatar avatar-3">
+                            <img src="" alt="img"/>
+                        </div>
+                        <span class="user-count">Join our growing community.</span>
+                    </div>
+                    <a href="{{ url_for('books') }}" class="btn">SHOP NOW!</a><!-- Redirects to to shop_books.html -->
+                </div>
+                <div class="index-slider">
+                    <div class="swiper books-slider">
+                        <div class="swiper-wrapper">
+                            <a href="#" class="swiper-slide"><img src="/static/media/2.png"></a>
+                            <a href="#" class="swiper-slide"><img src="/static/media/3.png"></a>
+                            <a href="#" class="swiper-slide"><img src="/static/media/5.png"></a>
+                            <a href="#" class="swiper-slide"><img src="/static/media/6.png"></a>
+                            <a href="#" class="swiper-slide"><img src="/static/media/4.png"></a>
+                            <a href="#" class="swiper-slide"><img src="/static/media/1.png"></a>
+                        </div>
+                        <img src="/static/media/stand.png" class="stand" alt="Book Stand">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+    <script src="/static/js/scripts.js"></script>
+
+    <!-- Features Section -->
+    <section class="features">
+        <div class="container">
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon mission"><i class="fa-solid fa-shopping-cart"></i></div>
+                    <h3>Easy Ordering System</h3>
+                    <p>Browse, select, and order books with just a few clicks — hassle-free and user-friendly.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon vision"><i class="fa-solid fa-search"></i></div>
+                    <h3>Smart Book Search & Filters</h3>
+                    <p>Quickly find books by title, author, genre, or availability. Advanced filters make discovery fast and intuitive.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon values"><i class="fa-solid fa-truck-fast"></i></div>
+                    <h3>Pick-Up or Delivery Options</h3>
+                    <p>✓ Pick up from our store or library counter
+                        ✓ Get books delivered straight to your door</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- featured-books Section -->
+    <section class="featured-books">
+        <h2><span>Featured</span> Books</h2>
+        <p class="subtitle">
+            Fresh picks, trending titles, and must-read gems — find your next favorite book here!
+        </p>
+
+        <!-- Swiper Container -->
+        <div class="swiper book-slider">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide book-card">
+                    <div class="book-cover">
+                        <img src="/static/media/book1.jpg" alt="Book 1">
+
+                        <!-- Favorite Icon (hover only) -->
+                        <button class="fav-btn" title="Add to Favorites">
+                            <i class="fa-regular fa-heart regular-heart"></i>
+                            <i class="fa-solid fa-heart solid-heart"></i>
+                        </button>
+                    </div>
+
+                    <h3>Into the Unknown</h3>
+                    <span class="genre">Fiction</span>
+                    <p class="desc">A gripping saga of survival in uncharted lands</p>
+                    <span class="price">$10.00</span>
+
+                    <!-- Bottom Action Buttons -->
+                    <div class="book-bottom-actions">
+                        <button class="action-btn add-cart">
+                        <i class="fas fa-shopping-cart"></i> Add to Cart
+                        </button>
+                        <button class="action-btn details">
+                        <i class="fas fa-info-circle"></i> Details
+                        </button>
+                    </div>
+                </div>
+
+            <!-- Copy for other books -->
+            <div class="swiper-slide book-card">
+                <div class="book-cover">
+                    <img src="/static/media/book1.jpg" alt="Book 1">
+
+                    <!-- Favorite Icon (hover only) -->
+                    <button class="fav-btn" title="Add to Favorites">
+                        <i class="fa-regular fa-heart regular-heart"></i>
+                        <i class="fa-solid fa-heart solid-heart"></i>
+                    </button>
+                </div>
+
+                <h3>Into the Unknown</h3>
+                <span class="genre">Fiction</span>
+                <p class="desc">A gripping saga of survival in uncharted lands</p>
+                <span class="price">$10.00</span>
+
+                <!-- Bottom Action Buttons -->
+                    <div class="book-bottom-actions">
+                        <button class="action-btn add-cart">
+                        <i class="fas fa-shopping-cart"></i> Add to Cart
+                        </button>
+                        <button class="action-btn details">
+                        <i class="fas fa-info-circle"></i> Details
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Swiper Pagination -->
+            <div class="swiper-pagination"></div>
+            <div class="swiper-button-prev"></div>
+            <div class="swiper-button-next"></div>
+        </div>
+        <div class="view-all-container">
+            <a href="{{ url_for('books') }}" class="view-all-btn"> <!-- Redirects to shop_books.html when the user is logged in.-->
+                View All Books
+                <i class="fa-solid fa-arrow-right"></i>
+            </a>
+        </div>
+    </section>
+
+    <section class="announcements">
+    <h2><span>Latest</span> Announcements</h2>
+    <p class="subtitle">
+            News, updates, and events you won’t want to miss.
+        </p>
+
+    <!-- Swiper Container -->
+    <div class="swiper announcements-slider">
+        <div class="swiper-wrapper">
+
+        <!-- Slide 1 -->
+        <div class="swiper-slide announcement-card">
+            <img src="/static/media/nbs.jpg" alt="National Bookstore Week">
+            <div class="announcement-content">
+            <div class="announcement-title">
+                🇵🇭📚 National Bookstore Week at BookHaven
+            </div>
+            <p class="date">📅 July 15–21, 2025</p>
+            <p class="desc">
+                Celebrate the joy of reading with us during National Bookstore Week, a special event dedicated to readers, writers, and dreamers of all ages!
+            </p>
+            <a href="#" class="read-more">Read More →</a>
+            </div>
+        </div>
+
+        <!-- Slide 2 -->
+        <div class="swiper-slide announcement-card">
+            <img src="/static/media/heh.jpg" alt="New Arrival Alert">
+            <div class="announcement-content">
+            <div class="announcement-title">
+                New Arrival Alert – Fresh Reads Just In!
+            </div>
+            <p class="date">📅 July 25, 2025</p>
+            <p class="desc">
+                We’re thrilled to announce a fresh wave of arrivals at BookHaven! Whether you’re craving heart-pounding thrillers or inspiring nonfiction, we’ve got something new for you.
+            </p>
+            <a href="#" class="read-more">Read More →</a>
+            </div>
+        </div>
+
+        <!-- Slide 3 -->
+        <div class="swiper-slide announcement-card">
+            <img src="/static/media/mari.png" alt="Exclusive Author Event">
+            <div class="announcement-content">
+            <div class="announcement-title">
+                Exclusive Author Event – Meet Marinette Dupain-Cheng!
+            </div>
+            <p class="date">📅 August 12, 2025 · 1:00 PM</p>
+            <p class="desc">
+                Calling all book lovers and aspiring writers! Join us for an exclusive author meet-and-greet with the brilliant Marinette Dupain-Cheng — a chance to hear her story and get your favorite book signed!
+            </p>
+            <a href="#" class="read-more">Read More →</a>
+            </div>
+        </div>
+
+        <!-- Slide 4 -->
+        <div class="swiper-slide announcement-card">
+            <img src="/static/media/announcement3.jpg" alt="Community Reading Drive">
+            <div class="announcement-content">
+            <div class="announcement-title">
+                Community Reading Drive – Share the Love of Books!
+            </div>
+            <p class="date">📅 September 5–10, 2025</p>
+            <p class="desc">
+                Be part of our Reading Drive! Donate old books, exchange your favorites, or volunteer to read to children. Let’s keep stories alive and imaginations growing together.
+            </p>
+            <a href="#" class="read-more">Read More →</a>
+            </div>
+        </div>
+
+        </div>
+    </div>
+    </section>
+
+    <!-- Swiper JS -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+    <!-- Swiper Initialization -->
+    <script src="/static/js/scripts.js"></script>
+
+    <script>
+        function toggleMobileMenu() {
+            const nav = document.getElementById('mobileNav');
+            nav.classList.toggle('active');
+        }
+    </script>
+</body>
+</html>
+{% endblock %}

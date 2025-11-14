@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/user/header.css">
+    <link rel="icon" type="image" href="/static/media/bookhaven-logo.png">
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container header-flex">
+
+            <!-- Left Logo -->
+            <div class="logo">
+                <img src="/static/media/bookhaven-logo.png" alt="Logo" class="logo-img">
+                <span class="logo-text underline-anim">BookHaven</span>
+            </div>
+
+            <!-- Center Navigation -->
+            <nav class="nav" id="mobileNav">
+                <a href="{{ url_for('home') }}" class="nav-link underline-anim">Home</a>
+                <a href="" class="nav-link underline-anim">About</a>
+                <a href="" class="nav-link underline-anim">Contact</a>
+                <a href="{{ url_for('books') }}" class="nav-link underline-anim">Books</a>
+                <a href="" class="nav-link underline-anim">My Orders</a>
+            </nav>
+
+            <!-- Right Icons -->
+            <div class="header-icons">
+                <div class="icon-wrapper">
+                    <a href="{{ url_for('cart') }}" class="icon"><i class="fa-brands fa-opencart"></i></a>
+                    <span class="icon-count">0</span> <!-- Cart count -->
+                </div>
+                <div class="icon-wrapper">
+                    <a href="#" class="icon"><i class="fa-regular fa-heart"></i></a>
+                    <span class="icon-count">0</span> <!-- Favorites count -->
+                </div>
+                <a href="{{ url_for('user_login') }}" class="icon"><i class="fa-regular fa-user"></i></a>
+            </div>
+
+            <!-- Mobile Menu -->
+            <div class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>BookHaven</h4>
+                    <p>Revolutionizing system management for businesses worldwide.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="">About</a></li>
+                        <li><a href="">Contact</a></li>
+                        <li><a href="">Terms of Service</a></li>
+                        <li><a href="">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Contact</h4>
+                    <p><i class="fa-solid fa-envelope"></i> info@BookHaven.com</p>
+                    <p><i class="fa-solid fa-phone"></i> +1(555) 123-4567</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Subscribe</h4>
+                    <p>Stay in the loop! Subscribe to get our latest updates, book releases, and exclusive offers.</p>
+
+                    <form class="subscribe-form">
+                        <input type="email" placeholder="Enter your email" required>
+                        <button type="submit">Subscribe</button>
+                    </form>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2025 BookHaven. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
