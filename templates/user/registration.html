@@ -1,95 +1,145 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Register - BookHaven</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link
-        rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"
-    />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="/static/css/user/registration.css">
-    <link rel="icon" type="image" href="/static/media/bookhaven-logo.png">
-</head>
+{% extends 'user/form_header.html' %}
 
-<body>
-    <!-- Header -->
-    <header class="header">
-        <div class="container">
-            <div class="logo">
-                <img src="/static/media/bookhaven-logo.png" alt="Logo" class="logo-img" style="height:40px;">
-                <span class="logo-text" style="vertical-align:middle;">BookHaven</span>
-            </div>
-            <div class="mobile-menu-toggle" onclick="toggleMobileMenu()">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-            <nav class="nav" id="mobileNav">
-                <a href="{{ url_for('home') }}" class="nav-link underline-anim">Home</a>
-                <a href="" class="nav-link underline-anim">About</a>
-                <a href="" class="nav-link underline-anim">Contact</a>
-            </nav>
-        </div>
-    </header>
+{% block content %}
 
-    <!-- Main Content -->
-    <div class="main-container">
-        <!-- Signup Form -->
-        <div class="signup-card">
-            <a href="{{ url_for('home') }}" class="back-home">
-                <i class="fa-solid fa-arrow-left"></i> Back to Home
-            </a>
-            <h1 class="signup-title">Create Account</h1>
-            <div class="messages">
-                <div class="message">
+<title>Register - BookHaven</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user/registration.css') }}">
+<script src="/static/js/toggle_password.js"></script>
+
+<div class="main-container">
+    <!-- Signup Form -->
+    <div class="signup-card">
+        <a href="{{ url_for('home') }}" class="back-home">
+            <i class="fa-solid fa-arrow-left"></i> Back to Home
+        </a>
+        <h1 class="signup-title">Create Account</h1>
+
+        <form method="post" action="" id="registrationForm" novalidate>
+            {% if msg %}
+            <div class="alert error" id="alertBox">
+                <span class="alert-text">{{ msg }}</span>
+                <button type="button" class="close-btn" onclick="closeAlert()">×</button>
+            </div>
+            {% else %}
+            <div class="alert error" id="alertBox" style="display:none;">
+                <span class="alert-text"></span>
+                <button type="button" class="close-btn" onclick="closeAlert()">×</button>
+            </div>
+            {% endif %}
+            <div class="form-grid">
+                <!-- First Name -->
+                <div class="form-group">
+                    <label class="form-label" for="firstName">First Name</label>
+                    <input
+                        class="form-input"
+                        type="text"
+                        id="firstName"
+                        name="firstName"
+                        placeholder="Enter your first name"
+                        value="{{ firstName or '' }}"
+                        required
+                    >
+                    <small id="firstNameError" class="field-error"></small>
+                </div>
+
+                <!-- Last Name -->
+                <div class="form-group">
+                    <label class="form-label" for="lastName">Last Name</label>
+                    <input
+                        class="form-input"
+                        type="text"
+                        id="lastName"
+                        name="lastName"
+                        placeholder="Enter your last name"
+                        value="{{ lastName or '' }}"
+                        required
+                    >
+                    <small id="lastNameError" class="field-error"></small>
+                </div>
+
+                <!-- Email -->
+                <div class="form-group">
+                    <label class="form-label" for="email">Email</label>
+                    <input
+                        class="form-input"
+                        type="email"
+                        id="email"
+                        name="email"
+                        placeholder="your@gmail.com"
+                        value="{{ email or '' }}"
+                        required
+                    >
+                    <small id="emailError" class="field-error"></small>
+                </div>
+
+                <!-- Username -->
+                <div class="form-group">
+                    <label class="form-label" for="username">Username</label>
+                    <input
+                        class="form-input"
+                        type="text"
+                        id="username"
+                        name="username"
+                        placeholder="Choose a username"
+                        value="{{ username or '' }}"
+                        required
+                    >
+                    <small id="usernameError" class="field-error"></small>
+                </div>
+
+                <!-- Password -->
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <div class="password-wrapper">
+                        <input
+                            class="form-input"
+                            type="password"
+                            id="password"
+                            name="password"
+                            placeholder="Enter your password"
+                            required
+                        >
+                        <i class="fa fa-eye toggle-password" id="togglePassword"></i>
+                    </div>
+                    <small id="passwordError" class="field-error"></small>
+                </div>
+
+                <!-- Confirm Password -->
+                <div class="form-group">
+                    <label class="form-label" for="confirmPassword">Confirm Password</label>
+                    <div class="password-wrapper">
+                        <input
+                            class="form-input"
+                            type="password"
+                            id="confirmPassword"
+                            name="confirmPassword"
+                            placeholder="Confirm your password"
+                            required
+                        >
+                        <i class="fa fa-eye toggle-password" id="toggleConfirmPassword"></i>
+                    </div>
+                    <small id="confirmPasswordError" class="field-error"></small>
                 </div>
             </div>
-            <form method="post" action="">
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label class="form-label" for="fullName">Full Name</label>
-                        <input class="form-input" type="text" id="fullName" name="fullName" placeholder="Enter your full name (Last Name, First Name M.I.)" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="email">Email</label>
-                        <input class="form-input" type="email" id="email" name="email" placeholder="your@email.com" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label" for="password">Password</label>
-                        <div>
-                            <input class="form-input" type="password" id="password" name="password" placeholder="Enter your password" required style="width: 100%;">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label" for="confirmPassword">Confirm Password</label>
-                        <div>
-                            <input class="form-input" type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm your password" required style="width: 100%;">
-                        </div>
-                    </div>
 
-                    <div class="form-group">
-                        <label class="form-label" for="username">Username</label>
-                        <input class="form-input" type="text" id="username" name="username" placeholder="Choose a username" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="emergencyContact">Emergency Contact Information (Optional)</label>
-                        <input class="form-input" type="text" id="emergencyContact" name="emergencyContact" placeholder="Enter emergency contact">
-                    </div>
-                </div>
-                <div class="form-group" style="grid-column: span 2; margin-top: 10px; margin-bottom: 20px; text-align: center;">
-                    <p style="font-size: 0.9rem; color: #64748b;">By continuing, you are agreeing to VigiLink's <a href="" style="color: #4a6cf7; text-decoration: none; font-weight: 600;">Terms of Service</a> and <a href="" style="color: #4a6cf7; text-decoration: none; font-weight: 600;">Privacy Policy</a>.</p>
-                </div>
-                <button type="submit" class="submit-btn">Submit</button>
-            </form>
-            <div class="login-link">
-                Already have an account? 
-                <a href="{{ url_for('user_login') }}">Login Here</a>
+            <div class="form-group" style="grid-column: span 2; margin-top: 10px; margin-bottom: 20px; text-align: center;">
+                <p style="font-size: 0.9rem; color: #64748b;">
+                    By continuing, you are agreeing to VigiLink's
+                    <a href="" style="color: #4a6cf7; text-decoration: none; font-weight: 600;">Terms of Service</a>
+                    and
+                    <a href="" style="color: #4a6cf7; text-decoration: none; font-weight: 600;">Privacy Policy</a>.
+                </p>
             </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn">Submit</button>
+            <script src="/static/js/validation.js"></script>
+        </form>
+
+        <div class="login-link">
+            Already have an account?
+            <a href="{{ url_for('user_login') }}">Login Here</a>
         </div>
     </div>
-</body>
-</html>
+</div>
+
+{% endblock %}

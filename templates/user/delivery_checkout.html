@@ -1,18 +1,11 @@
-{% extends 'user/header.html' %}
+{% extends 'user/main_header.html' %}
 
 {% block content %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/css/user/delivery_checkout.css">
-  <link rel="icon" type="image" href="/static/media/bookhaven-logo.png">
-  <title>Checkout - BookHaven</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-</head>
-<body>
+<title>Checkout - BookHaven</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user/delivery_checkout.css') }}">
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="/static/js/address.js"></script>
 
 <div class="checkout-container">
   <!-- LEFT SECTION -->
@@ -129,13 +122,9 @@
     </div>
     <button class="place-order">Place Order <i class="fa-solid fa-arrow-right"></i></button>
     <div class="cancel-btn">
-        <a>Cancel</a>
-      </div>
+        <a href="{{ url_for('cart') }}">Cancel</a>
+    </div>
   </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="/static/js/address.js"></script>
-</body>
-</html>
 {% endblock %}

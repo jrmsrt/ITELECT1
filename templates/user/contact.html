@@ -1,0 +1,85 @@
+﻿{% extends 'user/main_header.html' %}
+
+{% block content %}
+
+<title>Contact BookHaven</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user/contact.css') }}">
+
+<div class="contact-container">
+
+    <!-- LEFT SIDE: CONTACT INFO -->
+    <div class="contact-info-box">
+        <h1>Contact Us</h1>
+        <p class="info-sub">We're here to assist you! Whether you have questions,
+                    need technical support, or want to report an issue, feel free to contact us.
+        </p>
+        <hr>
+
+        <div class="info-item">
+            <i class="fas fa-envelope"></i>
+            <div>
+                <label>Email Us</label>
+                <p>thebookhaven.online@gmail.com</p>
+            </div>
+        </div>
+
+        <div class="info-item">
+            <i class="fas fa-phone"></i>
+            <div>
+                <label>Call Us</label>
+                <p>+63 929 644 6754</p>
+            </div>
+        </div>
+
+        <div class="info-item">
+            <i class="fas fa-clock"></i>
+            <div>
+                <label>Working Hours</label>
+                <p>Mon - Fri: 9:00 AM - 6:00 PM</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT SIDE: CONTACT FORM -->
+    <div class="contact-form-box">
+        <h1>We'd love to hear from you!</h1>
+        <p class="form-sub">Send us a message and we'll get back to you shortly.</p>
+
+        <form method="POST" action="/send_message" class="contact-form">
+            <div class="form-group">
+                <label for="name">What should we call you?</label>
+                <input type="text" id="name" name="name" placeholder="Your name or nickname" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" placeholder="Your email address" required>
+            </div>
+
+             <div class="form-group">
+                <div class="label-row">
+                    <label for="message">Message</label>
+                    <small id="char-count">0/500</small>
+                </div>
+                <textarea id="message" rows="4" maxlength="500" placeholder="Your message"></textarea>
+            </div>
+
+            <button type="submit" class="send-btn">Send Message</button>
+        </form>
+    </div>
+
+</div>
+
+<script>
+        const message = document.getElementById('message');
+        const charCount = document.getElementById('char-count');
+
+message.addEventListener('input', () => {
+            charCount.textContent = `${message.value.length}/500`;
+});
+</script>
+
+</body>
+</html>
+
+{% endblock %}

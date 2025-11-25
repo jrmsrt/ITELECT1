@@ -1,0 +1,308 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500&family=Outfit:wght@400;700&family=Poppins:wght@400;500;600&family=STIX+Two+Text:ital,wght@0,400..700;1,400..700&display=swap');
+
+* {
+    font-family: 'Outfit', serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --gold: #e7c286;
+    --dark-color: #d4a65e;
+    --burgundy: #7b2d43;
+    --input-border: #e5e7eb;
+    --placeholder: #9ca3af;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* FEATURED BOOKS SECTION */
+.shop-books {
+  padding: 4rem 0;
+  background: #fff;
+  color: white;
+  text-align: center;
+}
+
+/* Section Title */
+.shop-books h2 {
+  background: linear-gradient(90deg, #b68b2d, var(--burgundy), #4b2e83);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+
+/* Subtitle */
+.subtitle {
+  color: #777;
+  margin-bottom: 2rem;
+  font-size: 0.95rem;
+}
+
+/* Filter Bar Styles */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 2rem auto;
+  padding: 1rem 1.5rem;
+  max-width: 1200px;
+  width: 100%;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 250px;
+  padding: 0.7rem 1rem;
+  border: 2px solid var(--input-border);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: 0.2s;
+}
+
+.search-input:focus,
+.search-input:hover {
+  border-color: var(--dark-color);
+}
+
+.filter-select {
+  padding: 0.6rem 0.8rem;
+  border: 2px solid var(--input-border);
+  border-radius: 10px;
+  background: #fff;
+  font-size: 0.9rem;
+  outline: none;
+  transition: 0.2s;
+}
+
+.filter-select:hover,
+.filter-select:focus {
+  cursor: pointer;
+  border-color: var(--dark-color);
+}
+
+.filter-btn {
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    background: linear-gradient(135deg, #d37f8c, #c89f5d, #e7c286);
+    background-size: 180% 180%;
+    transition: background-position 0.6s ease, transform 0.3s ease, filter 0.3s ease, box-shadow 0.3s ease;
+}
+
+.filter-btn:hover {
+    background-position: right center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+    filter: brightness(1.08);
+}
+
+.results-count {
+  text-align: center;
+  font-size: 0.95rem;
+  color: #5a4a4a;
+  margin-top: -0.5rem;
+  margin-bottom: 1.5rem;
+  opacity: 0.9;
+}
+
+/* Grid Layout */
+.book-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 2rem;
+  justify-items: center;
+  width: 80%;
+  margin: 0 auto;
+}
+
+/* Book Card */
+.book-card {
+  width: 100%;
+  max-width: 240px;
+  text-align: left;
+  
+}
+
+/* Book Cover Container */
+.book-cover {
+  position: relative;
+  background-color: #f4f4f5;
+  border-radius: 14px;
+  padding: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 320px;
+  width: 100%;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+/* Book Image */
+.book-cover img {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  object-fit: cover;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.477);
+}
+
+/* Hover Effect on Book Image */
+.book-cover img:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.575);
+}
+
+/* Book Information */
+.book-card h3 {
+  margin-top: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111;
+}
+
+.book-card .genre {
+  display: block;
+  font-size: 0.85rem;
+  color: #777;
+  margin-top: 2px;
+}
+
+.book-card .desc {
+  font-size: 0.9rem;
+  color: #888;
+  margin: 5px 0;
+  line-height: 1.3;
+}
+
+.book-card .price {
+  font-size: 0.95rem;
+  color: #f39ca0;
+  font-weight: 500;
+}
+
+.fav-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.95);
+  border: none;
+  color: var(--burgundy);
+  font-size: 1.1rem;
+  padding: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease, background 0.3s ease;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.book-cover:hover .fav-btn {
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+/* Hide solid heart by default */
+.solid-heart {
+  display: none;
+}
+
+/* Hover effect — swap hearts */
+.fav-btn:hover .regular-heart {
+  display: none;
+}
+
+.fav-btn:hover .solid-heart {
+  display: inline-block;
+  color: #fff;
+}
+
+/* Button background and animation */
+.fav-btn:hover {
+  background: var(--burgundy);
+  transform: scale(1.15);
+}
+
+
+/* Bottom Action Buttons (Always visible) */
+.book-bottom-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  width: 100%;
+  gap: 10px;
+}
+
+/* Base Style for Buttons */
+.book-bottom-actions .action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  gap: 6px;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #fff;
+  height: 38px; /* same height for both */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+/* Add to Cart button - wider and gold */
+.book-bottom-actions .add-cart {
+  flex: 1.3;
+  background: linear-gradient(135deg, #d37f8c, #c89f5d, #e7c286);
+  background-size: 180% 180%;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+  transition: background-position 0.6s ease, transform 0.3s ease, filter 0.3s ease;
+}
+
+/* Details button - narrower and dark */
+.book-bottom-actions .details {
+  flex: 0.9;
+  background: #333;
+}
+
+/* Hover Effects */
+.book-bottom-actions .add-cart:hover {
+  background-position: right center;
+  transform: translateY(-2px);
+  filter: brightness(1.08);
+}
+
+.book-bottom-actions .details:hover {
+  background: #000000;
+  transform: translateY(-2px);
+}
+
+/* Icon sizing */
+.book-bottom-actions i {
+  font-size: 0.95rem;
+}

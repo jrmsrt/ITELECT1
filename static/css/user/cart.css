@@ -10,16 +10,11 @@
 :root {
     --gold: #e7c286;
     --dark-color: #d4a65e;
-    --black: #444;
-    --light-color: #666;
     --placeholder: #9ca3af;
     --burgundy: #7b2d43;
     --gray: #ccc;
     --smoke: #e2e2e2;
     --disable: #f2f2f2;
-    --border: .1rem solid rgba(0,0,0, .1);
-    --border-hover: .1rem solid var(--black);
-    --box-shadow: 0 .5rem 1rem rgba(0,0,0, .1);
 }
 
 body {
@@ -28,6 +23,25 @@ body {
     background: url(/static/media/banner.png) no-repeat center center;
     background-size: cover;
     background-position: center;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f1f1f1; 
+}
+ 
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #888; 
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555; 
 }
 
 .my-cart {

@@ -1,23 +1,12 @@
-{% extends 'user/header.html' %}
+{% extends 'user/main_header.html' %}
 
 {% block content %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Shop Books - BookHaven</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script type="text/javascript" src="{{ url_for('static', filename='js/filter.js') }}" defer></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
-    <link rel="stylesheet" href="/static/css/user/shop_books.css">
-    <link rel="icon" type="image" href="/static/media/bookhaven-logo.png">
-</head>
+<title>Shop Books - BookHaven</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user/shop_books.css') }}">
 
-<body>
-        <!-- shop-books Section -->
 <section class="shop-books">
-    <h2><span>Shop Books</span> You'll Love</h2>
+    <h2>Shop Books <span>You'll Love</span></h2>
     <p class="subtitle">
         Browse, explore, and collect the books that inspire you. From thrilling adventures to quiet reflections, every story is here to find its way to you.
     </p>
@@ -173,6 +162,4 @@
             <!-- Add more cards as needed -->
         </div>
 </section>
-</body>
-</html>
 {% endblock %}

@@ -1,0 +1,238 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500&family=Outfit:wght@400;700&family=Poppins:wght@400;500;600&family=STIX+Two+Text:ital,wght@0,400..700;1,400..700&display=swap');
+
+* {
+    font-family: 'Outfit', serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --gold: #e7c286;
+    --dark-color: #d4a65e;
+    --burgundy: #7b2d43;
+    --input-border: #e5e7eb;
+    --placeholder: #9ca3af;
+}
+
+body {
+    line-height: 1.6;
+    color: #333;
+    background: url(/static/media/banner.png) no-repeat;
+    background-size: cover;
+    background-position: center;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f1f1f1; 
+}
+ 
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #888; 
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555; 
+}
+
+.verification-container {
+    font-family: 'Outfit', sans-serif;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 70px 0;
+}
+
+.verification-card {
+    width: 70%;
+    max-width: 900px;
+    background: #ffffff;
+    padding: 40px 50px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
+    text-align: center;
+}
+
+.verification-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 35px;
+    color: #333;
+    letter-spacing: 2px;
+}
+
+/* OTP INPUTS */
+.otp-group {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 25px;
+}
+
+.otp-input {
+    width: 55px;
+    height: 55px;
+    text-align: center;
+    font-size: 1.4rem;
+    border-radius: 10px;
+    border: 1px solid #dcdcdc;
+    transition: 0.2s;
+}
+
+.otp-input:focus {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 0 6px rgba(247, 215, 74, 0.664);
+}
+
+/* TEXT */
+.verification-subject {
+    font-weight: 600;
+    margin-top: 10px;
+    color: #555;
+}
+
+.verification-text {
+    color: #777;
+    font-size: 0.95rem;
+}
+
+/* BUTTONS */
+.verify-btn {
+    width: 200px;
+    height: 45px;
+    background: var(--gold);
+    border: none;
+    color: white;
+    font-size: 1rem;
+    border-radius: 10px;
+    cursor: pointer;
+    margin: 15px;
+    transition: 0.2s;
+}
+
+.verify-btn:hover {
+    background: var(--dark-color);
+}
+
+.resend-btn {
+    width: 200px;
+    height: 42px;
+    background: white;
+    border: 2px solid var(--gold);
+    color: var(--gold);
+    font-size: 1rem;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.resend-btn:hover {
+    background: var(--gold);
+    color: white;
+}
+
+/* ALERT STYLE (matches your design exactly) */
+/* make sure alert is a flex container (you already have this) */
+.alert {
+    display: grid;
+    grid-template-columns: 1fr auto; /* text column, then close button column */
+    align-items: center;
+    gap: 12px;                      /* space between text and button when needed */
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    font-size: 0.95rem;
+    animation: fadeIn 0.35s ease forwards;
+    transform-origin: top center;
+    overflow: hidden;
+}
+
+/* Make the text a block that can wrap */
+.alert-text {
+    /* allow wrapping and truncated overflow if needed */
+    overflow-wrap: anywhere;
+    word-wrap: break-word;
+    min-width: 0;   /* important for flex/grid text shrink */
+    text-align: left;
+}
+
+/* Close button fixed to the right column (no auto margin needed) */
+.alert .close-btn {
+    justify-self: end;  /* place button to the far right of its grid cell */
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: inherit;
+    padding: 0 4px;
+}
+
+/* your color variants (unchanged) */
+.alert.error {
+    background: #ffefef;
+    color: #a70000;
+    border-left: 4px solid #a70000;
+}
+
+.alert.warning {
+    background: #fff8db;
+    color: #8a6d00;
+    border-left: 4px solid #d4b100;
+}
+
+.alert.success {
+    background: #e9fdf0;
+    color: #0f6b2f;
+    border-left: 4px solid #0f6b2f;
+}
+
+.hidden {
+    display: none;
+}
+
+
+
+/* fade-in */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-8px) scale(0.995); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* slide-out */
+.alert.slide-up {
+    animation: slideOut 0.35s ease forwards;
+}
+
+@keyframes slideOut {
+    from { opacity: 1; transform: translateY(0) scale(1); }
+    to   {
+        opacity: 0;
+        transform: translateY(-16px) scale(0.98);
+        height: 0;
+        margin-bottom: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+}
+
+.swal-confirm-btn {
+    width: 160px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 8px;
+    background: var(--gold);
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+.swal-confirm-btn:hover {
+    background: var(--dark-color);
+}

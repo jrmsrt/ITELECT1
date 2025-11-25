@@ -1,18 +1,11 @@
-{% extends 'user/header.html' %}
+{% extends 'user/main_header.html' %}
 
 {% block content %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/css/user/cart.css">
-  <link rel="icon" type="image" href="/static/media/bookhaven-logo.png">
-  <title>My Cart - BookHaven</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-</head>
-<body>
+<title>My Cart - BookHaven</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user/cart.css') }}">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="{{ url_for('static', filename='js/qty_control.js') }}"></script>
 
 <div class="my-cart">
     <div class="cart-details">
@@ -175,8 +168,5 @@
         <a href="{{ url_for('books') }}">Continue Shopping</a>
     </div>
 </div>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="{{ url_for('static', filename='js/qty_control.js') }}"></script>
-</body>
-</html>
+
 {% endblock %}

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Verify your BookHaven account</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin:0; padding:0; background-color:#f5f3ef; font-family: 'Arial', sans-serif;">
+
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f5f3ef; padding:20px 0;">
+    <tr>
+        <td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 6px 18px rgba(0,0,0,0.08);">
+                <!-- Header / Banner -->
+                <tr>
+                    <td style="background: linear-gradient(135deg, #7b2d43, #d4a65e); padding:24px 30px; text-align:left;">
+                        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                            <tr>
+                                <td style="color:#fef6e4; font-size:24px; font-weight:700; letter-spacing:1px;">
+                                    BookHaven
+                                </td>
+                                <td align="right" style="color:#fef6e4; font-size:13px; font-weight:500;">
+                                    Verification
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <!-- Hero / Intro -->
+                <tr>
+                    <td style="padding:28px 32px 10px 32px;">
+                        <h1 style="margin:0 0 10px 0; font-size:22px; color:#1e293b; font-weight:700;">
+                            Welcome to BookHaven, {{ first_name }}!
+                        </h1>
+                        <p style="margin:0; margin-top:8px; font-size:14px; color:#4b5563; line-height:1.6;">
+                            Thank you for creating an account with <strong>BookHaven</strong>. Before you can start
+                            discovering and collecting your next favorite reads, please verify your email address using
+                            the verification code below.
+                        </p>
+                    </td>
+                </tr>
+
+                <!-- Code Box -->
+                <tr>
+                    <td style="padding:10px 32px 0 32px;">
+                        <p style="margin:0 0 6px 0; font-size:13px; color:#6b7280;">
+                            Your verification code:
+                        </p>
+                        <div style="
+                            margin:10px 0 20px 0;
+                            text-align:center;
+                            font-size:30px;
+                            font-weight:700;
+                            letter-spacing:10px;
+                            color:#7b2d43;
+                            padding:16px 0;
+                            border-radius:10px;
+                            background-color:#fff7f3;
+                            border:2px dashed #d4a65e;
+                        ">
+                            {{ verification_code }}
+                        </div>
+                        <p style="margin:0 0 16px 0; font-size:13px; color:#6b7280;">
+                            Enter this code on the verification page. For your security, this code will expire in
+                            <strong>15 minutes</strong>.
+                        </p>
+                    </td>
+                </tr>
+
+                <!-- Button -->
+                <tr>
+                    <td style="padding:0 32px 20px 32px;" align="center">
+                        <a href="{{ verify_url }}" 
+                           style="
+                                display:inline-block;
+                                background: #e7c286;
+                                color:#ffffff;
+                                text-decoration:none;
+                                padding:10px 22px;
+                                border-radius:10px;
+                                font-size:14px;
+                                font-weight:600;
+                                box-shadow:0 4px 10px rgba(0,0,0,0.12);
+                           ">
+                            Verify My Account
+                        </a>
+                        <p style="margin-top:10px; font-size:11px; color:#9ca3af;">
+                            If the button doesn't work, open BookHaven and enter the code manually.
+                        </p>
+                    </td>
+                </tr>
+
+                <!-- Divider -->
+                <tr>
+                    <td style="padding:0 32px;">
+                        <hr style="border:none; border-top:1px solid #e5e7eb; margin:16px 0;">
+                    </td>
+                </tr>
+
+                <!-- Info / Security -->
+                <tr>
+                    <td style="padding:0 32px 20px 32px;">
+                        <p style="margin:0 0 8px 0; font-size:13px; color:#4b5563; line-height:1.6;">
+                            If you did not sign up for a BookHaven account, you can safely ignore this email. Your
+                            email address may have been entered by mistake.
+                        </p>
+                        <p style="margin:0; font-size:12px; color:#9ca3af; line-height:1.6;">
+                            Please do not share this code with anyone. BookHaven will never ask you for your password.
+                        </p>
+                    </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                    <td style="background-color:#f9fafb; padding:14px 32px; text-align:center;">
+                        <p style="margin:0; font-size:11px; color:#9ca3af;">
+                            © {{ datetime.utcnow().year if false else '2025' }} BookHaven Online. All rights reserved.
+                        </p>
+                        <p style="margin:4px 0 0 0; font-size:11px; color:#9ca3af;">
+                            You’re receiving this email because an account was created using this address.
+                        </p>
+                    </td>
+                </tr>
+
+            </table>
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>

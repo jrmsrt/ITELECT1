@@ -1,0 +1,126 @@
+{% extends 'user/main_header.html' %}
+{% block content %}
+
+<title>About BookHaven</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user/about.css') }}">
+
+<section class="bg">
+    <div class="about-banner">
+        <h2>About <span>BookHaven</span></h2>
+        <p>Your cozy online sanctuary for stories and imagination.</p>
+    </div>
+</section>
+
+<div class="container">
+    <div class="white-card">
+        <h2 class="section-title">Our Platform</h2>
+        <div class="underline"></div>
+
+            <p>
+                BookHaven is a story-centered online bookstore designed to bring the warmth
+                of a neighborhood bookshop to your screen. Whether you love timeless classics,
+                contemporary bestsellers, manga, or hidden indie gems, BookHaven curates titles
+                that spark curiosity and comfort.
+            <br><br>
+                Built as a web-based platform, BookHaven lets readers discover books,
+                track their orders, and explore personalized recommendations—all in one cozy,
+                carefully crafted space. Our goal is to make finding your next read feel
+                magical instead of overwhelming.
+            <br><br>
+                As we grow, we continue to fine-tune our collections, recommendations, and
+                user experience based on real reader feedback. Every small improvement is
+                made with one thing in mind: helping you fall in love with reading all over again.
+            </p>
+    </div>
+</div>
+
+<section class="features">
+<div class="container">
+    <h2 class="section-title">What Readers Can Do</h2>
+    <div class="underline"></div>
+
+    <div class="grid">
+        <div class="feature-box">
+            <div class="feature-box-icon"><i class="fa-solid fa-book-open"></i></div>
+            <div>
+                <h3>Browse Curated Shelves</h3>
+                <p>Explore themed collections, from cozy reads to epic adventures, hand-picked by book lovers.</p>
+            </div>
+        </div>
+
+        <div class="feature-box">
+            <div class="feature-box-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+            <div>
+                <h3>Get Personalized Picks</h3>
+                <p>Find recommendations that match your favorite genres, moods, and tropes.</p>
+            </div>
+        </div>
+
+        <div class="feature-box">
+            <div class="feature-box-icon"><i class="fa-solid fa-basket-shopping"></i></div>
+            <div>
+                <h3>Build Your Cart</h3>
+                <p>Add books to your cart and save titles you want to come back to later.</p>
+            </div>
+        </div>
+
+        <div class="feature-box">
+            <div class="feature-box-icon"><i class="fa-solid fa-gift"></i></div>
+            <div>
+                <h3>Share the Love</h3>
+                <p>Send books as gifts to friends and loved ones who need a good story.</p>
+            </div>
+        </div>
+
+        <div class="feature-box">
+            <div class="feature-box-icon"><i class="fa-solid fa-bell"></i></div>
+            <div>
+                <h3>Stay Updated</h3>
+                <p>Keep up with new releases, special offers, and seasonal recommendations.</p>
+            </div>
+        </div>
+
+        <div class="feature-box">
+            <div class="feature-box-icon"><i class="fa-solid fa-book"></i></div>
+            <div>
+                <h3>Track Your Reading</h3>
+                <p>Keep a log of books you've finished, are currently reading, or want to explore next.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="small-banner">
+        Every order is packed with care — your next favorite story arrives feeling special.
+    </div>
+</div>
+</section>
+
+<div class="mission-section soft-panel">
+    <h1>Our Mission</h1>
+    <p>To make reading feel like coming home. BookHaven exists to create a warm, welcoming space where every reader can discover stories that inspire, comfort, challenge, and delight.</p>
+</div>
+
+<div class="container">
+    <div class="white-card">
+        <h2 class="section-title">Privacy & User Rights</h2>
+        <div class="underline"></div>
+
+        <p>
+            At BookHaven, we value your trust and are committed to protecting your personal
+            information. Your account details and order history are securely stored and
+            accessed only for the purpose of improving your experience. We do not sell your
+            data to third parties, and we only send you newsletters or updates if you choose
+            to receive them.
+        <br>
+            <br><b>As a reader, you have the right to:</b>
+        </p>
+        <ul>
+            <li>Access and update your personal information.</li>
+            <li>Choose what types of emails and notifications you receive.</li>
+            <li>Request clarification on how your data is used.</li>
+            <li>Enjoy a secure, book-first experience without intrusive tracking.</li>
+        </ul>
+    </div>
+</div>
+
+{% endblock %}

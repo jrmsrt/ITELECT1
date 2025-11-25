@@ -10,12 +10,9 @@
 :root {
     --gold: #e7c286;
     --dark-color: #d4a65e;
-    --black: #444;
-    --light-color: #666;
     --burgundy: #7b2d43;
-    --border: .1rem solid rgba(0,0,0, .1);
-    --border-hover: .1rem solid var(--black);
-    --box-shadow: 0 .5rem 1rem rgba(0,0,0, .1);
+    --input-border: #e5e7eb;
+    --placeholder: #9ca3af;
 }
 
 .container {
@@ -74,7 +71,7 @@
   flex: 1;
   min-width: 250px;
   padding: 0.7rem 1rem;
-  border: 2px solid #ccc;
+  border: 2px solid var(--input-border);
   border-radius: 10px;
   font-size: 0.95rem;
   outline: none;
@@ -88,7 +85,7 @@
 
 .filter-select {
   padding: 0.6rem 0.8rem;
-  border: 2px solid #ccc;
+  border: 2px solid var(--input-border);
   border-radius: 10px;
   background: #fff;
   font-size: 0.9rem;
@@ -211,7 +208,7 @@
   position: absolute;
   top: 15px;
   right: 15px;
-  width: 40px;               /* fixed size ensures a perfect circle */
+  width: 40px;
   height: 40px;
   background: rgba(255, 255, 255, 0.95);
   border: none;
@@ -271,6 +268,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  white-space: nowrap;
   gap: 6px;
   padding: 10px 14px;
   font-size: 0.9rem;

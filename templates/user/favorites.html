@@ -1,0 +1,165 @@
+﻿{% extends 'user/main_header.html' %}
+
+{% block content %}
+
+<title>Favorites | BookHaven</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user/shop_books.css') }}">
+
+<section class="shop-books">
+    <h2>Your Favorites <span>Collection</span></h2>
+    <p class="subtitle">
+        All the books you've loved and saved in one cozy shelf.
+    </p>
+
+    <!-- Unified Search + Filter Block -->
+    <div class="filter-bar">
+        <input type="text" placeholder="Search by title, author, or genre..." class="search-input">
+            <select class="filter-select">
+                <option value="">Filter by Title</option>
+                <option value="Into the Unknown">Into the Unknown</option>
+                <option value="Winds of Change">Winds of Change</option>
+            </select>
+            <select class="filter-select">
+                <option value="">Filter by Author</option>
+                <option value="John Smith">John Smith</option>
+                <option value="Ava Stone">Ava Stone</option>
+            </select>
+            <select class="filter-select">
+                <option value="">Filter by Genre</option>
+                <option value="Fiction">Fiction</option>
+                <option value="Adventure">Adventure</option>
+                <option value="Romance">Romance</option>
+                <option value="Fantasy">Fantasy</option>
+            </select>
+            <button class="filter-btn">
+                <i class="fa-solid fa-filter"></i> Apply
+            </button>
+        </div>
+
+        <div class="results-count">
+            Showing 5 results
+        </div>
+
+        <!-- Grid Container -->
+        <div class="book-grid">
+            <!-- Book Card -->
+            <div class="book-card">
+            <div class="book-cover">
+                <img src="/static/media/book1.jpg" alt="Book 1">
+                <button class="fav-btn" title="Add to Favorites">
+                <i class="fa-regular fa-heart regular-heart"></i>
+                <i class="fa-solid fa-heart solid-heart"></i>
+                </button>
+            </div>
+            <h3>Into the Unknown</h3>
+            <span class="genre">Fiction</span>
+            <p class="desc">A gripping saga of survival in uncharted lands</p>
+            <span class="price">$10.00</span>
+
+            <div class="book-bottom-actions">
+                <button class="action-btn add-cart">
+                <i class="fa-solid fa-heart-circle-xmark"></i> Unfavorite
+                </button>
+                <button class="action-btn details">
+                <i class="fas fa-info-circle"></i> Details
+                </button>
+            </div>
+            </div>
+
+            <!-- Duplicate this card for more books -->
+            <div class="book-card">
+            <div class="book-cover">
+                <img src="/static/media/book1.jpg" alt="Book 2">
+                <button class="fav-btn" title="Add to Favorites">
+                <i class="fa-regular fa-heart regular-heart"></i>
+                <i class="fa-solid fa-heart solid-heart"></i>
+                </button>
+            </div>
+            <h3>Winds of Change</h3>
+            <span class="genre">Adventure</span>
+            <p class="desc">Journey into the heart of discovery and resilience.</p>
+            <span class="price">$12.00</span>
+
+            <div class="book-bottom-actions">
+                <button class="action-btn add-cart">
+                <i class="fa-solid fa-heart-circle-xmark"></i> Unfavorite
+                </button>
+                <button class="action-btn details">
+                <i class="fas fa-info-circle"></i> Details
+                </button>
+            </div>
+            </div>
+
+            <div class="book-card">
+            <div class="book-cover">
+                <img src="/static/media/book1.jpg" alt="Book 2">
+                <button class="fav-btn" title="Add to Favorites">
+                <i class="fa-regular fa-heart regular-heart"></i>
+                <i class="fa-solid fa-heart solid-heart"></i>
+                </button>
+            </div>
+            <h3>Winds of Change</h3>
+            <span class="genre">Weh</span>
+            <p class="desc">Journey into the heart of discovery and resilience.</p>
+            <span class="price">$12.00</span>
+
+            <div class="book-bottom-actions">
+                <button class="action-btn add-cart">
+                <i class="fa-solid fa-heart-circle-xmark"></i> Unfavorite
+                </button>
+                <button class="action-btn details">
+                <i class="fas fa-info-circle"></i> Details
+                </button>
+            </div>
+            </div>
+
+            <div class="book-card">
+            <div class="book-cover">
+                <img src="/static/media/book1.jpg" alt="Book 2">
+                <button class="fav-btn" title="Add to Favorites">
+                <i class="fa-regular fa-heart regular-heart"></i>
+                <i class="fa-solid fa-heart solid-heart"></i>
+                </button>
+            </div>
+            <h3>Winds of Bansh</h3>
+            <span class="genre">Adventure</span>
+            <p class="desc">Journey into the heart of discovery and resilience.</p>
+            <span class="price">$12.00</span>
+
+            <div class="book-bottom-actions">
+                <button class="action-btn add-cart">
+                <i class="fa-solid fa-heart-circle-xmark"></i> Unfavorite
+                </button>
+                <button class="action-btn details">
+                <i class="fas fa-info-circle"></i> Details
+                </button>
+            </div>
+            </div>
+
+            <div class="book-card">
+            <div class="book-cover">
+                <img src="/static/media/book1.jpg" alt="Book 2">
+                <button class="fav-btn" title="Add to Favorites">
+                <i class="fa-regular fa-heart regular-heart"></i>
+                <i class="fa-solid fa-heart solid-heart"></i>
+                </button>
+            </div>
+            <h3>Winds of Change</h3>
+            <span class="genre">Adventure</span>
+            <p class="desc">Journey into the heart of discovery and resilience.</p>
+            <span class="price">$12.00</span>
+
+            <div class="book-bottom-actions">
+                <button class="action-btn add-cart">
+                <i class="fa-solid fa-heart-circle-xmark"></i> Unfavorite
+                </button>
+                <button class="action-btn details">
+                <i class="fas fa-info-circle"></i> Details
+                </button>
+            </div>
+            </div>
+
+            <!-- Add more cards as needed -->
+        </div>
+</section>
+{% endblock %}
