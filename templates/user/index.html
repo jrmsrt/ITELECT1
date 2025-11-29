@@ -57,28 +57,69 @@
 <script src="/static/js/scripts.js"></script>
 
 <!-- Features Section -->
-<section class="features">
-    <div class="container">
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon mission"><i class="fa-solid fa-shopping-cart"></i></div>
-                <h3>Easy Ordering System</h3>
-                <p>Browse, select, and order books with just a few clicks — hassle-free and user-friendly.</p>
+<section class="featured-books">
+    <h2><span>Featured</span> Books</h2>
+    <p class="subtitle">
+        Fresh picks, trending titles, and must-read gems — find your next favorite book here!
+    </p>
+
+    <!-- Swiper Container -->
+    <div class="swiper book-slider">
+        <div class="swiper-wrapper">
+
+            {% for book in featured_books %}
+            <div class="swiper-slide book-card">
+
+                <div class="book-cover">
+                    {% if book.cover %}
+                        <img src="{{ url_for('static', filename='uploads/' ~ book.cover) }}" alt="{{ book.title }}">
+                    {% else %}
+                        <img src="/static/images/no-cover.png" alt="No cover available">
+                    {% endif %}
+                </div>
+
+                <h3 class="book-title">{{ book.title }}</h3>
+                <p class="book-meta">
+                    by <span>{{ book.author }}</span> | {{ book.genre }}
+                </p>
+                <p class="desc">{{ book.description }}</p>
+                <div class="price-stock">
+                    <span class="price">₱{{ '%.2f' | format(book.price) }}</span>
+
+                    {% if book.stock_quantity > 0 %}
+                        <span class="stock">{{ book.stock_quantity }} in stock</span>
+                    {% else %}
+                        <span class="stock out">Out of Stock</span>
+                    {% endif %}
+                </div>
+
+                <!-- Bottom Action Buttons -->
+                <div class="book-bottom-actions">
+                    <button class="action-btn add-cart">
+                        <i class="fas fa-shopping-cart"></i> Add to Cart
+                    </button>
+                    <a href="{{ url_for('shop_books') }}" class="action-btn details">
+                        <i class="fas fa-info-circle"></i> Details
+                    </a>
+                </div>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon vision"><i class="fa-solid fa-search"></i></div>
-                <h3>Smart Book Search & Filters</h3>
-                <p>Quickly find books by title, author, genre, or availability. Advanced filters make discovery fast and intuitive.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon values"><i class="fa-solid fa-truck-fast"></i></div>
-                <h3>Pick-Up or Delivery Options</h3>
-                <p>✓ Pick up from our store or library counter
-                    ✓ Get books delivered straight to your door</p>
-            </div>
+            {% endfor %}
+
         </div>
+
+        <div class="swiper-pagination"></div>
+        <div class="swiper-button-prev"></div>
+        <div class="swiper-button-next"></div>
+    </div>
+
+    <div class="view-all-container">
+        <a href="{{ url_for('shop_books') }}" class="view-all-btn">
+            View All Books
+            <i class="fa-solid fa-arrow-right"></i>
+        </a>
     </div>
 </section>
+
 
 <!-- featured-books Section -->
 <section class="featured-books">
@@ -93,12 +134,6 @@
             <div class="swiper-slide book-card">
                 <div class="book-cover">
                     <img src="/static/media/book1.jpg" alt="Book 1">
-
-                    <!-- Favorite Icon (hover only) -->
-                    <button class="fav-btn" title="Add to Favorites">
-                        <i class="fa-regular fa-heart regular-heart"></i>
-                        <i class="fa-solid fa-heart solid-heart"></i>
-                    </button>
                 </div>
 
                 <h3>Into the Unknown</h3>

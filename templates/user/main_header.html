@@ -41,7 +41,7 @@
                     <a href="{{ url_for('cart') }}" class="icon"><i class="fa-brands fa-opencart"></i></a>
                     <span class="icon-count">0</span> <!-- Cart count -->
                 </div>
-                <div class="icon-wrapper">
+                <div class="icon-wrapper {% if request.endpoint == 'favorites' %}active{% endif %}">
                     <a href="{{ url_for('favorites') }}" class="icon"><i class="fa-regular fa-heart"></i></a>
                     <span class="icon-count">0</span> <!-- Favorites count -->
                 </div>

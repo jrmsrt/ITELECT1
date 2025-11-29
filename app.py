@@ -52,11 +52,21 @@ def get_serializer():
 
 @app.route('/')
 def home():
-    return render_template('user/index.html')
 
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    # Example: fetch the 6 most recently added books
+    cursor.execute("SELECT * FROM books ORDER BY created_at DESC LIMIT 6")
+    featured_books = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return render_template('user/index.html', featured_books=featured_books)
 
 # =========================
-#  USER LOGIN ROUTE (Now handles both User and Admin)
+#  USER LOGIN ROUTE
 # =========================
 @app.route('/user-login', methods=['GET', 'POST'])
 def user_login():
@@ -541,23 +551,109 @@ def about():
 def contact():
     return render_template('user/contact.html')
 
+
+# =========================
+#  SHOP BOOKS ROUTE
+# =========================
 @app.route('/shop-books')
 def shop_books():
-    if 'admin' not in session:
-        return redirect('/user-login')
+    user_id = session.get('user_id')
 
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
+
     cursor.execute("SELECT * FROM books ORDER BY id")
     books = cursor.fetchall()
+
+    if user_id:
+        cursor.execute("SELECT book_id FROM favorites WHERE user_id=%s", (user_id,))
+        favorite_rows = cursor.fetchall()
+        favorite_ids = {row['book_id'] for row in favorite_rows}
+    else:
+        favorite_ids = set()
+
     cursor.close()
     conn.close()
 
-    return render_template('user/shop_books.html', books=books, active_page='shop_books')
+    return render_template(
+        'user/shop_books.html',
+        books=books,
+        favorite_ids=favorite_ids
+    )
 
+
+# =========================
+#  FAVORITES ROUTE
+# =========================
 @app.route('/favorites')
 def favorites():
-    return render_template('user/favorites.html')
+    if 'user_id' not in session:
+        return redirect('/login')
+
+    user_id = session['user_id']
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT b.*
+        FROM favorites f
+        JOIN books b ON f.book_id = b.id
+        WHERE f.user_id = %s
+        ORDER BY f.id DESC
+    """, (user_id,))
+
+    books = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return render_template('user/favorites.html', books=books, active_page=favorites)
+
+@app.route('/toggle_favorite/<int:book_id>', methods=['POST'])
+def toggle_favorite(book_id):
+    if 'user_id' not in session:
+        return jsonify({"status": "not_logged_in"})
+
+    user_id = session['user_id']
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    # Check if favorite exists
+    cursor.execute("SELECT * FROM favorites WHERE user_id=%s AND book_id=%s", (user_id, book_id))
+    existing = cursor.fetchone()
+
+    if existing:
+        # Remove favorite
+        cursor.execute("DELETE FROM favorites WHERE user_id=%s AND book_id=%s", (user_id, book_id))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return jsonify({"status": "removed"})
+    else:
+        # Add favorite
+        cursor.execute("INSERT INTO favorites (user_id, book_id) VALUES (%s, %s)", (user_id, book_id))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return jsonify({"status": "added"})
+
+@app.route('/remove_favorite/<int:book_id>')
+def remove_favorite(book_id):
+    if 'user_id' not in session:
+        return redirect('/login')
+
+    user_id = session['user_id']
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM favorites WHERE user_id=%s AND book_id=%s", (user_id, book_id))
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return redirect('/favorites')
+
 
 @app.route('/cart')
 def cart():
@@ -701,6 +797,9 @@ def delete_book(book_id):
     return redirect(url_for('manage_books'))
 
 
+# =========================
+#  ADD BOOK ROUTE
+# =========================
 @app.route('/admin/add-book', methods=['GET', 'POST'])
 def add_book():
     if 'admin' not in session:

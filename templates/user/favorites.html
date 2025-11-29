@@ -3,163 +3,103 @@
 {% block content %}
 
 <title>Favorites | BookHaven</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/user/shop_books.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user/favorites.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{{ url_for('static', filename='js/books.js') }}" defer></script>
 
-<section class="shop-books">
+<section class="favorites">
     <h2>Your Favorites <span>Collection</span></h2>
     <p class="subtitle">
         All the books you've loved and saved in one cozy shelf.
     </p>
 
-    <!-- Unified Search + Filter Block -->
+    <!-- Search + Filters -->
     <div class="filter-bar">
-        <input type="text" placeholder="Search by title, author, or genre..." class="search-input">
-            <select class="filter-select">
-                <option value="">Filter by Title</option>
-                <option value="Into the Unknown">Into the Unknown</option>
-                <option value="Winds of Change">Winds of Change</option>
-            </select>
-            <select class="filter-select">
-                <option value="">Filter by Author</option>
-                <option value="John Smith">John Smith</option>
-                <option value="Ava Stone">Ava Stone</option>
-            </select>
-            <select class="filter-select">
-                <option value="">Filter by Genre</option>
-                <option value="Fiction">Fiction</option>
-                <option value="Adventure">Adventure</option>
-                <option value="Romance">Romance</option>
-                <option value="Fantasy">Fantasy</option>
-            </select>
-            <button class="filter-btn">
-                <i class="fa-solid fa-filter"></i> Apply
-            </button>
+        <input type="text" id="searchBar" placeholder="Search by title, author, or genre..." class="search-input">
+
+        <select class="filter-select" id="titleFilter">
+            <option value="">Filter by Title</option>
+            {% for book in books %}
+                <option value="{{ book.title }}">{{ book.title }}</option>
+            {% endfor %}
+        </select>
+
+        <select class="filter-select" id="authorFilter">
+            <option value="">Filter by Author</option>
+            {% for book in books %}
+                <option value="{{ book.author }}">{{ book.author }}</option>
+            {% endfor %}
+        </select>
+
+        <select class="filter-select" id="genreFilter">
+            <option value="">Filter by Genre</option>
+            {% for book in books %}
+                <option value="{{ book.genre }}">{{ book.genre }}</option>
+            {% endfor %}
+        </select>
+
+        <button class="filter-btn" onclick="applyFilters()">
+            <i class="fa-solid fa-filter"></i> Apply
+        </button>
+
+        <button class="reset-btn" onclick="resetFilters()">
+            <i class="fa-solid fa-rotate-left"></i> Reset
+        </button>
+    </div>
+
+
+    <div class="results-count" id="resultCount">
+        Showing {{ books|length }} results
+    </div>
+
+    <!-- BOOK GRID -->
+    <div class="book-grid" id="bookGrid">
+        {% for book in books %}
+        <div class="book-card"
+             data-title="{{ book.title|lower }}"
+             data-author="{{ book.author|lower }}"
+             data-genre="{{ book.genre|lower }}"
+             data-description="{{ book.description|lower }}">
+
+            <div class="book-cover">
+                {% if book.cover %}
+                    <img src="{{ url_for('static', filename='uploads/' ~ book.cover) }}">
+                {% else %}
+                    <img src="/static/images/no-cover.png">
+                {% endif %}
+            </div>
+
+            <h3 class="book-title">{{ book.title }}</h3>
+            <p class="book-meta">
+                by <span>{{ book.author }}</span> | {{ book.genre }}
+            </p>
+            <p class="desc">{{ book.description }}</p>
+
+            <div class="price-stock">
+                <span class="price">₱{{ '%.2f' | format(book.price) }}</span>
+
+                {% if book.stock_quantity > 0 %}
+                    <span class="stock">{{ book.stock_quantity }} in stock</span>
+                {% else %}
+                    <span class="stock out">Out of Stock</span>
+                {% endif %}
+            </div>
+
+            <div class="book-bottom-actions">
+                <button class="action-btn unfav"
+                        onclick="confirmUnfavorite('{{ book.id }}')">
+                    <i class="fa-solid fa-heart-crack"></i> Unfavorite
+                </button>
+
+                <button class="action-btn details">
+                    <i class="fas fa-info-circle"></i> Details
+                </button>
+            </div>
+
         </div>
+        {% endfor %}
+    </div>
 
-        <div class="results-count">
-            Showing 5 results
-        </div>
-
-        <!-- Grid Container -->
-        <div class="book-grid">
-            <!-- Book Card -->
-            <div class="book-card">
-            <div class="book-cover">
-                <img src="/static/media/book1.jpg" alt="Book 1">
-                <button class="fav-btn" title="Add to Favorites">
-                <i class="fa-regular fa-heart regular-heart"></i>
-                <i class="fa-solid fa-heart solid-heart"></i>
-                </button>
-            </div>
-            <h3>Into the Unknown</h3>
-            <span class="genre">Fiction</span>
-            <p class="desc">A gripping saga of survival in uncharted lands</p>
-            <span class="price">$10.00</span>
-
-            <div class="book-bottom-actions">
-                <button class="action-btn add-cart">
-                <i class="fa-solid fa-heart-circle-xmark"></i> Unfavorite
-                </button>
-                <button class="action-btn details">
-                <i class="fas fa-info-circle"></i> Details
-                </button>
-            </div>
-            </div>
-
-            <!-- Duplicate this card for more books -->
-            <div class="book-card">
-            <div class="book-cover">
-                <img src="/static/media/book1.jpg" alt="Book 2">
-                <button class="fav-btn" title="Add to Favorites">
-                <i class="fa-regular fa-heart regular-heart"></i>
-                <i class="fa-solid fa-heart solid-heart"></i>
-                </button>
-            </div>
-            <h3>Winds of Change</h3>
-            <span class="genre">Adventure</span>
-            <p class="desc">Journey into the heart of discovery and resilience.</p>
-            <span class="price">$12.00</span>
-
-            <div class="book-bottom-actions">
-                <button class="action-btn add-cart">
-                <i class="fa-solid fa-heart-circle-xmark"></i> Unfavorite
-                </button>
-                <button class="action-btn details">
-                <i class="fas fa-info-circle"></i> Details
-                </button>
-            </div>
-            </div>
-
-            <div class="book-card">
-            <div class="book-cover">
-                <img src="/static/media/book1.jpg" alt="Book 2">
-                <button class="fav-btn" title="Add to Favorites">
-                <i class="fa-regular fa-heart regular-heart"></i>
-                <i class="fa-solid fa-heart solid-heart"></i>
-                </button>
-            </div>
-            <h3>Winds of Change</h3>
-            <span class="genre">Weh</span>
-            <p class="desc">Journey into the heart of discovery and resilience.</p>
-            <span class="price">$12.00</span>
-
-            <div class="book-bottom-actions">
-                <button class="action-btn add-cart">
-                <i class="fa-solid fa-heart-circle-xmark"></i> Unfavorite
-                </button>
-                <button class="action-btn details">
-                <i class="fas fa-info-circle"></i> Details
-                </button>
-            </div>
-            </div>
-
-            <div class="book-card">
-            <div class="book-cover">
-                <img src="/static/media/book1.jpg" alt="Book 2">
-                <button class="fav-btn" title="Add to Favorites">
-                <i class="fa-regular fa-heart regular-heart"></i>
-                <i class="fa-solid fa-heart solid-heart"></i>
-                </button>
-            </div>
-            <h3>Winds of Bansh</h3>
-            <span class="genre">Adventure</span>
-            <p class="desc">Journey into the heart of discovery and resilience.</p>
-            <span class="price">$12.00</span>
-
-            <div class="book-bottom-actions">
-                <button class="action-btn add-cart">
-                <i class="fa-solid fa-heart-circle-xmark"></i> Unfavorite
-                </button>
-                <button class="action-btn details">
-                <i class="fas fa-info-circle"></i> Details
-                </button>
-            </div>
-            </div>
-
-            <div class="book-card">
-            <div class="book-cover">
-                <img src="/static/media/book1.jpg" alt="Book 2">
-                <button class="fav-btn" title="Add to Favorites">
-                <i class="fa-regular fa-heart regular-heart"></i>
-                <i class="fa-solid fa-heart solid-heart"></i>
-                </button>
-            </div>
-            <h3>Winds of Change</h3>
-            <span class="genre">Adventure</span>
-            <p class="desc">Journey into the heart of discovery and resilience.</p>
-            <span class="price">$12.00</span>
-
-            <div class="book-bottom-actions">
-                <button class="action-btn add-cart">
-                <i class="fa-solid fa-heart-circle-xmark"></i> Unfavorite
-                </button>
-                <button class="action-btn details">
-                <i class="fas fa-info-circle"></i> Details
-                </button>
-            </div>
-            </div>
-
-            <!-- Add more cards as needed -->
-        </div>
 </section>
+
 {% endblock %}

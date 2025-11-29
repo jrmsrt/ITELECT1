@@ -56,26 +56,28 @@
 
 /* Filter Bar Styles */
 .filter-bar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin: 2rem auto;
-  padding: 1rem 1.5rem;
-  max-width: 1200px;
-  width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 90%;
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0.8rem 1rem;
+    flex-wrap: nowrap; /* PREVENTS WRAPPING */
 }
 
+
 .search-input {
-  flex: 1;
-  min-width: 250px;
-  padding: 0.7rem 1rem;
-  border: 2px solid var(--input-border);
-  border-radius: 10px;
-  font-size: 0.95rem;
-  outline: none;
-  transition: 0.2s;
+    flex: 1; /* takes all extra space */
+    min-width: 180px;
+    padding: 0.7rem 1rem;
+    border: 2px solid var(--input-border);
+    border-radius: 10px;
+    font-size: 0.95rem;
+    outline: none;
+    transition: 0.2s;
+    white-space: nowrap;
 }
 
 .search-input:focus,
@@ -84,13 +86,15 @@
 }
 
 .filter-select {
-  padding: 0.6rem 0.8rem;
-  border: 2px solid var(--input-border);
-  border-radius: 10px;
-  background: #fff;
-  font-size: 0.9rem;
-  outline: none;
-  transition: 0.2s;
+    width: 170px;
+    padding: 0.6rem 0.8rem;
+    border: 2px solid var(--input-border);
+    border-radius: 10px;
+    background: #fff;
+    font-size: 0.9rem;
+    outline: none;
+    transition: 0.2s;
+    white-space: nowrap;
 }
 
 .filter-select:hover,
@@ -117,6 +121,23 @@
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
     transform: translateY(-2px);
     filter: brightness(1.08);
+}
+
+.reset-btn {
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    background: #ddd;
+    color: #333;
+    transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.reset-btn:hover {
+    background: #c9c9c9;
+    transform: translateY(-2px);
 }
 
 .results-count {
@@ -169,17 +190,20 @@
   object-fit: cover;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.477);
-}
-
-/* Hover Effect on Book Image */
-.book-cover img:hover {
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.575);
+  cursor: pointer;
 }
 
 /* Book Information */
 /* Book Information */
 /* Title */
 .book-card .book-title {
+  white-space: pre-line;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-clamp: 3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
   margin-top: 12px;
   font-size: 1rem;
   font-weight: 600;
@@ -198,13 +222,36 @@
   color: var(--burgundy);
 }
 
+.book-meta {
+    display: flex;
+    gap: 4px;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.book-meta span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 90px; /* or any size you want */
+}
+
 /* Description — keep if still needed elsewhere */
 .book-card .desc {
-  font-size: 0.9rem;
-  color: #888;
-  margin: 5px 0;
-  line-height: 1.3;
-}
+   white-space: pre-line;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-clamp: 3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    line-height: 1.4;
+    font-size: 0.9rem;
+    color: #888;
+    padding-top: 10px;
+ }
 
 /* Price */
 .price-stock {
@@ -258,25 +305,51 @@
   transform: scale(1.05);
 }
 
-/* Hide solid heart by default */
+/* Default: outline heart */
+.regular-heart {
+    display: inline-block;
+    color: var(--burgundy);
+}
+
+/* Default: solid heart hidden */
 .solid-heart {
-  display: none;
+    display: none;
+    color: var(--burgundy);
 }
 
-/* Hover effect — swap hearts */
-.fav-btn:hover .regular-heart {
-  display: none;
-}
-
-.fav-btn:hover .solid-heart {
-  display: inline-block;
-  color: #fff;
-}
-
-/* Button background and animation */
-.fav-btn:hover {
+/* When FAVORITED — show solid heart */
+.fav-btn.favorited {
   background: var(--burgundy);
-  transform: scale(1.15);
+}
+
+.fav-btn.favorited .regular-heart {
+    display: none;
+}
+.fav-btn.favorited .solid-heart {
+  color: white;
+    display: inline-block;
+}
+
+/* HOVER STATE — always show ONE white solid heart */
+.fav-btn:hover .regular-heart {
+    display: none !important;
+}
+.fav-btn:hover .solid-heart {
+    display: inline-block !important;
+    color: white !important;
+}
+
+/* Keep button visible when favorited */
+.fav-btn.favorited {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Hover button animation */
+.fav-btn:hover {
+    background: var(--burgundy);
+    transform: scale(1.15);
+    transition: 0.2s ease;
 }
 
 
