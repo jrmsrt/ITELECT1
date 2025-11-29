@@ -164,7 +164,7 @@
 /* Book Image */
 .book-cover img {
   width: 100%;
-  height: auto;
+  height: 250px;
   border-radius: 8px;
   object-fit: cover;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -177,20 +177,28 @@
 }
 
 /* Book Information */
-.book-card h3 {
+/* Book Information */
+/* Title */
+.book-card .book-title {
   margin-top: 12px;
   font-size: 1rem;
   font-weight: 600;
   color: #111;
 }
 
-.book-card .genre {
-  display: block;
+/* "by Author | Genre" */
+.book-card .book-meta {
   font-size: 0.85rem;
   color: #777;
   margin-top: 2px;
 }
 
+.book-meta span {
+  font-weight: bold;
+  color: var(--burgundy);
+}
+
+/* Description — keep if still needed elsewhere */
 .book-card .desc {
   font-size: 0.9rem;
   color: #888;
@@ -198,10 +206,29 @@
   line-height: 1.3;
 }
 
-.book-card .price {
-  font-size: 0.95rem;
-  color: #f39ca0;
-  font-weight: 500;
+/* Price */
+.price-stock {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-top: 6px;
+}
+
+.price-stock .price {
+    font-size: 0.95rem;
+    color: #f39ca0;
+    font-weight: 500;
+}
+
+.price-stock .stock {
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.price-stock .stock.out {
+    color: #d9534f; /* red */
+    font-weight: 600;
 }
 
 .fav-btn {

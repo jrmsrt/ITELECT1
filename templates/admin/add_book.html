@@ -1,0 +1,84 @@
+{% extends 'admin/sidebar.html' %}
+
+{% block content %}
+
+<title>Add Book</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/edit_book.css') }}">
+<script src="{{ url_for('static', filename='js/edit_book_btns.js') }}" defer></script>
+
+<div class="main-container">
+    <div class="content">
+
+        <!-- FORM WRAPS BOTH COLUMNS -->
+        <form id="addBookForm"
+              method="POST"
+              action="{{ url_for('add_book') }}"
+              enctype="multipart/form-data"
+              style="display: flex; width: 100%; gap: 20px;">
+
+            <!-- LEFT SIDE -->
+            <div class="left-container">
+                <h2>Add Book</h2>
+
+                <div class="image-preview-wrapper">
+                    <div class="image-preview" id="imagePreview">
+                        <span id="placeholder-text">Book Cover</span>
+                        <img id="preview-img" src="#" alt="Preview" style="display:none;">
+                    </div>
+                </div>
+
+                <div class="file-upload-wrapper">
+                    <input type="file" id="coverInput" name="cover"
+                           accept="image/*" onchange="previewImage(event)">
+                </div>
+            </div>
+
+            <!-- RIGHT SIDE -->
+            <div class="right-container">
+                <h2>Details</h2>
+
+                <label>Title:</label>
+                <input type="text" name="title" required>
+
+                <label>Author:</label>
+                <input type="text" name="author" required>
+
+                <label>Genre:</label>
+                <input type="text" name="genre" required>
+
+                <div class="flex-row">
+                    <div class="input-group">
+                        <label>Stock Quantity:</label>
+                        <input type="number" name="stock_quantity" min="0" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Price (₱):</label>
+                        <input type="number" name="price" min="0" step="0.01" required>
+                    </div>
+                </div>
+
+                <label>Description:</label>
+                <textarea name="description" rows="3" required></textarea>
+
+                <div class="button-group">
+                    <button type="submit" class="save-btn">
+                        <i class="fa-solid fa-plus"></i> Add Book
+                    </button>
+
+                    <button type="button" class="reset-btn" onclick="resetForm()">
+                        <i class="fa-solid fa-rotate-left"></i> Reset
+                    </button>
+
+                    <a href="{{ url_for('manage_books') }}" class="cancel-btn">
+                        <i class="fa-solid fa-xmark"></i> Cancel
+                    </a>
+                </div>
+
+            </div>
+
+        </form>
+    </div>
+</div>
+
+{% endblock %}

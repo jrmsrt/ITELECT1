@@ -12,48 +12,95 @@
     </div>
 
     <div class="signin-form" id="signin">
-        <a href="{{ url_for('user_index') }}" class="back-home">
+        <a href="{{ url_for('home') }}" class="back-home">
             <i class="fa-solid fa-arrow-left"></i> Back to Home
         </a>
 
         <h2>Sign In</h2>
+          <div class="segment-wrapper" role="tablist" aria-label="View selector">
+            <div class="segment" id="mySegment">
+            <button class="seg-btn" role="tab" aria-selected="false">Admin</button>
+            <button class="seg-btn" role="tab" aria-selected="false">User</button>
+
+            <span class="seg-indicator" aria-hidden="true"></span>
+            </div>
+        </div>
         <form action="" method="post">
             {% if msg %}
             <div class="alert {{ msg_type }}" id="alertBox" role="alert" aria-live="assertive">
                 <span class="alert-text">{{ msg }}</span>
-                <button class="close-btn" aria-label="Close alert" onclick="closeAlert()">×</button>
+                <button type="button" class="close-btn" aria-label="Close alert" onclick="closeAlert()">×</button>
             </div>
             {% endif %}
-            <div class="form-group">
-                <label for="email">Username or Email</label>
-                <input type="text" id="username" name="username"
-                    class="form-input"
-                    placeholder="Enter your username or email" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <div style="position: relative;">
-                    <input type="password" id="password" name="password" class="form-input" placeholder="Enter your password" required>
-                    <i class="fa fa-eye toggle-password" id="togglePassword"></i>
+
+            <!-- ADMIN FORM -->
+            <div id="admin-form" class="form-section">
+                <div class="form-group">
+                    <label for="admin-username">Admin Username</label>
+                    <input type="text" id="admin-username" name="admin_username"
+                        class="form-input"
+                        placeholder="Enter admin username">
+                </div>
+
+                <div class="form-group">
+                    <label for="admin-password">Password</label>
+                    <div style="position: relative;">
+                        <input type="password" id="admin-password" name="admin_password"
+                            class="form-input" placeholder="Enter admin password">
+                        <i class="fa fa-eye toggle-password"></i>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-signin">Sign In</button>
+
+                <div class="terms">
+                    By continuing, you are agreeing to BookHaven's 
+                    <a href="">Terms of Service</a> and 
+                    <a href="">Privacy Policy</a>
                 </div>
             </div>
-            <div class="form-row">
-                <a href="{{ url_for('forgot_password') }}" class="forgot-password">Forgot Password?</a>
-            </div>
-            <button type="submit" class="btn-signin">Sign In</button>
-            <div class="terms">
-                By continuing, you are agreeing to BookHaven's <a href="" style="color: #3498db;">Terms of Service</a> and <a href="" style="color: #3498db;">Privacy Policy</a>
-            </div>
-            <div class="register-link">
-                Don't have an account? 
-                <a href="{{ url_for('registration') }}">Register Here</a>
+
+            <!-- USER FORM -->
+            <div id="user-form" class="form-section">
+                <div class="form-group">
+                    <label for="username">Username or Email</label>
+                    <input type="text" id="username" name="username"
+                        class="form-input"
+                        placeholder="Enter your username or email">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div style="position: relative;">
+                        <input type="password" id="password" name="password"
+                            class="form-input" placeholder="Enter your password">
+                        <i class="fa fa-eye toggle-password" id="togglePassword"></i>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <a href="{{ url_for('forgot_password') }}" class="forgot-password">Forgot Password?</a>
+                </div>
+
+                <button type="submit" class="btn-signin">Sign In</button>
+
+                <div class="terms">
+                    By continuing, you are agreeing to BookHaven's 
+                    <a href="">Terms of Service</a> and 
+                    <a href="">Privacy Policy</a>
+                </div>
+
+                <div class="register-link">
+                    Don't have an account? 
+                    <a href="{{ url_for('registration') }}">Register Here</a>
+                </div>
             </div>
         </form>
     </div>
 </main>
-<script src="/static/js/toggle_password.js"></script>
-
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{{ url_for('static', filename='js/toggle_password.js') }}"></script>
+<script src="{{ url_for('static', filename='js/segment_button.js') }}"></script>
 
 <script>
 function closeAlert() {
@@ -77,10 +124,10 @@ document.addEventListener('DOMContentLoaded', function () {
         allowOutsideClick: false,
         allowEscapeKey: false,
         customClass: {
-        confirmButton: 'swal-confirm-btn'
-    }
+            confirmButton: 'swal-confirm-btn'
+        }
     }).then(() => {
-        window.location.href = 'user-index';
+        window.location.href = '{{ redirect_url }}';  // Dynamic redirect
     });
 });
 </script>

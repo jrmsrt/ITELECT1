@@ -6,6 +6,7 @@ from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 from flask_mail import Mail, Message
 from werkzeug.security import generate_password_hash
 from werkzeug.security import check_password_hash
+from werkzeug.utils import secure_filename
 import mysql.connector
 from flask_mysqldb import MySQL
 from flask import jsonify
@@ -13,16 +14,23 @@ import mysql.connector
 import re
 import string
 import secrets
+import os
 from datetime import datetime, timedelta
 
 app = Flask(__name__)
 app.secret_key = 'JRM0218@'
 
+UPLOAD_FOLDER = 'static/uploads'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# Create directory if it doesn't exist
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'thebookhaven.online@gmail.com'      # your email
-app.config['MAIL_PASSWORD'] = 'omhqtujoigtbrhji'   # app password
+app.config['MAIL_USERNAME'] = 'thebookhaven.online@gmail.com'
+app.config['MAIL_PASSWORD'] = 'omhqtujoigtbrhji'
 app.config['MAIL_DEFAULT_SENDER'] = 'thebookhaven.online@gmail.com'
 
 mail = Mail(app)
@@ -44,75 +52,93 @@ def get_serializer():
 
 @app.route('/')
 def home():
-    return render_template('landing_page.html')
-
-@app.route('/user-index')
-def user_index():
     return render_template('user/index.html')
 
 
 # =========================
-#  USER LOGIN ROUTE
+#  USER LOGIN ROUTE (Now handles both User and Admin)
 # =========================
 @app.route('/user-login', methods=['GET', 'POST'])
 def user_login():
-    # use session to pass message across redirect
     if request.method == 'POST':
-        username = request.form.get('username', '').strip()
-        password = request.form.get('password', '')
+        # Check if it's an admin login (based on presence of admin_username)
+        if 'admin_username' in request.form:
+            admin_username = request.form.get('admin_username', '').strip()
+            admin_password = request.form.get('admin_password', '')
 
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            # fetch by username OR email (only fetch user record, no password check in SQL)
-            cursor.execute("""
-                SELECT * FROM users
-                WHERE username = %s OR email = %s
-                LIMIT 1
-            """, (username, username))
-            user = cursor.fetchone()
-        finally:
-            cursor.close()
-            conn.close()
+            conn = get_connection()
+            cursor = conn.cursor(dictionary=True)
+            try:
+                cursor.execute("""
+                    SELECT * FROM admin
+                    WHERE username = %s
+                    LIMIT 1
+                """, (admin_username,))
+                admin = cursor.fetchone()
+            finally:
+                cursor.close()
+                conn.close()
 
-        if not user:
-            session['login_msg'] = "User not found. Please register an account to sign-in."
-            session['msg_type'] = "warning"
-            return redirect(url_for('user_login'))
-
-        stored_pw = user.get('password') or ''
-
-        # Try hashed password first (recommended). If check_password_hash returns False,
-        # fall back to plain-text compare (useful for legacy DBs).
-        password_ok = False
-        try:
-            if stored_pw and check_password_hash(stored_pw, password):
-                password_ok = True
-        except Exception:
-            # if stored_pw isn't a valid hash format, check_password_hash may raise; ignore and fallback
-            password_ok = False
-
-        if not password_ok:
-            # fallback: direct compare (avoid if you have hashed passwords)
-            if stored_pw == password:
-                password_ok = True
-
-        if password_ok:
-            # login success: set session and redirect to home
-            session['user'] = user['username']
-            session['user_id'] = user['id']
-            session['msg_type'] = "success"
-            # redirect back to the login page so we can show the SweetAlert and then JS will redirect to '/'
-            return redirect(url_for('user_login'))
+            if not admin or not check_password_hash(admin.get('password', ''), admin_password):
+                session['login_msg'] = "Invalid admin credentials."
+                session['msg_type'] = "error"
+                return redirect(url_for('user_login'))
+            else:
+                session['admin'] = admin['username']
+                session['admin_id'] = admin['id']
+                session['redirect_url'] = 'admin-dashboard'
+                session['msg_type'] = "success"
+                return redirect(url_for('user_login'))
         else:
-            session['login_msg'] = "Incorrect password."
-            session['msg_type'] = "error"
-            return redirect(url_for('user_login'))
+            username = request.form.get('username', '').strip()
+            password = request.form.get('password', '')
 
-    # GET: pop the message (POST->redirect->GET pattern)
+            conn = get_connection()
+            cursor = conn.cursor(dictionary=True)
+            try:
+                cursor.execute("""
+                    SELECT * FROM users
+                    WHERE username = %s OR email = %s
+                    LIMIT 1
+                """, (username, username))
+                user = cursor.fetchone()
+            finally:
+                cursor.close()
+                conn.close()
+
+            if not user:
+                session['login_msg'] = "User not found. Please register an account to sign-in."
+                session['msg_type'] = "warning"
+                return redirect(url_for('user_login'))
+
+            stored_pw = user.get('password') or ''
+
+            password_ok = False
+            try:
+                if stored_pw and check_password_hash(stored_pw, password):
+                    password_ok = True
+            except Exception:
+                password_ok = False
+
+            if not password_ok:
+                if stored_pw == password:
+                    password_ok = True
+
+            if password_ok:
+                session['user'] = user['username']
+                session['user_id'] = user['id']
+                session['redirect_url'] = '/'  # Redirect to user index
+                session['msg_type'] = "success"
+                return redirect(url_for('user_login'))
+            else:
+                session['login_msg'] = "Incorrect password."
+                session['msg_type'] = "error"
+                return redirect(url_for('user_login'))
+
     msg = session.pop('login_msg', '')
     msg_type = session.pop('msg_type', '')
-    return render_template('user/sign_in.html', msg=msg, msg_type=msg_type)
+    redirect_url = session.pop('redirect_url', '/')  # Default to user-index if not set
+    return render_template('user/sign_in.html', msg=msg, msg_type=msg_type, redirect_url=redirect_url)
 
 
 # =========================
@@ -166,11 +192,9 @@ def registration():
                     username=username
                 )
 
-            # ====== create verification code (stored in session, not DB) ======
             verification_code = generate_verification_code()
             expires_at = datetime.utcnow() + timedelta(minutes=15)
 
-            # Insert user as NOT verified yet
             cursor.execute(
                 """
                 INSERT INTO users
@@ -181,15 +205,12 @@ def registration():
             )
             conn.commit()
 
-            # Store code & expiry in session
             session['pending_email'] = email
             session['verification_code'] = verification_code
             session['verification_expires_at'] = expires_at.isoformat()
 
-            # Build verification URL (if you want a clickable link)
             verify_url = url_for('verify_account', _external=True)
 
-            # ----- send BookHaven-styled HTML verification email -----
             subject = "Verify your BookHaven account"
 
             html_body = render_template(
@@ -206,7 +227,6 @@ def registration():
             return redirect(url_for('verify_account'))
 
         except mysql.connector.Error as err:
-            # 1062 = duplicate entry (from UNIQUE index)
             if err.errno == 1062:
                 err_msg = str(err.msg).lower()
                 if "email" in err_msg:
@@ -232,7 +252,6 @@ def registration():
             cursor.close()
             conn.close()
 
-    # GET request → show empty form
     return render_template('user/registration.html', msg=msg, msg_type=msg_type)
 
 @app.route("/check_email")
@@ -262,12 +281,9 @@ def check_username():
 # =========================
 @app.route('/verify', methods=['GET', 'POST'])
 def verify_account():
-    # Pull any messages left in session by prior POSTs (PRG)
-    # Pull messages from session
     msg = session.pop('verify_msg', '')
     msg_type = session.pop('verify_msg_type', '')
 
-    # Enforce valid message type
     if msg and msg_type not in ("error", "success"):
         msg_type = "error"
 
@@ -276,7 +292,6 @@ def verify_account():
     expires_at_str = session.get('verification_expires_at')
 
     if not email or not code_in_session or not expires_at_str:
-        # No pending verification — force re-register (or show flash)
         flash("No pending verification or your session has expired. Please register again.", "error")
         return redirect(url_for('registration'))
 
@@ -286,7 +301,6 @@ def verify_account():
         expires_at = None
 
     if request.method == 'POST':
-        # Build code from six inputs (or single)
         code = request.form.get('code', '').strip()
         if not code:
             code = ''.join([
@@ -298,27 +312,22 @@ def verify_account():
                 request.form.get('code6', '').strip(),
             ])
 
-        # Validation
         if not code:
-            # set session message and redirect (PRG) so refresh won't resubmit
             session['verify_msg'] = "Please enter the verification code."
             session['verify_msg_type'] = "error"
             return redirect(url_for('verify_account'))
 
         if not expires_at or datetime.utcnow() > expires_at:
-            # expired: clear pending and ask to register again
             session.clear()
             session['verify_msg'] = "Verification code has expired. Please register again."
             session['verify_msg_type'] = "error"
             return redirect(url_for('verify_account'))
 
         if code != str(code_in_session):
-            # wrong code -> show error via session and redirect back to GET
             session['verify_msg'] = "Invalid verification code. Please try again."
             session['verify_msg_type'] = "error"
             return redirect(url_for('verify_account'))
 
-        # Success -> update DB
         conn = get_connection()
         cursor = conn.cursor(dictionary=True)
         try:
@@ -328,7 +337,6 @@ def verify_account():
             cursor.close()
             conn.close()
 
-        # Clean up session but keep a success flag for showing the success modal
         session.pop('pending_email', None)
         session.pop('verification_code', None)
         session.pop('verification_expires_at', None)
@@ -336,7 +344,6 @@ def verify_account():
         session['verify_success'] = True
         return redirect(url_for('verify_account'))
 
-    # --- GET request: check for success flag or session message and render ---
     verified_success = session.pop('verify_success', False)
 
     return render_template(
@@ -355,18 +362,14 @@ def resend_code():
     email = session.get('pending_email')
 
     if not email:
-        # session expired or no pending registration
-        # use flash and redirect to registration page
         flash("Your session has expired. Please register again.", "error")
         return redirect(url_for('registration'))
 
-    # Generate new code and update session expiry
     new_code = generate_verification_code()
     expires_at = datetime.utcnow() + timedelta(minutes=15)
     session['verification_code'] = new_code
     session['verification_expires_at'] = expires_at.isoformat()
 
-    # Get user's first name from DB (if available)
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
     try:
@@ -378,7 +381,6 @@ def resend_code():
 
     first_name = (user["name"].split(" ")[0]) if user and user.get("name") else "Booklover"
 
-    # Send verification email
     verify_url = url_for('verify_account', _external=True)
     subject = "Your New BookHaven Verification Code"
     html_body = render_template(
@@ -392,7 +394,6 @@ def resend_code():
     msg_mail.html = html_body
     mail.send(msg_mail)
 
-    # Use session to pass message to the GET page, then redirect (PRG)
     session['verify_msg'] = "A new verification code has been sent to your email."
     session['verify_msg_type'] = "success"
 
@@ -410,7 +411,6 @@ def reset_password(token):
     s = get_serializer()
 
     try:
-        # max_age in seconds → e.g. 3600 = 1 hour
         email = s.loads(token, salt='password-reset-salt', max_age=3600)
     except SignatureExpired:
         msg = "This password reset link has expired. Please request a new one."
@@ -419,12 +419,10 @@ def reset_password(token):
         msg = "Invalid or corrupted password reset link."
         return render_template('user/reset_password.html', msg=msg, msg_type=msg_type, token=None)
 
-    # Now we have a valid email from the token
     if request.method == 'POST':
         new_password = request.form.get('password', '')
         confirm_password = request.form.get('confirmPassword', '')
 
-        # ----- password validation (same rules as registration) -----
         pass_len_ok      = len(new_password) >= 8
         pass_has_lower   = re.search(r'[a-z]', new_password)
         pass_has_upper   = re.search(r'[A-Z]', new_password)
@@ -437,7 +435,6 @@ def reset_password(token):
         elif not (pass_len_ok and pass_has_lower and pass_has_upper and pass_has_special):
             msg = "Password must be at least 8 characters and include a lowercase letter, uppercase letter, and special character."
         else:
-            # All good → update password in DB
             conn = get_connection()
             cursor = conn.cursor(dictionary=True)
 
@@ -456,7 +453,6 @@ def reset_password(token):
             msg_type = 'success'
             return render_template('user/reset_password.html', msg=msg, msg_type=msg_type, token=None)
 
-    # GET → show reset form
     return render_template('user/reset_password.html', msg=msg, msg_type=msg_type, token=token)
 
 
@@ -489,8 +485,6 @@ def forgot_password():
                 msg_type = 'error'
                 return render_template('user/forgot_password.html', msg=msg, msg_type=msg_type)
 
-            # ===== USER EXISTS → SEND RESET EMAIL HERE =====
-            # Build reset link token etc. (assuming you already have this logic)
             s = get_serializer()
             token = s.dumps(email, salt='password-reset-salt')
             reset_url = url_for('reset_password', token=token, _external=True)
@@ -517,7 +511,6 @@ def forgot_password():
             cursor.close()
             conn.close()
 
-    # GET
     return render_template('user/forgot_password.html', msg=msg, msg_type=msg_type)
 
 @app.route('/forgot-password/check-email', methods=['POST'])
@@ -548,9 +541,19 @@ def about():
 def contact():
     return render_template('user/contact.html')
 
-@app.route('/books')
-def books():
-    return render_template('user/shop_books.html')
+@app.route('/shop-books')
+def shop_books():
+    if 'admin' not in session:
+        return redirect('/user-login')
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM books ORDER BY id")
+    books = cursor.fetchall()
+    cursor.close()
+    conn.close()
+
+    return render_template('user/shop_books.html', books=books, active_page='shop_books')
 
 @app.route('/favorites')
 def favorites():
@@ -564,17 +567,183 @@ def cart():
 def checkout():
     return render_template('user/delivery_checkout.html')
 
-@app.route('/admin-login')
-def admin_login():
+@app.route('/admin-dashboard')
+def admin_dashboard():
     return render_template('admin/sidebar.html')
 
-@app.route('/manage-books')
+# =========================
+#  MANAGE BOOKS ROUTE
+# =========================
+@app.route('/admin/manage-books')
 def manage_books():
-    return render_template('admin/manage_books.html')
+    if 'admin' not in session:
+        return redirect('/admin-login')
 
-@app.route('/add-books')
-def add_books():
-    return render_template('admin/add_books.html')
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM books ORDER BY id")
+    books = cursor.fetchall()
+    cursor.close()
+    conn.close()
+
+    return render_template('admin/manage_books.html', books=books, active_page='manage_books')
+
+@app.route('/admin/edit-book/<int:book_id>')
+def edit_book(book_id):
+    if 'admin' not in session:
+        return redirect('/admin-login')
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM books WHERE id = %s", (book_id,))
+    book = cursor.fetchone()
+    cursor.close()
+    conn.close()
+
+    if not book:
+        return "Book not found", 404
+
+    return render_template('admin/edit_book.html', book=book)
+
+@app.route('/update_book', methods=['POST'])
+def update_book():
+    if 'admin' not in session:
+        return redirect('/admin-login')
+
+    book_id = request.form['id']
+    title = request.form['title']
+    author = request.form['author']
+    genre = request.form['genre']
+    description = request.form['description']
+    price = float(request.form['price'])
+    stock_quantity = int(request.form['stock_quantity'])
+    cover_file = request.files.get('cover')
+
+    status = "Available" if stock_quantity > 0 else "Not Available"
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    # Get old cover
+    cursor.execute("SELECT cover FROM books WHERE id = %s", (book_id,))
+    old_cover = cursor.fetchone()['cover']
+
+    # Debug → verify file is detected
+    print("FILE RECEIVED:", cover_file.filename if cover_file else "NO FILE")
+
+    # New cover uploaded
+    if cover_file and cover_file.filename:
+        filename = secure_filename(cover_file.filename)
+        save_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        cover_file.save(save_path)
+
+        # OPTIONAL: delete old file
+        if old_cover:
+            old_path = os.path.join(app.config['UPLOAD_FOLDER'], old_cover)
+            if os.path.exists(old_path):
+                os.remove(old_path)
+
+        cursor.execute("""
+            UPDATE books 
+            SET title=%s, author=%s, genre=%s, description=%s, price=%s,
+                stock_quantity=%s, cover=%s, status=%s
+            WHERE id=%s
+        """, (title, author, genre, description, price,
+              stock_quantity, filename, status, book_id))
+
+    # No new cover
+    else:
+        cursor.execute("""
+            UPDATE books 
+            SET title=%s, author=%s, genre=%s, description=%s, price=%s,
+                stock_quantity=%s, status=%s
+            WHERE id=%s
+        """, (title, author, genre, description, price,
+              stock_quantity, status, book_id))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return redirect('/admin/manage-books')
+
+
+@app.route('/admin/delete-book/<int:book_id>')
+def delete_book(book_id):
+    if 'admin' not in session:
+        return redirect('/admin-login')
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    # Fetch the book to delete (needed to remove image file)
+    cursor.execute("SELECT cover FROM books WHERE id = %s", (book_id,))
+    book = cursor.fetchone()
+
+    if not book:
+        cursor.close()
+        conn.close()
+        return "Book not found", 404
+
+    # Delete book from database
+    cursor.execute("DELETE FROM books WHERE id = %s", (book_id,))
+    conn.commit()
+
+    # Remove image file if exists
+    if book['cover']:
+        cover_path = os.path.join(app.config['UPLOAD_FOLDER'], book['cover'])
+        if os.path.exists(cover_path):
+            os.remove(cover_path)
+
+    cursor.close()
+    conn.close()
+
+    return redirect(url_for('manage_books'))
+
+
+@app.route('/admin/add-book', methods=['GET', 'POST'])
+def add_book():
+    if 'admin' not in session:
+        return redirect('/admin-login')
+
+    # Show form
+    if request.method == 'GET':
+        return render_template('admin/add_book.html', active_page='add_books')
+
+    # Handle form submission
+    title = request.form['title']
+    author = request.form['author']
+    genre = request.form['genre']
+    description = request.form['description']
+    price = float(request.form['price'])
+    stock_quantity = int(request.form['stock_quantity'])
+    cover_file = request.files.get('cover')
+
+    status = "Available" if stock_quantity > 0 else "Not Available"
+
+    # Save uploaded cover
+    cover_filename = None
+    if cover_file and cover_file.filename:
+        cover_filename = secure_filename(cover_file.filename)
+        cover_path = os.path.join(app.config['UPLOAD_FOLDER'], cover_filename)
+        cover_file.save(cover_path)
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT INTO books (title, author, genre, description, price,
+                           stock_quantity, cover, status)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+    """, (title, author, genre, description, price,
+          stock_quantity, cover_filename, status))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return redirect(url_for('manage_books'))
+
 
 @app.route('/logout')
 def logout():

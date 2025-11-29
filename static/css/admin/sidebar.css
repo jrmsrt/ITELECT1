@@ -81,34 +81,76 @@ body {
   margin-bottom: 16px;
 }
 
-#sidebar ul li.active a {
-  width: 95%;
-  background-color: var(--dark-color);
-  font-weight: bold;
-  border-radius: 50px;
-  color: var(--black);
-}
-
-#sidebar ul li.active a i {
-  color: var(--black);
-}
-
-#sidebar ul li:hover a i {
-  color: var(--black);
-}
-
 #sidebar a {
-  border-radius: .5em;
-  padding: .80em;
-  margin: 5px;
-  margin-left: auto;
-  margin-right: auto;
-  text-decoration: none;
-  color: var(--black);
   display: flex;
   align-items: center;
   gap: 1em;
-  transition: transform 0.3s ease;
+  padding: 0.80em;
+  margin: 5px auto;
+  text-decoration: none;
+  color: var(--black);
+  border-radius: 10px;
+  transition: background-color 0.25s ease, transform 0.15s ease;
+}
+
+/* Sidebar Icon */
+#sidebar i {
+  flex-shrink: 0;
+  font-size: 1.25rem;
+  width: 1.5em;
+  text-align: center;
+  transition: color 0.25s ease;
+}
+
+/* ===========================================
+   ACTIVE / CURRENT PAGE BUTTON
+   =========================================== */
+#sidebar ul li.active a {
+  background: rgba(0,0,0,0.05);
+  border-left: 5px solid var(--gold);
+  border-radius: 12px;
+  font-weight: 700;
+  transform: none;
+}
+
+/* Active text gradient */
+#sidebar ul li.active a span {
+  background: linear-gradient(90deg, #e7c286, #b68b2d);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Active icon color */
+#sidebar ul li.active a i {
+  color: #e7c286;
+}
+
+/* ===========================================
+   HOVER EFFECT
+   =========================================== */
+#sidebar a:hover {
+  background-color: #f2f2f2;
+  transform: translateX(4px);
+  font-weight: 700;
+}
+
+#sidebar a:hover span {
+  background: linear-gradient(90deg, #e7c286, #b68b2d);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+#sidebar a:hover i {
+  color: #e7c286;
+}
+
+/* ===========================================
+   CLICK / PRESSED EFFECT
+   =========================================== */
+#sidebar a:active {
+  background-color: #e3e3e3;
 }
 
 #sidebar .logo {
@@ -136,31 +178,7 @@ body {
   gap: 1em;
 }
 
-#sidebar i {
-  flex-shrink: 0;
-  color: var(--black);
-  font-size: 1.25rem;
-  width: 1.5em;
-  text-align: center;
-}
 
-#sidebar a span {
-  flex-grow: 1;
-}
-
-#sidebar a:hover {
-  width: 95%;
-  border-radius: 50px;
-  background-color: var(--dark-color);
-  color: var(--black);
-  transform: scale(1.03);
-}
-
-#sidebar a:active {
-  background-color: var(--black);
-  color: var(--gold);
-  transform: scale(0.97);
-}
 
 .rotate i:last-child {
   transform: rotate(180deg);
@@ -170,7 +188,6 @@ body {
   margin-left: auto;
   padding: 1em;
   border: none;
-  border-radius: .5em;
   background: none;
   cursor: pointer;
 }
@@ -181,9 +198,8 @@ body {
   transition: transform 150ms ease;
 }
 
-#toggle-btn:hover {
-  color: var(--black);
-  background-color: var(--dark-color);
+#toggle-btn:hover i {
+  color: var(--gold);
 }
 
 .profile {

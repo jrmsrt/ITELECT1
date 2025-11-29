@@ -33,7 +33,7 @@
                     </div>
                     <span class="user-count">Join our growing community.</span>
                 </div>
-                <a href="{{ url_for('books') }}" class="btn">SHOP NOW!</a><!-- Redirects to to shop_books.html -->
+                <a href="{{ url_for('shop_books') }}" class="btn">SHOP NOW!</a><!-- Redirects to to shop_books.html -->
             </div>
             <div class="index-slider">
                 <div class="swiper books-slider">
@@ -152,7 +152,7 @@
         <div class="swiper-button-next"></div>
     </div>
     <div class="view-all-container">
-        <a href="{{ url_for('books') }}" class="view-all-btn"> <!-- Redirects to shop_books.html when the user is logged in.-->
+        <a href="{{ url_for('shop_books') }}" class="view-all-btn"> <!-- Redirects to shop_books.html when the user is logged in.-->
             View All Books
             <i class="fa-solid fa-arrow-right"></i>
         </a>
