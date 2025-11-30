@@ -7,6 +7,7 @@
 }
 
 .favorites {
+  min-height: 90vh;
   padding: 4rem 0;
   background: #fff;
   color: white;
@@ -318,4 +319,238 @@
 
 .book-bottom-actions a {
     text-decoration: none !important;
+}
+
+/* ------------------- MODAL OVERLAY ------------------- */
+.modal-overlay {
+    position: fixed;
+    top: 0; 
+    left: 0;
+    width: 100%; 
+    height: 100%;
+    background: rgba(0, 0, 0, 0.45);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 5000;
+}
+
+/* ------------------- ZOOM ANIMATION ------------------- */
+
+/* OPEN animation */
+@keyframes zoomIn {
+    from {
+        transform: scale(0.7);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* CLOSE animation */
+@keyframes zoomOut {
+    from {
+        transform: scale(1);
+        opacity: 1;
+    }
+    to {
+        transform: scale(0.7);
+        opacity: 0;
+    }
+}
+
+/* Apply animation by toggling classes from JS */
+.modal-content.zoom-in {
+    animation: zoomIn 0.25s ease forwards;
+}
+.modal-content.zoom-out {
+    animation: zoomOut 0.25s ease forwards;
+}
+
+/* ------------------- MODAL BOX ------------------- */
+.modal-content {
+    background: #fff;
+    width: 900px;
+    height: 550px;
+    border-radius: 12px;
+    padding: 1.5rem;
+    position: relative;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    transform-origin: center;
+}
+
+/* ------------------- CLOSE BUTTON ------------------- */
+.close-btn {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 32px;
+    font-weight: bold;
+    color: #444;
+    cursor: pointer;
+    z-index: 10;
+    transition: .25s;
+}
+.close-btn:hover {
+    color: var(--gold);
+}
+
+/* ------------------- MODAL BODY ------------------- */
+.modal-body {
+    display: flex;
+    gap: 1.5rem;
+    height: calc(100% - 30px);
+    margin-top: 15px;
+}
+
+/* ------------------- LEFT SIDE ------------------- */
+.modal-left {
+    width: 300px;
+    flex-shrink: 0;
+}
+.modal-left img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
+/* ------------------- RIGHT SIDE ------------------- */
+.modal-right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.modal-right h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--black);
+    margin-bottom: .3rem;
+}
+
+.modal-author {
+    color: #777;
+    margin-bottom: .5rem;
+}
+
+.modal-genre {
+    font-weight: 600;
+    color: var(--dark-color);
+    margin-bottom: 1rem;
+}
+
+.modal-description {
+  color: #333;
+    flex: 1;
+    overflow-y: auto;
+    text-align: justify;
+    line-height: 1.6;
+    padding-right: 10px;
+    padding: 20px;
+    margin-bottom: 1rem;
+    white-space: normal; /* Keep paragraph spacing */
+}
+
+/* Indent ALL paragraphs (even after breaks) */
+.modal-description p {
+    text-indent: 2rem;
+    margin-bottom: 1rem;
+}
+
+/* Scrollbar */
+.modal-description::-webkit-scrollbar {
+    width: 8px;
+}
+.modal-description::-webkit-scrollbar-thumb {
+    background: #bbb;
+    border-radius: 4px;
+}
+
+/* ------------------- PRICE & STOCK ------------------- */
+.modal-price {
+    font-size: 1.3rem;
+    margin-top: .4rem;
+    font-weight: bold;
+    color: var(--dark-color);
+}
+
+.modal-stock {
+  color: var(--burgundy);
+    font-weight: 600;
+    margin-top: .4rem;
+}
+
+/* ------------------- ADD TO CART BUTTON ------------------- */
+.modal-add-cart {
+    margin-top: 1rem;
+    padding: 10px 18px;
+    background: var(--dark-color);
+    color: #fff;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: .3s;
+}
+
+.modal-add-cart:hover {
+    background: var(--gold);
+    transform: scale(1.05);
+}
+
+/* ------------ FADE FOR OVERLAY ------------ */
+
+/* Fade-in overlay */
+@keyframes fadeInOverlay {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Fade-out overlay */
+@keyframes fadeOutOverlay {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+/* Class applied when opening */
+.modal-overlay.fade-in {
+    animation: fadeInOverlay 0.25s ease forwards;
+}
+
+/* Class applied when closing */
+.modal-overlay.fade-out {
+    animation: fadeOutOverlay 0.25s ease forwards;
+}
+
+.no-favorites {
+    min-height: 50vh;          /* gives it space to center */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;   /* perfect vertical centering */
+    text-align: center;
+}
+
+
+.no-favorites i {
+    font-size: 5rem;
+    color: #b76e79;  /* elegant heartbreak color */
+    opacity: 0.8;
+    margin-bottom: 1.2rem;
+}
+
+.no-favorites h3 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: var(--dark-color);
+    margin-bottom: 0.5rem;
+}
+
+.no-favorites p {
+    font-size: 1.1rem;
+    color: #666;
+    line-height: 1.6;
 }

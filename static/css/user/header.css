@@ -164,7 +164,6 @@
     transition: color 0.3s ease, transform 0.3s ease, text-shadow 0.3s ease;
 }
 
-/* Glow effect only when hovered */
 .header-icons .icon:hover {
     color: var(--gold);
     transform: scale(1.1);
@@ -174,7 +173,6 @@
     animation: glowPulse 1.5s ease-in-out infinite alternate;
 }
 
-/* ACTIVE ICON STATE */
 .header-icons .icon-wrapper.active {
     background: linear-gradient(135deg, #b76e79, #c89f5d, #e7c286);
     padding: 3px;
@@ -187,16 +185,14 @@
 }
 
 .header-icons .icon-wrapper.active i {
+    font-size: 1.2rem !important;
     color: white !important;
 }
 
-/* Prevent double-glow on hover when active */
 .header-icons .icon-wrapper.active:hover i {
     text-shadow: none;
 }
 
-
-/* Subtle glowing pulse animation */
 @keyframes glowPulse {
     from {
         text-shadow: 0 0 3px rgba(231, 194, 134, 0.25),
@@ -237,10 +233,90 @@
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Hover Effect for Slight Pop */
 .icon-wrapper:hover .icon-count {
     transform: scale(1.1);
     box-shadow: 0 0 10px rgba(231, 194, 134, 0.5);
+}
+
+.count-bump {
+    animation: bump 0.3s ease;
+}
+
+@keyframes bump {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.35); }
+    100% { transform: scale(1); }
+}
+
+
+/* ---------------- USER DROPDOWN ---------------- */
+.user-menu {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.user-menu .user-icon i {
+    color: var(--dark-color);
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: color 0.3s ease, transform 0.3s ease, text-shadow 0.3s ease;
+}
+
+/* Hover effect matches your other icons */
+.user-menu .user-icon i:hover {
+    color: var(--gold);
+    transform: scale(1.1);
+    text-shadow: 0 0 4px rgba(231, 194, 134, 0.4),
+                 0 0 8px rgba(231, 194, 134, 0.25),
+                 0 0 12px rgba(231, 194, 134, 0.15);
+    animation: glowPulse 1.5s ease-in-out infinite alternate;
+}
+
+/* Dropdown panel */
+.user-menu .dropdown {
+    position: absolute;
+    top: 35px;
+    right: 0;
+    background: white;
+    border-radius: 8px;
+    padding: 0.4rem 0;
+    width: 160px;
+
+    /* Gold soft border */
+    border: 1px solid rgba(215,176,104,0.4);
+
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    display: none;
+    z-index: 2000;
+}
+
+/* Each item */
+.user-menu .dropdown a {
+    display: block;
+    padding: 10px 16px;
+    text-decoration: none;
+    color: #555;
+    font-size: 0.9rem;
+    transition: background 0.25s ease, color 0.25s ease;
+}
+
+/* Gold hover effect */
+.user-menu .dropdown a:hover {
+    background: linear-gradient(90deg, #ffdd8a36, #e7c28644, #d4a65e33);
+    color: var(--dark-color);
+}
+
+/* Show menu on hover */
+/* Hidden by default */
+.user-menu .dropdown {
+    display: none;
+}
+
+/* Shown when JS adds the class */
+.user-menu .dropdown.show {
+    display: block;
 }
 
 /* ---------------- UNDERLINE GRADIENT ANIMATION ---------------- */

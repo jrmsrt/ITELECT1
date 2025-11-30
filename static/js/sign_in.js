@@ -1,3 +1,65 @@
+document.addEventListener("DOMContentLoaded", function () {
+
+    // Get main container
+    const main = document.querySelector("main.sign-in");
+    if (!main) return;
+
+    const loginRequired = main.getAttribute("data-login-required");
+    const msgType = main.getAttribute("data-msg-type");
+    const msg = main.getAttribute("data-msg");
+    const redirectUrl = main.getAttribute("data-redirect-url");
+
+    // ===============================
+    //  SHOW "LOGIN REQUIRED" TOAST
+    // ===============================
+    if (loginRequired === "true") {
+        Swal.fire({
+            toast: true,
+            icon: 'warning',
+            title: 'Please log in first to access Favorites',
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3500,
+            timerProgressBar: true,
+            background: '#fff'
+        });
+    }
+
+    // ===============================
+    //  SHOW SUCCESS LOGIN MESSAGE
+    // ===============================
+    if (msgType === "success") {
+        Swal.fire({
+            icon: 'success',
+            title: "You're now logged in!",
+            text: msg,
+            confirmButtonText: "Proceed",
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            customClass: {
+                confirmButton: 'swal-confirm-btn'
+            }
+        }).then(() => {
+            window.location.href = redirectUrl;
+        });
+    }
+});
+
+
+// ===============================
+//  SLIDE-UP ALERT BOX CLOSE
+// ===============================
+function closeAlert() {
+    const box = document.getElementById('alertBox');
+    if (!box) return;
+
+    box.classList.add('slide-up');
+    setTimeout(() => {
+        if (box && box.parentNode) box.parentNode.removeChild(box);
+    }, 400);
+}
+
+
 // ===============================
 // SEGMENT INDICATOR + KEYBOARD
 // ===============================

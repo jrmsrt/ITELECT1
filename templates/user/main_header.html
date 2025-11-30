@@ -41,11 +41,27 @@
                     <a href="{{ url_for('cart') }}" class="icon"><i class="fa-brands fa-opencart"></i></a>
                     <span class="icon-count">0</span> <!-- Cart count -->
                 </div>
-                <div class="icon-wrapper {% if request.endpoint == 'favorites' %}active{% endif %}">
+                <div class="icon-wrapper favorite-icon-wrapper {% if request.endpoint == 'favorites' %}active{% endif %}">
                     <a href="{{ url_for('favorites') }}" class="icon"><i class="fa-regular fa-heart"></i></a>
-                    <span class="icon-count">0</span> <!-- Favorites count -->
+                    <span class="icon-count favorite-count">{{ favorite_count }}</span>
                 </div>
-                <a href="{{ url_for('user_login') }}" class="icon"><i class="fa-regular fa-user"></i></a>
+                {% if session.get('user_id') %}
+                    <div class="user-menu" id="userMenu">
+                        <div class="user-icon" onclick="toggleUserMenu()">
+                            <i class="fa-regular fa-user"></i>
+                        </div>
+
+                        <div class="dropdown" id="userDropdown">
+                            <a href="{{ url_for('edit_profile') }}">Edit Profile</a>
+                            <a href="{{ url_for('logout') }}">Logout</a>
+                        </div>
+                    </div>
+                {% else %}
+                    <a href="{{ url_for('user_login') }}" class="icon">
+                        <i class="fa-regular fa-user"></i>
+                    </a>
+                {% endif %}
+
             </div>
 
             <!-- Mobile Menu -->
@@ -98,5 +114,23 @@
             </div>
         </div>
     </footer>
+    
+    <script>
+    function toggleUserMenu() {
+        const dropdown = document.getElementById("userDropdown");
+        dropdown.classList.toggle("show");
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener("click", function (e) {
+        const menu = document.getElementById("userMenu");
+        const dropdown = document.getElementById("userDropdown");
+
+        if (menu && !menu.contains(e.target)) {
+            dropdown.classList.remove("show");
+        }
+    });
+    </script>
+
 </body>
 </html>

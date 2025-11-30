@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<title>Shop Books - BookHaven</title>
+<title>Shop Books | BookHaven</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/user/shop_books.css') }}">
 <script src="{{ url_for('static', filename='js/books.js') }}" defer></script>
 
@@ -98,5 +98,34 @@
         </div>
         {% endfor %}
     </div>
+
+    <!-- BOOK DETAILS MODAL -->
+    <div class="modal-overlay" id="bookModal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+
+            <div class="modal-body">
+                <div class="modal-left">
+                    <img id="modalCover" src="" alt="Book Cover">
+                    <p class="modal-stock" id="modalStock"></p>
+                </div>
+
+                <div class="modal-right">
+                    <h2 id="modalTitle"></h2>
+                    <p class="modal-author">by <span id="modalAuthor"></span></p>
+                    <p class="modal-genre" id="modalGenre"></p>
+
+                    <p class="modal-description" id="modalDescription"></p>
+
+                    <p class="modal-price">Price: <span id="modalPrice"></span></p>
+
+                    <button class="modal-add-cart">
+                        <i class="fas fa-shopping-cart"></i> Add to Cart
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </section>
 {% endblock %}

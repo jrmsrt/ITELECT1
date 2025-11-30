@@ -17,5 +17,6 @@ function setupPasswordToggle(toggleId, inputId) {
 
 document.addEventListener("DOMContentLoaded", function () {
     setupPasswordToggle('togglePassword', 'password');
+    setupPasswordToggle('toggleAdminPassword', 'admin-password');
     setupPasswordToggle('toggleConfirmPassword', 'confirmPassword');
 });

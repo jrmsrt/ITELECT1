@@ -71,7 +71,6 @@ def home():
 @app.route('/user-login', methods=['GET', 'POST'])
 def user_login():
     if request.method == 'POST':
-        # Check if it's an admin login (based on presence of admin_username)
         if 'admin_username' in request.form:
             admin_username = request.form.get('admin_username', '').strip()
             admin_password = request.form.get('admin_password', '')
@@ -137,7 +136,7 @@ def user_login():
             if password_ok:
                 session['user'] = user['username']
                 session['user_id'] = user['id']
-                session['redirect_url'] = '/'  # Redirect to user index
+                session['redirect_url'] = '/'
                 session['msg_type'] = "success"
                 return redirect(url_for('user_login'))
             else:
@@ -147,8 +146,26 @@ def user_login():
 
     msg = session.pop('login_msg', '')
     msg_type = session.pop('msg_type', '')
-    redirect_url = session.pop('redirect_url', '/')  # Default to user-index if not set
-    return render_template('user/sign_in.html', msg=msg, msg_type=msg_type, redirect_url=redirect_url)
+    redirect_url = session.pop('redirect_url', '/')
+    # Check if user was redirected because login is required
+    login_required_flag = session.pop('login_required', False)
+
+    return render_template('user/sign_in.html',
+                           msg=msg, msg_type=msg_type,
+                           redirect_url=redirect_url, 
+                           login_required=login_required_flag)
+
+
+# =========================
+#  USER EDIT PROFILE ROUTE
+# =========================
+@app.route('/edit-profile')
+def edit_profile():
+    if not session.get('user_id'):
+        session['login_required'] = True
+        return redirect(url_for('user_login'))
+    
+    return render_template('user/edit_profile.html')
 
 
 # =========================
@@ -588,7 +605,8 @@ def shop_books():
 @app.route('/favorites')
 def favorites():
     if 'user_id' not in session:
-        return redirect('/login')
+        session['login_required'] = True
+        return redirect('/user-login')
 
     user_id = session['user_id']
 
@@ -608,7 +626,8 @@ def favorites():
     cursor.close()
     conn.close()
 
-    return render_template('user/favorites.html', books=books, active_page=favorites)
+    return render_template('user/favorites.html', books=books, active_page='favorites')
+
 
 @app.route('/toggle_favorite/<int:book_id>', methods=['POST'])
 def toggle_favorite(book_id):
@@ -654,6 +673,43 @@ def remove_favorite(book_id):
 
     return redirect('/favorites')
 
+@app.context_processor
+def inject_favorite_count():
+    user_id = session.get("user_id")
+
+    if not user_id:
+        return {"favorite_count": 0}
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT COUNT(*) AS count 
+        FROM favorites 
+        WHERE user_id = %s
+    """, (user_id,))
+
+    result = cursor.fetchone()
+    cursor.close()
+    conn.close()
+
+    return {"favorite_count": result["count"]}
+
+@app.route('/favorites/count')
+def get_favorite_count():
+    user_id = session.get("user_id")
+    if not user_id:
+        return {"count": 0}
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT COUNT(*) AS count FROM favorites WHERE user_id = %s", (user_id,))
+    count = cursor.fetchone()["count"]
+    cursor.close()
+    conn.close()
+
+    return {"count": count}
+
 
 @app.route('/cart')
 def cart():
@@ -673,7 +729,7 @@ def admin_dashboard():
 @app.route('/admin/manage-books')
 def manage_books():
     if 'admin' not in session:
-        return redirect('/admin-login')
+        return redirect('/user-login')
 
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
@@ -846,7 +902,9 @@ def add_book():
 
 @app.route('/logout')
 def logout():
+    session.clear()
     return redirect(url_for('home'))
+
 
 if __name__ == '__main__':
     app.run(debug=True)
