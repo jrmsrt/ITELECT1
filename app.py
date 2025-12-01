@@ -20,12 +20,16 @@ from datetime import datetime, timedelta
 app = Flask(__name__)
 app.secret_key = 'JRM0218@'
 
+# =========================
+# UPLOAD FOLDER
+# =========================
 UPLOAD_FOLDER = 'static/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-# Create directory if it doesn't exist
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
+# =========================
+# MAIL CONFIG
+# =========================
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
@@ -35,6 +39,9 @@ app.config['MAIL_DEFAULT_SENDER'] = 'thebookhaven.online@gmail.com'
 
 mail = Mail(app)
 
+# =========================
+# DB CONNECTION
+# =========================
 def get_connection():
     return mysql.connector.connect(
         host="localhost",
@@ -43,6 +50,9 @@ def get_connection():
         database="bhbookstore_db"
     )
 
+# =========================
+# HELPERS
+# =========================
 def generate_verification_code(length: int = 6) -> str:
     digits = string.digits
     return ''.join(secrets.choice(digits) for _ in range(length))
@@ -50,6 +60,9 @@ def generate_verification_code(length: int = 6) -> str:
 def get_serializer():
     return URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
+# =========================
+# HOME
+# =========================
 @app.route('/')
 def home():
 
@@ -66,11 +79,12 @@ def home():
     return render_template('user/index.html', featured_books=featured_books)
 
 # =========================
-#  USER LOGIN ROUTE
+#  USER LOGIN (USER + ADMIN)
 # =========================
 @app.route('/user-login', methods=['GET', 'POST'])
 def user_login():
     if request.method == 'POST':
+        # -------- ADMIN LOGIN ----------
         if 'admin_username' in request.form:
             admin_username = request.form.get('admin_username', '').strip()
             admin_password = request.form.get('admin_password', '')
@@ -99,6 +113,7 @@ def user_login():
                 session['msg_type'] = "success"
                 return redirect(url_for('user_login'))
         else:
+            # -------- USER LOGIN ----------
             username = request.form.get('username', '').strip()
             password = request.form.get('password', '')
 
@@ -147,7 +162,6 @@ def user_login():
     msg = session.pop('login_msg', '')
     msg_type = session.pop('msg_type', '')
     redirect_url = session.pop('redirect_url', '/')
-    # Check if user was redirected because login is required
     login_required_flag = session.pop('login_required', False)
 
     return render_template('user/sign_in.html',
@@ -166,7 +180,6 @@ def edit_profile():
         return redirect(url_for('user_login'))
     
     return render_template('user/edit_profile.html')
-
 
 # =========================
 #  USER REGISTRATION ROUTE
@@ -426,63 +439,6 @@ def resend_code():
 
     return redirect(url_for('verify_account'))
 
-
-# =========================
-#  RESET PASSWORD ROUTE
-# =========================
-@app.route('/reset-password/<token>', methods=['GET', 'POST'])
-def reset_password(token):
-    msg = ''
-    msg_type = 'error'
-
-    s = get_serializer()
-
-    try:
-        email = s.loads(token, salt='password-reset-salt', max_age=3600)
-    except SignatureExpired:
-        msg = "This password reset link has expired. Please request a new one."
-        return render_template('user/reset_password.html', msg=msg, msg_type=msg_type, token=None)
-    except BadSignature:
-        msg = "Invalid or corrupted password reset link."
-        return render_template('user/reset_password.html', msg=msg, msg_type=msg_type, token=None)
-
-    if request.method == 'POST':
-        new_password = request.form.get('password', '')
-        confirm_password = request.form.get('confirmPassword', '')
-
-        pass_len_ok      = len(new_password) >= 8
-        pass_has_lower   = re.search(r'[a-z]', new_password)
-        pass_has_upper   = re.search(r'[A-Z]', new_password)
-        pass_has_special = re.search(r'[^A-Za-z0-9]', new_password)
-
-        if not new_password or not confirm_password:
-            msg = "Please enter and confirm your new password."
-        elif new_password != confirm_password:
-            msg = "Passwords do not match."
-        elif not (pass_len_ok and pass_has_lower and pass_has_upper and pass_has_special):
-            msg = "Password must be at least 8 characters and include a lowercase letter, uppercase letter, and special character."
-        else:
-            conn = get_connection()
-            cursor = conn.cursor(dictionary=True)
-
-            try:
-                hashed = generate_password_hash(new_password)
-                cursor.execute(
-                    "UPDATE users SET password = %s WHERE email = %s",
-                    (hashed, email)
-                )
-                conn.commit()
-            finally:
-                cursor.close()
-                conn.close()
-
-            msg = "Your password has been successfully reset. You can now sign in with your new password."
-            msg_type = 'success'
-            return render_template('user/reset_password.html', msg=msg, msg_type=msg_type, token=None)
-
-    return render_template('user/reset_password.html', msg=msg, msg_type=msg_type, token=token)
-
-
 # =========================
 #  FORGOT PASSWORD ROUTE
 # =========================
@@ -560,6 +516,61 @@ def forgot_password_check_email():
 
     return {"valid": True}
 
+# =========================
+#  RESET PASSWORD ROUTE
+# =========================
+@app.route('/reset-password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    msg = ''
+    msg_type = 'error'
+
+    s = get_serializer()
+
+    try:
+        email = s.loads(token, salt='password-reset-salt', max_age=3600)
+    except SignatureExpired:
+        msg = "This password reset link has expired. Please request a new one."
+        return render_template('user/reset_password.html', msg=msg, msg_type=msg_type, token=None)
+    except BadSignature:
+        msg = "Invalid or corrupted password reset link."
+        return render_template('user/reset_password.html', msg=msg, msg_type=msg_type, token=None)
+
+    if request.method == 'POST':
+        new_password = request.form.get('password', '')
+        confirm_password = request.form.get('confirmPassword', '')
+
+        pass_len_ok      = len(new_password) >= 8
+        pass_has_lower   = re.search(r'[a-z]', new_password)
+        pass_has_upper   = re.search(r'[A-Z]', new_password)
+        pass_has_special = re.search(r'[^A-Za-z0-9]', new_password)
+
+        if not new_password or not confirm_password:
+            msg = "Please enter and confirm your new password."
+        elif new_password != confirm_password:
+            msg = "Passwords do not match."
+        elif not (pass_len_ok and pass_has_lower and pass_has_upper and pass_has_special):
+            msg = "Password must be at least 8 characters and include a lowercase letter, uppercase letter, and special character."
+        else:
+            conn = get_connection()
+            cursor = conn.cursor(dictionary=True)
+
+            try:
+                hashed = generate_password_hash(new_password)
+                cursor.execute(
+                    "UPDATE users SET password = %s WHERE email = %s",
+                    (hashed, email)
+                )
+                conn.commit()
+            finally:
+                cursor.close()
+                conn.close()
+
+            msg = "Your password has been successfully reset. You can now sign in with your new password."
+            msg_type = 'success'
+            return render_template('user/reset_password.html', msg=msg, msg_type=msg_type, token=None)
+
+    return render_template('user/reset_password.html', msg=msg, msg_type=msg_type, token=token)
+
 @app.route('/about')
 def about():
     return render_template('user/about.html')
@@ -567,7 +578,6 @@ def about():
 @app.route('/contact')
 def contact():
     return render_template('user/contact.html')
-
 
 # =========================
 #  SHOP BOOKS ROUTE
@@ -598,7 +608,6 @@ def shop_books():
         favorite_ids=favorite_ids
     )
 
-
 # =========================
 #  FAVORITES ROUTE
 # =========================
@@ -627,7 +636,6 @@ def favorites():
     conn.close()
 
     return render_template('user/favorites.html', books=books, active_page='favorites')
-
 
 @app.route('/toggle_favorite/<int:book_id>', methods=['POST'])
 def toggle_favorite(book_id):
@@ -710,15 +718,23 @@ def get_favorite_count():
 
     return {"count": count}
 
-
+# =========================
+#  CART SYSTEM ROUTE
+# =========================
 @app.route('/cart')
 def cart():
     return render_template('user/cart.html')
 
+# =========================
+#  DELIVERY CHECKOUT BOOK ROUTE
+# =========================
 @app.route('/checkout')
 def checkout():
     return render_template('user/delivery_checkout.html')
 
+# =========================
+#  ADMIN PANEL
+# =========================
 @app.route('/admin-dashboard')
 def admin_dashboard():
     return render_template('admin/sidebar.html')
@@ -740,6 +756,9 @@ def manage_books():
 
     return render_template('admin/manage_books.html', books=books, active_page='manage_books')
 
+# =========================
+#  EDIT BOOK ROUTE
+# =========================
 @app.route('/admin/edit-book/<int:book_id>')
 def edit_book(book_id):
     if 'admin' not in session:
@@ -757,6 +776,7 @@ def edit_book(book_id):
 
     return render_template('admin/edit_book.html', book=book)
 
+# EDITED DETAILS UPDATE IN DATBASE
 @app.route('/update_book', methods=['POST'])
 def update_book():
     if 'admin' not in session:
@@ -819,7 +839,9 @@ def update_book():
 
     return redirect('/admin/manage-books')
 
-
+# =========================
+#  DELETE BOOK ROUTE
+# =========================
 @app.route('/admin/delete-book/<int:book_id>')
 def delete_book(book_id):
     if 'admin' not in session:

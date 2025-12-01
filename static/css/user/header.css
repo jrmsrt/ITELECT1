@@ -174,18 +174,14 @@
 }
 
 .header-icons .icon-wrapper.active {
+    outline: 3px solid transparent;
+    outline-offset: -3px;
     background: linear-gradient(135deg, #b76e79, #c89f5d, #e7c286);
-    padding: 3px;
-    border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.3s ease, transform 0.3s ease;
+    border-radius: 50% !important;
     box-shadow: 0 4px 10px rgba(231, 194, 134, 0.4);
 }
 
 .header-icons .icon-wrapper.active i {
-    font-size: 1.2rem !important;
     color: white !important;
 }
 
@@ -206,7 +202,9 @@
 
 .icon-wrapper {
     position: relative;
-    display: inline-flex;
+    width: 30px;
+    height: 30px;
+    display: flex;
     align-items: center;
     justify-content: center;
 }
