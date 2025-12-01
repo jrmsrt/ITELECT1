@@ -152,9 +152,9 @@
 /* Grid Layout */
 .book-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 2rem;
-  justify-items: center;
+  justify-items: start;
   width: 80%;
   margin: 0 auto;
 }
@@ -532,7 +532,7 @@
 .modal-genre {
     font-weight: 600;
     color: var(--dark-color);
-    margin-bottom: 1rem;
+    margin-bottom: 0.8rem;
 }
 
 .modal-description {
@@ -542,7 +542,7 @@
     text-align: justify;
     line-height: 1.6;
     padding-right: 10px;
-    padding: 20px;
+    padding: 15px;
     margin-bottom: 1rem;
     white-space: normal; /* Keep paragraph spacing */
 }
@@ -618,3 +618,89 @@
     animation: fadeOutOverlay 0.25s ease forwards;
 }
 
+/* Remove SweetAlert default icon circle */
+.no-default-icon,
+.swal2-icon {
+    border: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Heart Animation */
+.heart-anim {
+    position: relative;
+    display: inline-block;
+    font-size: 24px;
+    animation: popBounce 0.55s ease-out forwards;
+}
+
+/* POP + BOUNCE animation */
+@keyframes popBounce {
+    0%   { transform: scale(0.7); opacity: 0.4; }
+    40%  { transform: scale(1.45); opacity: 1; }
+    60%  { transform: scale(0.95); }
+    80%  { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* Sparkles around heart */
+.sparkle {
+    position: absolute;
+    font-size: 14px;
+    opacity: 0;
+    animation: sparkleBurst 0.6s ease-out forwards;
+    color: #ff91c9; /* soft pink sparkle */
+}
+
+/* Sparkle positions */
+.sparkle-1 { top: -10px; left: -12px; }
+.sparkle-2 { top: -12px; right: -10px; }
+.sparkle-3 { bottom: -5px; right: -5px; }
+
+/* Sparkle animation */
+@keyframes sparkleBurst {
+    0%   { transform: scale(0.2) rotate(0deg); opacity: 0; }
+    30%  { transform: scale(1.4) rotate(15deg); opacity: 1; }
+    60%  { transform: scale(0.9) rotate(0deg); opacity: 0.8; }
+    100% { transform: scale(0.2) rotate(-10deg); opacity: 0; }
+}
+
+/* 💔 Heartbreak Animation */
+.heartbreak-anim {
+    display: inline-block;
+    font-size: 24px;
+    animation: heartbreakPop 0.55s ease-out forwards;
+}
+
+/* POP + SHAKE + SETTLE */
+@keyframes heartbreakPop {
+    0%   { transform: scale(0.7); opacity: 0.4; }
+    30%  { transform: scale(1.4); opacity: 1; }
+    45%  { transform: scale(1);   transform: translateX(-2px); }
+    55%  { transform: translateX(2px); }
+    65%  { transform: translateX(-1px); }
+    75%  { transform: translateX(1px); }
+    100% { transform: translateX(0) scale(1); }
+}
+
+/* ✦ Crack particles */
+.crack {
+    position: absolute;
+    font-size: 12px;
+    opacity: 0;
+    color: #ff6b82; /* soft broken-heart pink */
+    animation: crackBurst 0.6s ease-out forwards;
+}
+
+/* crack positions */
+.crack-1 { top: -6px; right: -8px; }
+.crack-2 { bottom: -4px; left: -6px; }
+
+/* Crack animation */
+@keyframes crackBurst {
+    0%   { transform: scale(0.2) rotate(0deg); opacity: 0; }
+    25%  { transform: scale(1.1) rotate(20deg); opacity: 1; }
+    60%  { transform: scale(0.7) rotate(0deg); opacity: 0.7; }
+    100% { transform: scale(0.2) rotate(-20deg); opacity: 0; }
+}

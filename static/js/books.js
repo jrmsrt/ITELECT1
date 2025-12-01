@@ -10,7 +10,7 @@ function resetFilters() {
     document.getElementById("authorFilter").value = "";
     document.getElementById("genreFilter").value = "";
 
-    filterBooks(); // refresh grid
+    filterBooks();
 }
 
 function filterBooks() {
@@ -125,18 +125,80 @@ function toggleFavorite(bookId, btn) {
     .then(data => {
 
         if (data.status === "added") {
+
             btn.classList.add("favorited");
-            updateFavoriteCount();   // 🔥 update count immediately
+            updateFavoriteCount();
+
+            // 🔥 Persist toast for next page
+            setGlobalToast(`
+                <span class="heart-anim">💗</span>
+                <span class="sparkle sparkle-1">✨</span>
+                <span class="sparkle sparkle-2">✨</span>
+                <span class="sparkle sparkle-3">✨</span>
+            `, "Added to favorites!");
+
+            // 🔥 Show toast immediately
+            Swal.fire({
+                toast: true,
+                position: "top-end",
+                iconHtml: `
+                    <span class="heart-anim">💗</span>
+                    <span class="sparkle sparkle-1">✨</span>
+                    <span class="sparkle sparkle-2">✨</span>
+                    <span class="sparkle sparkle-3">✨</span>
+                `,
+                title: "Added to favorites!",
+                showConfirmButton: false,
+                timer: 1500,
+                timerProgressBar: true,
+                customClass: {
+                    icon: "no-default-icon"
+                }
+            });
+
         }
         else if (data.status === "removed") {
+
             btn.classList.remove("favorited");
-            updateFavoriteCount();   // 🔥 update count immediately
+            updateFavoriteCount();
+
+            // 🔥 Persist toast for next page
+            setGlobalToast(`
+                <span class="heartbreak-anim">💔</span>
+                <span class="crack crack-1">✦</span>
+                <span class="crack crack-2">✦</span>
+            `, "Removed from favorites");
+
+            // 🔥 Show toast immediately
+            Swal.fire({
+                toast: true,
+                position: "top-end",
+                iconHtml: `
+                    <span class="heartbreak-anim">💔</span>
+                    <span class="crack crack-1">✦</span>
+                    <span class="crack crack-2">✦</span>
+                `,
+                title: "Removed from favorites",
+                showConfirmButton: false,
+                timer: 1500,
+                timerProgressBar: true,
+                customClass: {
+                    icon: "no-default-icon"
+                }
+            });
+
         }
         else if (data.status === "not_logged_in") {
-            alert("You must log in to add favorites.");
+            Swal.fire({
+                icon: "warning",
+                title: "Login Required",
+                text: "You must be logged in to add favorites.",
+            });
         }
     });
 }
+
+
 
 function updateFavoriteCount() {
     fetch("/favorites/count")
@@ -154,7 +216,6 @@ function updateFavoriteCount() {
         });
 }
 
-
 function confirmUnfavorite(bookId) {
     Swal.fire({
         title: "Remove from Favorites?",
@@ -171,6 +232,35 @@ function confirmUnfavorite(bookId) {
             window.location.href = `/remove_favorite/${bookId}`;
         }
     });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    const toast = sessionStorage.getItem("global_toast");
+
+    if (toast) {
+        const data = JSON.parse(toast);
+
+        Swal.fire({
+            toast: true,
+            position: data.position || "top-end",
+            iconHtml: data.iconHtml || "",
+            title: data.title || "",
+            showConfirmButton: false,
+            timer: data.timer || 1500,
+            timerProgressBar: true,
+            customClass: { icon: "no-default-icon" }
+        });
+
+        sessionStorage.removeItem("global_toast"); // show only once
+    }
+});
+
+function setGlobalToast(iconHtml, title, timer = 1500) {
+    sessionStorage.setItem("global_toast", JSON.stringify({
+        iconHtml,
+        title,
+        timer
+    }));
 }
 
 document.addEventListener("DOMContentLoaded", () => {
