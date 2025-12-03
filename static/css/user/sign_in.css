@@ -482,17 +482,3 @@ body {
     from { opacity: 1; transform: translateY(0) scale(1); }
     to   { opacity: 0; transform: translateY(-16px) scale(0.98); height: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 }
-
-.swal-confirm-btn {
-    width: 160px; /* wider button */
-    font-size: 16px;
-    font-weight: 600;
-    border-radius: 8px;
-    background: var(--gold);
-    color: white;
-    border: none;
-    cursor: pointer;
-}
-.swal-confirm-btn:hover {
-    background: var(--dark-color);
-}

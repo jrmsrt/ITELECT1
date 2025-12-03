@@ -33,8 +33,8 @@
 
         <select class="filter-select" id="genreFilter">
             <option value="">Filter by Genre</option>
-            {% for book in books %}
-                <option value="{{ book.genre }}">{{ book.genre }}</option>
+            {% for g in genres %}
+                <option value="{{ g }}">{{ g }}</option>
             {% endfor %}
         </select>
 
@@ -70,7 +70,7 @@
 
             <h3 class="book-title">{{ book.title }}</h3>
             <p class="book-meta">
-                by <span>{{ book.author }}</span> | {{ book.genre }}
+                by <span class="author">{{ book.author }}</span> | <span class="genre">{{ book.genre }}</span>
             </p>
             <p class="desc">{{ book.description }}</p>
 

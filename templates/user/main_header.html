@@ -37,14 +37,19 @@
 
             <!-- Right Icons -->
             <div class="header-icons">
-                <div class="icon-wrapper">
-                    <a href="{{ url_for('cart') }}" class="icon"><i class="fa-brands fa-opencart"></i></a>
-                    <span class="icon-count">0</span> <!-- Cart count -->
+                <div class="icon-wrapper {% if request.endpoint == 'cart' %}active{% endif %}">
+                    <a href="{{ url_for('cart') }}" class="icon">
+                        <i class="fa-brands fa-opencart"></i>
+                    </a>
+                    <span class="icon-count">{{ cart_count }}</span>
                 </div>
-                <div class="icon-wrapper favorite-icon-wrapper {% if request.endpoint == 'favorites' %}active{% endif %}">
-                    <a href="{{ url_for('favorites') }}" class="icon"><i class="fa-regular fa-heart"></i></a>
+
+                <div class="icon-wrapper {% if request.endpoint == 'favorites' %}active{% endif %}">
+                    <a href="{{ url_for('favorites') }}" class="icon">
+                        <i class="fa-regular fa-heart"></i></a>
                     <span class="icon-count favorite-count">{{ favorite_count }}</span>
                 </div>
+
                 {% if session.get('user_id') %}
                     <div class="user-menu" id="userMenu">
                         <div class="user-icon" onclick="toggleUserMenu()">
@@ -79,39 +84,8 @@
     </main>
 
     <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h4>BookHaven</h4>
-                    <p>Revolutionizing system management for businesses worldwide.</p>
-                </div>
-                <div class="footer-section">
-                    <h4>Quick Links</h4>
-                    <ul>
-                        <li><a href="">About</a></li>
-                        <li><a href="">Contact</a></li>
-                        <li><a href="">Terms of Service</a></li>
-                        <li><a href="">Privacy Policy</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h4>Contact</h4>
-                    <p><i class="fa-solid fa-envelope"></i> info@BookHaven.com</p>
-                    <p><i class="fa-solid fa-phone"></i> +1(555) 123-4567</p>
-                </div>
-                <div class="footer-section">
-                    <h4>Subscribe</h4>
-                    <p>Stay in the loop! Subscribe to get our latest updates, book releases, and exclusive offers.</p>
-
-                    <form class="subscribe-form">
-                        <input type="email" placeholder="Enter your email" required>
-                        <button type="submit">Subscribe</button>
-                    </form>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>© 2025 BookHaven. All rights reserved.</p>
-            </div>
+        <div class="footer-bottom">
+            <p>© 2025 BookHaven. All rights reserved.</p>
         </div>
     </footer>
     

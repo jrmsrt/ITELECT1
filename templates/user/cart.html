@@ -2,171 +2,137 @@
 
 {% block content %}
 
-<title>My Cart - BookHaven</title>
+<title>My Cart | BookHaven</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/user/cart.css') }}">
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="{{ url_for('static', filename='js/qty_control.js') }}"></script>
 
 <div class="my-cart">
-    <div class="cart-details">
+  <!-- LEFT SECTION -->
+  <div class="cart-details">
     <h2>My Cart</h2>
-    <p class="subtext">3 items in your cart</p>
+    <p class="subtext">
+      {% if total_items %}
+        {{ total_items }} item{{ 's' if total_items != 1 else '' }} in your cart
+      {% else %}
+        Your cart is empty
+      {% endif %}
+    </p>
 
     <div class="cart-header">
-        <span class="header-details">Book Details</span>
-        <span class="header-price">Price</span>
-        <span class="header-qty">Quantity</span>
-        <span class="header-action">Action</span>
+      <span class="header-details">Book Details</span>
+      <span class="header-price">Unit Price</span>
+      <span class="header-qty">Quantity</span>
+      <span class="header-total">Total Price</span>
+      <span class="header-action">Action</span>
     </div>
 
     <div class="cart-items-content">
+      {% if items %}
+        {% for item in items %}
         <div class="cart-item">
-            <div class="book-info">
-            <img src="/static/media/book1.jpg" alt="Atomic Habits" class="cart-img">
-                <div class="cart-item-info">
-                    <h3>Atomic Habits</h3>
-                    <p class="author">Authour</p>
-                    <p class="genre">Self-Help</p>
-                </div>
-            </div>
-
-            <p class="item-price">₹209.00</p>
-
-            <div class="qty-input">
-                <button class="qty-count qty-count--minus" data-action="minus" type="button">-</button>
-                <input class="product-qty" type="number" name="product-qty" min="0" max="10" value="1">
-                <button class="qty-count qty-count--add" data-action="add" type="button">+</button>
-            </div>
-
-            <button class="remove-btn"><i class="fa-solid fa-trash"></i></button>
-        </div>
-
-        <div class="cart-item">
-            <div class="book-info">
-            <img src="/static/media/book1.jpg" alt="Atomic Habits" class="cart-img">
-                <div class="cart-item-info">
-                    <h3>Atomic Habits</h3>
-                    <p class="author">Authour</p>
-                    <p class="genre">Self-Help</p>
-                </div>
-            </div>
-
-            <p class="item-price">₹1111209.00</p>
-
-            <div class="qty-input">
-                <button class="qty-count qty-count--minus" data-action="minus" type="button">-</button>
-                <input class="product-qty" type="number" name="product-qty" min="0" max="10" value="1">
-                <button class="qty-count qty-count--add" data-action="add" type="button">+</button>
-            </div>
-
-            <button class="remove-btn"><i class="fa-solid fa-trash"></i></button>
-        </div>
-
-        <div class="cart-item">
-            <div class="book-info">
-            <img src="/static/media/book1.jpg" alt="Atomic Habits" class="cart-img">
-                <div class="cart-item-info">
-                    <h3>Atomic Habits</h3>
-                    <p class="author">Authour</p>
-                    <p class="genre">Self-Help</p>
-                </div>
-            </div>
-
-            <p class="item-price">₹209.00</p>
-
-            <div class="qty-input">
-                <button class="qty-count qty-count--minus" data-action="minus" type="button">-</button>
-                <input class="product-qty" type="number" name="product-qty" min="0" max="10" value="1">
-                <button class="qty-count qty-count--add" data-action="add" type="button">+</button>
-            </div>
-
-            <button class="remove-btn"><i class="fa-solid fa-trash"></i></button>
-        </div>
-
-        <div class="cart-item">
-            <div class="book-info">
-            <img src="/static/media/book1.jpg" alt="Atomic Habits" class="cart-img">
+          <!-- Book details -->
+          <div class="book-info">
+            {% if item.cover %}
+              <img src="{{ url_for('static', filename='uploads/' ~ item.cover) }}"
+                   alt="{{ item.title }}" class="cart-img">
+            {% else %}
+              <img src="/static/images/no-cover.png"
+                   alt="{{ item.title }}" class="cart-img">
+            {% endif %}
             <div class="cart-item-info">
-                <h3>Atomic Habits</h3>
-                <p class="author">Authour</p>
-                <p class="genre">Self-Help</p>
+              <h3>{{ item.title }}</h3>
+              <p class="author">{{ item.author }}</p>
+              <p class="genre">{{ item.genre }}</p>
             </div>
-            </div>
+          </div>
 
-            <p class="item-price">₹209.00</p>
+          <!-- Unit price -->
+          <p class="item-price">₱{{ '%.2f'|format(item.price) }}</p>
 
-            <div class="qty-input">
-                <button class="qty-count qty-count--minus" data-action="minus" type="button">-</button>
-                <input class="product-qty" type="number" name="product-qty" min="0" max="10" value="1">
-                <button class="qty-count qty-count--add" data-action="add" type="button">+</button>
-            </div>
+          <!-- Quantity -->
+          <div class="qty-input"
+               data-cart-id="{{ item.cart_id }}"
+               data-unit-price="{{ item.price }}">
+            <button class="qty-count qty-count--minus" data-action="minus" type="button">-</button>
+            <input class="product-qty"
+                   type="number"
+                   name="product-qty"
+                   min="1"
+                   max="10"
+                   value="{{ item.quantity }}">
+            <button class="qty-count qty-count--add" data-action="add" type="button">+</button>
+          </div>
 
-            <button class="remove-btn"><i class="fa-solid fa-trash"></i></button>
+          <!-- Total price for this line -->
+          <p class="item-total">
+            ₱{{ '%.2f'|format(item.price * item.quantity) }}
+          </p>
+
+          <!-- Delete -->
+          <form action="{{ url_for('remove_from_cart', cart_id=item.cart_id) }}"
+                method="post" class="cart-remove-form">
+            <button class="remove-btn" type="submit">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </form>
         </div>
-
-        <div class="cart-item">
-            <div class="book-info">
-            <img src="/static/media/book1.jpg" alt="Atomic Habits" class="cart-img">
-            <div class="cart-item-info">
-                <h3>Atomic Habits</h3>
-                <p class="author">Authour</p>
-                <p class="genre">Self-Help</p>
-            </div>
-            </div>
-
-            <p class="item-price">₹209.00</p>
-
-            <div class="qty-input">
-                <button class="qty-count qty-count--minus" data-action="minus" type="button">-</button>
-                <input class="product-qty" type="number" name="product-qty" min="0" max="10" value="1">
-                <button class="qty-count qty-count--add" data-action="add" type="button">+</button>
-            </div>
-
-            <button class="remove-btn"><i class="fa-solid fa-trash"></i></button>
+        {% endfor %}
+      {% else %}
+        <div class="empty-cart">
+          <p>Your cart is currently empty.</p>
         </div>
+      {% endif %}
     </div>
-</div>
+  </div>
 
   <!-- RIGHT SECTION -->
-<div class="order-summary">
+  <div class="order-summary">
     <h2><i class="fa-solid fa-cart-shopping"></i> Order Summary</h2>
 
     <div class="summary-item">
-        <span>Subtotal (3 items)</span>
-        <span>₹2174.00</span>
+      <span>Subtotal ({{ total_items or 0 }} item{{ '' if (total_items or 0) == 1 else 's' }})</span>
+      <span>₱{{ '%.2f'|format(subtotal or 0) }}</span>
     </div>
 
     <div class="summary-item">
-        <span>Shipping</span>
-        <span class="free">Free</span>
+      <span>Shipping</span>
+      <span class="free">Free</span>
     </div>
 
     <div class="summary-item">
-        <span>Taxes</span>
-        <span>Calculated at checkout</span>
+      <span>Taxes</span>
+      <span>Calculated at checkout</span>
     </div>
 
     <div class="fulfillment">
-    <h3>Fulfillment Method</h3>
-        <label class="radio">
-            <input name="radio" type="radio" checked>
-            <span>Pick-up</span>
-        </label>
+      <h3>Fulfillment Method</h3>
+      <label class="radio">
+        <input name="radio" type="radio" checked>
+        <span>Pick-up</span>
+      </label>
 
-        <label class="radio">
-            <input name="radio" type="radio">
-            <span>Delivery</span>
-        </label>
+      <label class="radio">
+        <input name="radio" type="radio">
+        <span>Delivery</span>
+      </label>
+    </div>
 
     <div class="summary-total">
-        <span>Total</span>
-        <span class="total-amount">₹2174.00</span>
+      <span>Total</span>
+      <span class="total-amount">₱{{ '%.2f'|format(subtotal or 0) }}</span>
     </div>
 
-    <a href="{{ url_for('checkout') }}"><button class="checkout-btn">Checkout Now<i class="fa-solid fa-arrow-right"></i></button></a>
+    <a href="{{ url_for('checkout') }}">
+      <button class="checkout-btn">
+        Checkout Now <i class="fa-solid fa-arrow-right"></i>
+      </button>
+    </a>
+
     <div class="continue-btn">
-        <a href="{{ url_for('shop_books') }}">Continue Shopping</a>
+      <a href="{{ url_for('shop_books') }}">Continue Shopping</a>
     </div>
+  </div>
 </div>
 
 {% endblock %}

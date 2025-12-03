@@ -3,7 +3,9 @@
 {% block content %}
 
 <title>Add Book</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/edit_book.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/add_books.css') }}">
+<link href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
 <script src="{{ url_for('static', filename='js/books.js') }}" defer></script>
 
 <div class="main-container">
@@ -38,28 +40,31 @@
                 <h2>Details</h2>
 
                 <label>Title:</label>
-                <input type="text" name="title" required>
+                <input type="text" name="title" placeholder="Enter the book's title" required>
 
                 <label>Author:</label>
-                <input type="text" name="author" required>
+                <input type="text" name="author" placeholder="Enter the author's name" required>
 
                 <label>Genre:</label>
-                <input type="text" name="genre" required>
+                <input id="genreInput" name="genre" placeholder="Add genres..." required>
+
+                <label>ISBN</label>
+                <input type="text" name="isbn" placeholder="Enter book's ISBN (e.g., 978-xxx-xxxx-x)" required>
 
                 <div class="flex-row">
                     <div class="input-group">
                         <label>Stock Quantity:</label>
-                        <input type="number" name="stock_quantity" min="0" required>
+                        <input type="number" name="stock_quantity" min="0" placeholder="Specify stock quantiy" required>
                     </div>
 
                     <div class="input-group">
                         <label>Price (₱):</label>
-                        <input type="number" name="price" min="0" step="0.01" required>
+                        <input type="number" name="price" min="0" step="0.01" placeholder="Specify the price" required>
                     </div>
                 </div>
 
                 <label>Description:</label>
-                <textarea name="description" rows="3" required></textarea>
+                <textarea name="description" rows="3" placeholder="Write a short description or summary of the book..." required></textarea>
 
                 <div class="button-group">
                     <button type="submit" class="save-btn">

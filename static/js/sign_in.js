@@ -8,15 +8,30 @@ document.addEventListener("DOMContentLoaded", function () {
     const msgType = main.getAttribute("data-msg-type");
     const msg = main.getAttribute("data-msg");
     const redirectUrl = main.getAttribute("data-redirect-url");
+    const loginPage = main.getAttribute("data-login-required-page");
+
 
     // ===============================
     //  SHOW "LOGIN REQUIRED" TOAST
     // ===============================
     if (loginRequired === "true") {
+
+        let title = "Please log in first.";
+
+        if (loginPage === "favorites") {
+            title = "Please log in first to access Favorites.";
+        }
+        else if (loginPage === "cart") {
+            title = "Please log in first to access your Cart.";
+        }
+        else if (loginPage === "checkout") {
+            title = "Please log in first to proceed with Checkout.";
+        }
+
         Swal.fire({
             toast: true,
             icon: 'warning',
-            title: 'Please log in first to access Favorites',
+            title: title,
             position: 'top-end',
             showConfirmButton: false,
             timer: 3500,
@@ -24,6 +39,7 @@ document.addEventListener("DOMContentLoaded", function () {
             background: '#fff'
         });
     }
+
 
     // ===============================
     //  SHOW SUCCESS LOGIN MESSAGE
@@ -35,10 +51,7 @@ document.addEventListener("DOMContentLoaded", function () {
             text: msg,
             confirmButtonText: "Proceed",
             allowOutsideClick: false,
-            allowEscapeKey: false,
-            customClass: {
-                confirmButton: 'swal-confirm-btn'
-            }
+            allowEscapeKey: false
         }).then(() => {
             window.location.href = redirectUrl;
         });

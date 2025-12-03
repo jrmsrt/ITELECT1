@@ -8,6 +8,8 @@
     href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"
 />
 <link rel="stylesheet" href="{{ url_for('static', filename='css/user/index.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{{ url_for('static', filename='js/books.js') }}" defer></script>
 
 <!-- Index Section -->
 <section class="index">
@@ -68,7 +70,12 @@
         <div class="swiper-wrapper">
 
             {% for book in featured_books %}
-            <div class="swiper-slide book-card">
+            <div class="swiper-slide book-card"
+                data-book-id="{{ book.id }}"
+                data-title="{{ book.title|lower }}"
+                data-author="{{ book.author|lower }}"
+                data-genre="{{ book.genre|lower }}"
+                data-description="{{ book.description|lower }}">
 
                 <div class="book-cover">
                     {% if book.cover %}
@@ -95,12 +102,13 @@
 
                 <!-- Bottom Action Buttons -->
                 <div class="book-bottom-actions">
-                    <button class="action-btn add-cart">
+                    <button class="action-btn add-cart" data-book-id="{{ book.id }}">
                         <i class="fas fa-shopping-cart"></i> Add to Cart
                     </button>
-                    <a href="{{ url_for('shop_books') }}" class="action-btn details">
+
+                    <button class="action-btn details">
                         <i class="fas fa-info-circle"></i> Details
-                    </a>
+                    </button>
                 </div>
             </div>
             {% endfor %}
@@ -118,79 +126,33 @@
             <i class="fa-solid fa-arrow-right"></i>
         </a>
     </div>
-</section>
 
+        <!-- BOOK DETAILS MODAL -->
+    <div class="modal-overlay" id="bookModal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
 
-<!-- featured-books Section -->
-<section class="featured-books">
-    <h2><span>Featured</span> Books</h2>
-    <p class="subtitle">
-        Fresh picks, trending titles, and must-read gems — find your next favorite book here!
-    </p>
-
-    <!-- Swiper Container -->
-    <div class="swiper book-slider">
-        <div class="swiper-wrapper">
-            <div class="swiper-slide book-card">
-                <div class="book-cover">
-                    <img src="/static/media/book1.jpg" alt="Book 1">
+            <div class="modal-body">
+                <div class="modal-left">
+                    <img id="modalCover" src="" alt="Book Cover">
+                    <p class="modal-stock" id="modalStock"></p>
                 </div>
 
-                <h3>Into the Unknown</h3>
-                <span class="genre">Fiction</span>
-                <p class="desc">A gripping saga of survival in uncharted lands</p>
-                <span class="price">$10.00</span>
+                <div class="modal-right">
+                    <h2 id="modalTitle"></h2>
+                    <p class="modal-author">by <span id="modalAuthor"></span></p>
+                    <p class="modal-genre" id="modalGenre"></p>
 
-                <!-- Bottom Action Buttons -->
-                <div class="book-bottom-actions">
-                    <button class="action-btn add-cart">
-                    <i class="fas fa-shopping-cart"></i> Add to Cart
-                    </button>
-                    <button class="action-btn details">
-                    <i class="fas fa-info-circle"></i> Details
-                    </button>
-                </div>
-            </div>
+                    <p class="modal-description" id="modalDescription"></p>
 
-        <!-- Copy for other books -->
-        <div class="swiper-slide book-card">
-            <div class="book-cover">
-                <img src="/static/media/book1.jpg" alt="Book 1">
+                    <p class="modal-price">Price: <span id="modalPrice"></span></p>
 
-                <!-- Favorite Icon (hover only) -->
-                <button class="fav-btn" title="Add to Favorites">
-                    <i class="fa-regular fa-heart regular-heart"></i>
-                    <i class="fa-solid fa-heart solid-heart"></i>
-                </button>
-            </div>
-
-            <h3>Into the Unknown</h3>
-            <span class="genre">Fiction</span>
-            <p class="desc">A gripping saga of survival in uncharted lands</p>
-            <span class="price">$10.00</span>
-
-            <!-- Bottom Action Buttons -->
-                <div class="book-bottom-actions">
-                    <button class="action-btn add-cart">
-                    <i class="fas fa-shopping-cart"></i> Add to Cart
-                    </button>
-                    <button class="action-btn details">
-                    <i class="fas fa-info-circle"></i> Details
+                    <button class="modal-add-cart">
+                        <i class="fas fa-shopping-cart"></i> Add to Cart
                     </button>
                 </div>
             </div>
         </div>
-
-        <!-- Swiper Pagination -->
-        <div class="swiper-pagination"></div>
-        <div class="swiper-button-prev"></div>
-        <div class="swiper-button-next"></div>
-    </div>
-    <div class="view-all-container">
-        <a href="{{ url_for('shop_books') }}" class="view-all-btn"> <!-- Redirects to shop_books.html when the user is logged in.-->
-            View All Books
-            <i class="fa-solid fa-arrow-right"></i>
-        </a>
     </div>
 </section>
 

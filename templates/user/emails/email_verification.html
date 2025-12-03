@@ -57,10 +57,7 @@ Swal.fire({
     text: 'Your email has been successfully verified. You may now log in.',
     confirmButtonText: 'Proceed to Login',
     allowOutsideClick: false,
-    allowEscapeKey: false,
-    customClass: {
-        confirmButton: 'swal-confirm-btn'
-    }
+    allowEscapeKey: false
 }).then(() => {
     window.location.href = "{{ url_for('user_login') }}";
 });

@@ -15,6 +15,7 @@ import re
 import string
 import secrets
 import os
+import json
 from datetime import datetime, timedelta
 
 app = Flask(__name__)
@@ -163,11 +164,14 @@ def user_login():
     msg_type = session.pop('msg_type', '')
     redirect_url = session.pop('redirect_url', '/')
     login_required_flag = session.pop('login_required', False)
+    login_required_page = session.pop('login_required_page', '')
+
 
     return render_template('user/sign_in.html',
                            msg=msg, msg_type=msg_type,
                            redirect_url=redirect_url, 
-                           login_required=login_required_flag)
+                           login_required=login_required_flag,
+                           login_required_page=login_required_page)
 
 
 # =========================
@@ -592,6 +596,15 @@ def shop_books():
     cursor.execute("SELECT * FROM books ORDER BY id")
     books = cursor.fetchall()
 
+    # ---- Build UNIQUE genre list (splitting comma-separated strings) ----
+    genre_set = set()
+    for b in books:
+        if b["genre"]:
+            parts = [g.strip() for g in b["genre"].split(",")]
+            genre_set.update(parts)
+
+    genres = sorted(genre_set)
+
     if user_id:
         cursor.execute("SELECT book_id FROM favorites WHERE user_id=%s", (user_id,))
         favorite_rows = cursor.fetchall()
@@ -605,6 +618,7 @@ def shop_books():
     return render_template(
         'user/shop_books.html',
         books=books,
+        genres=genres,
         favorite_ids=favorite_ids
     )
 
@@ -615,6 +629,7 @@ def shop_books():
 def favorites():
     if 'user_id' not in session:
         session['login_required'] = True
+        session['login_required_page'] = "favorites"
         return redirect('/user-login')
 
     user_id = session['user_id']
@@ -719,11 +734,188 @@ def get_favorite_count():
     return {"count": count}
 
 # =========================
-#  CART SYSTEM ROUTE
+#  CART SYSTEM ROUTES
 # =========================
 @app.route('/cart')
 def cart():
-    return render_template('user/cart.html')
+    if 'user_id' not in session:
+        session['login_required'] = True
+        session['login_required_page'] = "cart"
+        return redirect(url_for('user_login'))
+
+    user_id = session['user_id']
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT 
+            c.id AS cart_id,
+            c.quantity,
+            b.id AS book_id,
+            b.title,
+            b.author,
+            b.genre,
+            b.price,
+            b.cover
+        FROM cart c
+        JOIN books b ON c.book_id = b.id
+        WHERE c.user_id = %s
+        ORDER BY c.added_at DESC
+    """, (user_id,))
+    items = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    total_items = sum(item['quantity'] for item in items)
+    subtotal = sum(float(item['price']) * item['quantity'] for item in items)
+
+    return render_template(
+        'user/cart.html',
+        items=items,
+        total_items=total_items,
+        subtotal=subtotal
+    )
+
+
+@app.route('/cart/add', methods=['POST'])
+def add_to_cart():
+    if 'user_id' not in session:
+        return jsonify({"status": "not_logged_in"})
+
+    user_id = session['user_id']
+    username = session.get('user', '')
+
+    data = request.get_json(silent=True) or {}
+    book_id = data.get('book_id')
+    quantity = data.get('quantity', 1)
+
+    try:
+        book_id = int(book_id)
+        quantity = int(quantity)
+        if quantity <= 0:
+            quantity = 1
+    except (TypeError, ValueError):
+        return jsonify({"status": "invalid_data"}), 400
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        # Check book & stock
+        cursor.execute("SELECT stock_quantity FROM books WHERE id = %s", (book_id,))
+        book = cursor.fetchone()
+
+        if not book:
+            return jsonify({"status": "book_not_found"}), 404
+
+        if book['stock_quantity'] <= 0:
+            return jsonify({"status": "out_of_stock"})
+
+        # Existing cart row?
+        cursor.execute("""
+            SELECT id, quantity
+            FROM cart
+            WHERE user_id = %s AND book_id = %s
+        """, (user_id, book_id))
+        existing = cursor.fetchone()
+
+        if existing:
+            new_qty = existing['quantity'] + quantity
+            cursor.execute("""
+                UPDATE cart
+                SET quantity = %s
+                WHERE id = %s
+            """, (new_qty, existing['id']))
+            action = "updated"
+            final_qty = new_qty
+        else:
+            cursor.execute("""
+                INSERT INTO cart (user_id, username, book_id, quantity)
+                VALUES (%s, %s, %s, %s)
+            """, (user_id, username, book_id, quantity))
+            action = "added"
+            final_qty = quantity
+
+        conn.commit()
+        return jsonify({
+            "status": "ok",
+            "action": action,
+            "quantity": final_qty
+        })
+
+    except Exception as e:
+        conn.rollback()
+        print("Error adding to cart:", e)
+        return jsonify({"status": "error"}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route('/cart/remove/<int:cart_id>', methods=['POST'])
+def remove_from_cart(cart_id):
+    if 'user_id' not in session:
+        session['login_required'] = True
+        return redirect(url_for('user_login'))
+
+    user_id = session['user_id']
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM cart WHERE id = %s AND user_id = %s",
+                   (cart_id, user_id))
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return redirect(url_for('cart'))
+
+@app.context_processor
+def inject_cart_count():
+    user_id = session.get("user_id")
+
+    if not user_id:
+        return {"cart_count": 0}
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT COALESCE(SUM(quantity), 0) AS count
+        FROM cart
+        WHERE user_id = %s
+    """, (user_id,))
+
+    result = cursor.fetchone()
+    cursor.close()
+    conn.close()
+
+    return {"cart_count": result["count"]}
+
+
+
+@app.route('/cart/count')
+def get_cart_count():
+    """Total quantity of items for a badge."""
+    user_id = session.get("user_id")
+    if not user_id:
+        return {"count": 0}
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT COALESCE(SUM(quantity), 0) AS count
+        FROM cart
+        WHERE user_id = %s
+    """, (user_id,))
+    result = cursor.fetchone()
+    cursor.close()
+    conn.close()
+
+    return {"count": result["count"] if result else 0}
+
 
 # =========================
 #  DELIVERY CHECKOUT BOOK ROUTE
@@ -751,10 +943,26 @@ def manage_books():
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT * FROM books ORDER BY id")
     books = cursor.fetchall()
+
+    # ---- Build UNIQUE GENRE LIST for Admin Filters ----
+    genre_set = set()
+    for b in books:
+        if b["genre"]:
+            parts = [g.strip() for g in b["genre"].split(",")]
+            genre_set.update(parts)
+
+    genres = sorted(genre_set)
+
     cursor.close()
     conn.close()
 
-    return render_template('admin/manage_books.html', books=books, active_page='manage_books')
+    return render_template(
+        'admin/manage_books.html',
+        books=books,
+        genres=genres,
+        active_page='manage_books'
+    )
+
 
 # =========================
 #  EDIT BOOK ROUTE
@@ -785,7 +993,10 @@ def update_book():
     book_id = request.form['id']
     title = request.form['title']
     author = request.form['author']
-    genre = request.form['genre']
+    isbn = request.form['isbn']
+    raw_genres = request.form.get("genre", "[]")
+    genres_list = [g["value"] for g in json.loads(raw_genres)]
+    genre = ", ".join(genres_list)
     description = request.form['description']
     price = float(request.form['price'])
     stock_quantity = int(request.form['stock_quantity'])
@@ -817,20 +1028,20 @@ def update_book():
 
         cursor.execute("""
             UPDATE books 
-            SET title=%s, author=%s, genre=%s, description=%s, price=%s,
+            SET title=%s, author=%s, isbn=%s, genre=%s, description=%s, price=%s,
                 stock_quantity=%s, cover=%s, status=%s
             WHERE id=%s
-        """, (title, author, genre, description, price,
+        """, (title, author, isbn, genre, description, price,
               stock_quantity, filename, status, book_id))
 
     # No new cover
     else:
         cursor.execute("""
             UPDATE books 
-            SET title=%s, author=%s, genre=%s, description=%s, price=%s,
+            SET title=%s, author=%s, isbn=%s, genre=%s, description=%s, price=%s,
                 stock_quantity=%s, status=%s
             WHERE id=%s
-        """, (title, author, genre, description, price,
+        """, (title, author, isbn, genre, description, price,
               stock_quantity, status, book_id))
 
     conn.commit()
@@ -890,7 +1101,10 @@ def add_book():
     # Handle form submission
     title = request.form['title']
     author = request.form['author']
-    genre = request.form['genre']
+    isbn = request.form['isbn']
+    raw_genres = request.form.get("genre", "[]")
+    genres_list = [g["value"] for g in json.loads(raw_genres)]
+    genre = ", ".join(genres_list)
     description = request.form['description']
     price = float(request.form['price'])
     stock_quantity = int(request.form['stock_quantity'])
@@ -909,11 +1123,11 @@ def add_book():
     cursor = conn.cursor()
 
     cursor.execute("""
-        INSERT INTO books (title, author, genre, description, price,
-                           stock_quantity, cover, status)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-    """, (title, author, genre, description, price,
-          stock_quantity, cover_filename, status))
+        INSERT INTO books (title, author, isbn, genre, description, price,
+                        stock_quantity, cover, status)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+    """, (title, author, isbn, genre, description, price,
+        stock_quantity, cover_filename, status))
 
     conn.commit()
     cursor.close()

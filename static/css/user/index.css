@@ -560,6 +560,348 @@ body {
   transform: translateX(5px);
 }
 
+/* ------------------- MODAL OVERLAY ------------------- */
+.modal-overlay {
+    position: fixed;
+    top: 0; 
+    left: 0;
+    width: 100%; 
+    height: 100%;
+    background: rgba(0, 0, 0, 0.45);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 5000;
+}
+
+/* ------------------- ZOOM ANIMATION ------------------- */
+
+/* OPEN animation */
+@keyframes zoomIn {
+    from {
+        transform: scale(0.7);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* CLOSE animation */
+@keyframes zoomOut {
+    from {
+        transform: scale(1);
+        opacity: 1;
+    }
+    to {
+        transform: scale(0.7);
+        opacity: 0;
+    }
+}
+
+/* Apply animation by toggling classes from JS */
+.modal-content.zoom-in {
+    animation: zoomIn 0.25s ease forwards;
+}
+.modal-content.zoom-out {
+    animation: zoomOut 0.25s ease forwards;
+}
+
+/* ------------------- MODAL BOX ------------------- */
+.modal-content {
+    background: #fff;
+    width: 900px;
+    height: 550px;
+    border-radius: 12px;
+    padding: 1.5rem;
+    position: relative;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    transform-origin: center;
+}
+
+/* ------------------- CLOSE BUTTON ------------------- */
+.close-btn {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 32px;
+    font-weight: bold;
+    color: #444;
+    cursor: pointer;
+    z-index: 10;
+    transition: .25s;
+}
+.close-btn:hover {
+    color: var(--gold);
+}
+
+/* ------------------- MODAL BODY ------------------- */
+.modal-body {
+    display: flex;
+    gap: 1.5rem;
+    height: calc(100% - 30px);
+    margin-top: 15px;
+}
+
+/* ------------------- LEFT SIDE ------------------- */
+.modal-left {
+    width: 300px;
+    flex-shrink: 0;
+}
+.modal-left img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
+/* ------------------- RIGHT SIDE ------------------- */
+.modal-right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.modal-right h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--black);
+    margin-bottom: .3rem;
+}
+
+.modal-author {
+    color: #777;
+    margin-bottom: .5rem;
+}
+
+.modal-genre {
+    font-weight: 600;
+    color: var(--dark-color);
+    margin-bottom: 0.8rem;
+}
+
+.modal-description {
+  color: #333;
+    flex: 1;
+    overflow-y: auto;
+    text-align: justify;
+    line-height: 1.6;
+    padding-right: 10px;
+    padding: 15px;
+    margin-bottom: 1rem;
+    white-space: normal; /* Keep paragraph spacing */
+}
+
+/* Indent ALL paragraphs (even after breaks) */
+.modal-description p {
+    text-indent: 2rem;
+    margin-bottom: 1rem;
+}
+
+/* Scrollbar */
+.modal-description::-webkit-scrollbar {
+    width: 8px;
+}
+.modal-description::-webkit-scrollbar-thumb {
+    background: #bbb;
+    border-radius: 4px;
+}
+
+/* ------------------- PRICE & STOCK ------------------- */
+.modal-price {
+    font-size: 1.3rem;
+    margin-top: .4rem;
+    font-weight: bold;
+    color: var(--dark-color);
+}
+
+.modal-stock {
+  color: var(--burgundy);
+    font-weight: 600;
+    margin-top: .4rem;
+}
+
+/* ------------------- ADD TO CART BUTTON ------------------- */
+.modal-add-cart {
+    margin-top: 1rem;
+    padding: 10px 18px;
+    background: var(--dark-color);
+    color: #fff;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: .3s;
+}
+
+.modal-add-cart:hover {
+    background: var(--gold);
+    transform: scale(1.05);
+}
+
+/* ------------ FADE FOR OVERLAY ------------ */
+
+/* Fade-in overlay */
+@keyframes fadeInOverlay {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Fade-out overlay */
+@keyframes fadeOutOverlay {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+/* Class applied when opening */
+.modal-overlay.fade-in {
+    animation: fadeInOverlay 0.25s ease forwards;
+}
+
+/* Class applied when closing */
+.modal-overlay.fade-out {
+    animation: fadeOutOverlay 0.25s ease forwards;
+}
+
+/* Remove SweetAlert default icon circle */
+.no-default-icon,
+.swal2-icon {
+    border: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Heart Animation */
+.heart-anim {
+    position: relative;
+    display: inline-block;
+    font-size: 24px;
+    animation: popBounce 0.55s ease-out forwards;
+}
+
+/* POP + BOUNCE animation */
+@keyframes popBounce {
+    0%   { transform: scale(0.7); opacity: 0.4; }
+    40%  { transform: scale(1.45); opacity: 1; }
+    60%  { transform: scale(0.95); }
+    80%  { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* Sparkles around heart */
+.sparkle {
+    position: absolute;
+    font-size: 14px;
+    opacity: 0;
+    animation: sparkleBurst 0.6s ease-out forwards;
+    color: #ff91c9; /* soft pink sparkle */
+}
+
+/* Sparkle positions */
+.sparkle-1 { top: -10px; left: -12px; }
+.sparkle-2 { top: -12px; right: -10px; }
+.sparkle-3 { bottom: -5px; right: -5px; }
+
+/* Sparkle animation */
+@keyframes sparkleBurst {
+    0%   { transform: scale(0.2) rotate(0deg); opacity: 0; }
+    30%  { transform: scale(1.4) rotate(15deg); opacity: 1; }
+    60%  { transform: scale(0.9) rotate(0deg); opacity: 0.8; }
+    100% { transform: scale(0.2) rotate(-10deg); opacity: 0; }
+}
+
+/* 💔 Heartbreak Animation */
+.heartbreak-anim {
+    display: inline-block;
+    font-size: 24px;
+    animation: heartbreakPop 0.55s ease-out forwards;
+}
+
+/* POP + SHAKE + SETTLE */
+@keyframes heartbreakPop {
+    0%   { transform: scale(0.7); opacity: 0.4; }
+    30%  { transform: scale(1.4); opacity: 1; }
+    45%  { transform: scale(1);   transform: translateX(-2px); }
+    55%  { transform: translateX(2px); }
+    65%  { transform: translateX(-1px); }
+    75%  { transform: translateX(1px); }
+    100% { transform: translateX(0) scale(1); }
+}
+
+/* ✦ Crack particles */
+.crack {
+    position: absolute;
+    font-size: 12px;
+    opacity: 0;
+    color: #ff6b82; /* soft broken-heart pink */
+    animation: crackBurst 0.6s ease-out forwards;
+}
+
+/* crack positions */
+.crack-1 { top: -6px; right: -8px; }
+.crack-2 { bottom: -4px; left: -6px; }
+
+/* Crack animation */
+@keyframes crackBurst {
+    0%   { transform: scale(0.2) rotate(0deg); opacity: 0; }
+    25%  { transform: scale(1.1) rotate(20deg); opacity: 1; }
+    60%  { transform: scale(0.7) rotate(0deg); opacity: 0.7; }
+    100% { transform: scale(0.2) rotate(-20deg); opacity: 0; }
+}
+
+/* Container that sits INSIDE SweetAlert icon box */
+.login-icon {
+    position: relative;
+    width: 60px;
+    height: 60px;
+}
+
+/* Lock perfectly centered */
+.login-lock {
+    position: absolute;
+    top: 90%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 46px;
+    animation: lockBounce 1s infinite ease-in-out;
+}
+
+/* Sparkles */
+.login-sparkle {
+    position: absolute;
+    font-size: 22px;
+    opacity: 0;
+    animation: sparkleFloat 1.3s infinite;
+}
+
+.login-sparkle.s1 { top: 4px; left: 6px; animation-delay: .2s; }
+.login-sparkle.s2 { top: 4px; right: 6px; animation-delay: .5s; }
+
+/* Animations */
+@keyframes lockBounce {
+    0%, 100% { transform: translate(-50%, -50%); }
+    50% { transform: translate(-50%, -60%); }
+}
+
+@keyframes sparkleFloat {
+    0% { opacity: 0; transform: translateY(6px); }
+    40% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(-6px); }
+}
+
+
+/* FORCE SWEETALERT TO CENTER CUSTOM ICON */
+.swal2-icon.swal2-custom-icon {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 0 !important;
+    margin: 0 auto 10px auto !important; /* IMPORTANT: centers above title */
+    width: 80px !important;
+    height: 80px !important;
+}
 
 /* Announcements Section */
 .announcements {
