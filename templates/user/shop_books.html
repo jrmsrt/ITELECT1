@@ -80,7 +80,7 @@
             </p>
             <p class="desc">{{ book.description }}</p>
             <div class="price-stock">
-                <span class="price">₱{{ '%.2f' | format(book.price) }}</span>
+                <span class="price">₱{{ "{:,.2f}".format(book.price) }}</span>
 
                 {% if book.stock_quantity > 0 %}
                     <span class="stock">{{ book.stock_quantity }} in stock</span>

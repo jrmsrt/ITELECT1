@@ -66,21 +66,6 @@ p.subtext {
   margin-bottom: 15px;
 }
 
-/* Header row: 5 columns */
-.cart-header {
-  display: grid;
-  grid-template-columns: 2.2fr 1fr 1fr 1fr 0.6fr;
-  padding: 12px 20px;
-  font-weight: 600;
-  color: #555;
-  background: #fafafa;
-  border-bottom: 2px solid #eee;
-  font-size: 0.95rem;
-  position: sticky;
-  top: 0;
-  z-index: 2;
-}
-
 .cart-header span {
   text-align: center;
 }
@@ -104,17 +89,6 @@ p.subtext {
 }
 .cart-items-content::-webkit-scrollbar-thumb:hover {
   background: #a1a1aa;
-}
-
-/* Cart item row: 5 columns */
-.cart-item {
-  display: grid;
-  grid-template-columns: 2.4fr 1fr 1fr 1fr 0.6fr;
-  align-items: center;
-  gap: 15px;
-  padding: 16px 20px;
-  border-bottom: 1px solid #f3f4f6;
-  background: #fff;
 }
 
 .cart-item:last-child {
@@ -162,6 +136,7 @@ p.subtext {
     -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
 }
+
 
 /* Prices */
 .item-price,
@@ -465,4 +440,105 @@ p.subtext {
 .radio input:checked + span:after {
   opacity: 1;
   transform: scale(1, 1);
+}
+
+.empty-cart {
+    text-align: center;
+    padding: 40px 20px;
+    color: #444;
+}
+
+.empty-cart-img {
+    width: 120px;
+    opacity: 0.9;
+    margin-bottom: 20px;
+}
+
+.empty-cart h3 {
+    font-size: 1.7rem;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.empty-cart p {
+    font-size: 1rem;
+    margin-bottom: 20px;
+}
+
+.empty-cart-btn {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 14px;
+  color: #555;
+}
+
+.empty-cart-btn {
+  color: #666;
+  font-weight: 600;
+  text-decoration: none;
+  position: relative;
+  transition: color 0.3s ease;
+}
+
+.empty-cart-btn:hover {
+  color: var(--dark-color);
+}
+
+/* --- CHECKBOX COLUMN FIX --- */
+
+/* Header with 6 columns now */
+.cart-header {
+  display: grid;
+  grid-template-columns:
+      0.4fr
+      2fr
+      1fr
+      1fr
+      1fr
+      0.6fr;
+  padding: 12px 20px;
+  font-weight: 600;
+  color: #555;
+  background: #fafafa;
+  border-bottom: 2px solid #eee;
+  font-size: 0.95rem;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.header-select {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Row with 6 columns now */
+.cart-item {
+  display: grid;
+  grid-template-columns:
+      0.4fr
+      2fr
+      1fr
+      1fr
+      1fr
+      0.6fr;
+  align-items: center;
+  gap: 15px;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f3f4f6;
+  background: #fff;
+}
+
+.select-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.select-item input[type="checkbox"],
+.header-select input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
 }

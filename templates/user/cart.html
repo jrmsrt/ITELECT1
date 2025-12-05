@@ -4,8 +4,9 @@
 
 <title>My Cart | BookHaven</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/user/cart.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="{{ url_for('static', filename='js/qty_control.js') }}"></script>
+<script src="{{ url_for('static', filename='js/cart.js') }}" defer></script>
 
 <div class="my-cart">
   <!-- LEFT SECTION -->
@@ -20,11 +21,14 @@
     </p>
 
     <div class="cart-header">
-      <span class="header-details">Book Details</span>
-      <span class="header-price">Unit Price</span>
-      <span class="header-qty">Quantity</span>
-      <span class="header-total">Total Price</span>
-      <span class="header-action">Action</span>
+        <span class="header-select">
+            <input type="checkbox" id="select-all">
+        </span>
+        <span class="header-details">Book Details</span>
+        <span class="header-price">Unit Price</span>
+        <span class="header-qty">Quantity</span>
+        <span class="header-total">Total Price</span>
+        <span class="header-action">Action</span>
     </div>
 
     <div class="cart-items-content">
@@ -32,6 +36,12 @@
         {% for item in items %}
         <div class="cart-item">
           <!-- Book details -->
+          <div class="select-item">
+              <input type="checkbox"
+                    class="item-checkbox"
+                    value="{{ item.cart_id }}">
+          </div>
+
           <div class="book-info">
             {% if item.cover %}
               <img src="{{ url_for('static', filename='uploads/' ~ item.cover) }}"
@@ -48,12 +58,13 @@
           </div>
 
           <!-- Unit price -->
-          <p class="item-price">₱{{ '%.2f'|format(item.price) }}</p>
+          <p class="item-price">₱{{ "{:,.2f}".format(item.price) }}</p>
 
           <!-- Quantity -->
           <div class="qty-input"
                data-cart-id="{{ item.cart_id }}"
-               data-unit-price="{{ item.price }}">
+               data-unit-price="{{ item.price }}"
+               data-stock="{{ item.stock_quantity }}">
             <button class="qty-count qty-count--minus" data-action="minus" type="button">-</button>
             <input class="product-qty"
                    type="number"
@@ -66,22 +77,36 @@
 
           <!-- Total price for this line -->
           <p class="item-total">
-            ₱{{ '%.2f'|format(item.price * item.quantity) }}
+            ₱{{ "{:,.2f}".format(item.price * item.quantity) }}
           </p>
 
           <!-- Delete -->
-          <form action="{{ url_for('remove_from_cart', cart_id=item.cart_id) }}"
-                method="post" class="cart-remove-form">
-            <button class="remove-btn" type="submit">
-              <i class="fa-solid fa-trash"></i>
-            </button>
+          <form id="delete-form-{{ item.cart_id }}"
+                action="{{ url_for('remove_from_cart', cart_id=item.cart_id) }}"
+                method="post">
+
+              <button class="remove-btn delete-item-btn"
+                      type="button"
+                      data-cart-id="{{ item.cart_id }}">
+                  <i class="fa-solid fa-trash"></i>
+              </button>
+
           </form>
         </div>
         {% endfor %}
       {% else %}
-        <div class="empty-cart">
-          <p>Your cart is currently empty.</p>
-        </div>
+      <div class="empty-cart">
+          <img src="{{ url_for('static', filename='media/empty-cart.png') }}"
+              alt="Empty Cart" class="empty-cart-img">
+
+          <h3>Your cart is empty.</h3>
+          <p>Every adventure starts with a single page. <br>
+             Browse our collection and discover your next great read!</p>
+
+          <a href="{{ url_for('shop_books') }}" class="empty-cart-btn">
+              Browse Books
+          </a>
+      </div>
       {% endif %}
     </div>
   </div>
@@ -91,8 +116,8 @@
     <h2><i class="fa-solid fa-cart-shopping"></i> Order Summary</h2>
 
     <div class="summary-item">
-      <span>Subtotal ({{ total_items or 0 }} item{{ '' if (total_items or 0) == 1 else 's' }})</span>
-      <span>₱{{ '%.2f'|format(subtotal or 0) }}</span>
+      <span id="summary-items">Subtotal ({{ total_items or 0 }} item{{ '' if (total_items or 0) == 1 else 's' }})</span>
+      <span class="summary-item-total">₱{{ "{:,.2f}".format(subtotal or 0) }}</span>
     </div>
 
     <div class="summary-item">
@@ -120,14 +145,16 @@
 
     <div class="summary-total">
       <span>Total</span>
-      <span class="total-amount">₱{{ '%.2f'|format(subtotal or 0) }}</span>
+      <span class="total-amount">₱{{ "{:,.2f}".format(subtotal or 0) }}</span>
     </div>
 
-    <a href="{{ url_for('checkout') }}">
-      <button class="checkout-btn">
-        Checkout Now <i class="fa-solid fa-arrow-right"></i>
-      </button>
-    </a>
+    <form id="checkout-form" action="{{ url_for('checkout') }}" method="POST">
+        <input type="hidden" name="selected_items" id="selected-items-input">
+
+        <button type="submit" class="checkout-btn">
+            Proceed to Checkout <i class="fa-solid fa-arrow-right"></i>
+        </button>
+    </form>
 
     <div class="continue-btn">
       <a href="{{ url_for('shop_books') }}">Continue Shopping</a>

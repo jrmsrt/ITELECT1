@@ -11,7 +11,7 @@
   <!-- LEFT SECTION -->
   <div class="checkout-details">
     <h2>Checkout Details</h2>
-    <p class="subtext">Please enter your information to complete the order</p>
+    <p class="subtext">Please enter your information to complete the order.</p>
 
     <h3><i class="fa-solid fa-location-dot"></i> Shipping Address</h3>
 
@@ -55,7 +55,7 @@
 
       <div class="form-group">
         <label>ZIP Code</label>
-        <input type="text" id="zip" placeholder="Auto-filled" readonly>
+        <input type="text" id="zip" placeholder="Auto-filled" required>
       </div>
 
       <div class="form-group full">
@@ -78,53 +78,61 @@
   </div>
 
   <!-- RIGHT SECTION -->
-  <div class="order-summary">
+<!-- RIGHT SECTION -->
+<div class="order-summary">
     <h2><i class="fa-solid fa-cart-shopping"></i> Order Summary</h2>
 
     <div class="order-items">
-      <div class="item">
-        <img src="https://m.media-amazon.com/images/I/51Z0nLAfLmL.jpg" alt="The Alchemist">
-        <div class="details">
-          <h4>The Alchemist</h4>
-          <p class="author">by Paulo Coelho</p>
-          <p class="genre">Fiction, Philosophy</p>
+
+      {% if items %}
+        {% for item in items %}
+        <div class="item">
+          <img src="{{ url_for('static', filename='uploads/' ~ item.cover) if item.cover else url_for('static', filename='images/no-cover.png') }}"
+               alt="{{ item.title }}">
+
+          <div class="details">
+            <h4>{{ item.title }}</h4>
+            <p class="author">by {{ item.author }}</p>
+            <p class="genre">{{ item.genre }}</p>
+          </div>
+
+          <div class="price">
+            <strong>₱{{ "{:,.2f}".format(item.price) }}</strong>
+            <p>Qty: {{ item.quantity }}</p>
+          </div>
         </div>
-        <div class="price">
-          <strong>₱163.00</strong>
-          <p>Qty: 4</p>
-        </div>
-      </div>
-      <div class="item">
-        <img src="https://cdn.shopify.com/s/files/1/0081/2453/9775/products/TheDesignofBooks.jpg" alt="The Design Of Books">
-        <div class="details">
-          <h4>The Design Of Books</h4>
-          <p class="author">by Robert Bringhurst</p>
-          <p class="genre">Design, Typography</p>
-        </div>
-        <div class="price">
-          <strong>₱738.00</strong>
-          <p>Qty: 2</p>
-        </div>
-      </div>
+        {% endfor %}
+      {% else %}
+        <p>No items selected.</p>
+      {% endif %}
+
     </div>
 
-    <div class="order-totals">
-      <p><span>Subtotal</span><span>₱2,128.00</span></p>
-      <p><span>Shipping</span><span>FREE</span></p>
-      <p><span>Tax</span><span>₱106.40</span></p>
-      <hr>
-      <h3 class="total"><span>Total</span><span>₱2,234.40</span></h3>
-    </div>
+  <!-- ORDER TOTALS -->
+  <div class="order-totals">
+    
+    {% set vat = (subtotal * 12 / 112) %}
+    {% set net = subtotal - vat %}
+    {% set total = subtotal %}
 
-    <div class="delivery">
-      <h4>Delivery Estimate</h4>
-      <p>Your order will be delivered within 3–5 business days after processing.</p>
-    </div>
-    <button class="place-order">Place Order <i class="fa-solid fa-arrow-right"></i></button>
-    <div class="cancel-btn">
-        <a href="{{ url_for('cart') }}">Cancel</a>
-    </div>
+    <p>
+      <span>Subtotal ({{ total_books }} item{{ 's' if total_books != 1 else '' }})</span>
+      <span>₱{{ "{:,.2f}".format(net) }} <small style="color:#777;">(VAT-excl)</small></span>
+    </p>
+
+    <p><span>Shipping</span><span>FREE</span></p>
+
+    <p>
+      <span>VAT (12%)</span>
+      <span>₱{{ "{:,.2f}".format(vat) }}</span>
+    </p>
+
+    <hr>
+
+    <h3 class="total">
+      <span>Total</span>
+      <span>₱{{ "{:,.2f}".format(total) }} <small style="color:#777;">(VAT-incl)</small></span>
+    </h3>
   </div>
-</div>
 
 {% endblock %}

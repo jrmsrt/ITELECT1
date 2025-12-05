@@ -110,7 +110,7 @@ label {
 
 input, select {
   width: 100%;
-  border: 1.7px solid var(--input-border);
+  border: 1px solid var(--input-border);
   padding: 0.75rem 1rem;
     border-radius: 0.5rem;
     font-size: 1rem;
@@ -124,6 +124,11 @@ input:focus, select:focus {
 }
 
 input:hover, select:hover {
+  border-color: var(--dark-color);
+  outline: none;
+}
+
+select:hover {
   cursor: pointer;
   border-color: var(--dark-color);
   outline: none;
@@ -200,7 +205,7 @@ input::placeholder {
 
 .item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   background-color: #f4f4f4;
   padding: 1rem;
@@ -220,9 +225,19 @@ input::placeholder {
   margin-left: 10px;
 }
 
+/* Title overflow ellipsis */
 .item h4 {
   font-size: 1rem;
   margin: 0;
+  line-clamp: 2;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;      /* LIMIT TO TWO LINES */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  max-width: 300px;
+  line-height: 1.2;
 }
 
 .item .author {
@@ -230,20 +245,32 @@ input::placeholder {
   font-size: 0.85rem;
 }
 
+/* GENRE overflow ellipsis */
 .item .genre {
   color: #c0392b;
   font-size: 0.8rem;
   font-weight: 500;
+  max-width: 300px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
+/* PRICE aligned top-right */
 .item .price {
   text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-start;
+  min-width: 70px;
 }
 
 .item .price p {
   font-size: 0.8rem;
   color: #666;
 }
+
 
 .order-totals {
   margin-top: 20px;

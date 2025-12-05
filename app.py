@@ -757,7 +757,8 @@ def cart():
             b.author,
             b.genre,
             b.price,
-            b.cover
+            b.cover,
+            b.stock_quantity
         FROM cart c
         JOIN books b ON c.book_id = b.id
         WHERE c.user_id = %s
@@ -894,8 +895,6 @@ def inject_cart_count():
 
     return {"cart_count": result["count"]}
 
-
-
 @app.route('/cart/count')
 def get_cart_count():
     """Total quantity of items for a badge."""
@@ -920,9 +919,81 @@ def get_cart_count():
 # =========================
 #  DELIVERY CHECKOUT BOOK ROUTE
 # =========================
-@app.route('/checkout')
+@app.route('/checkout', methods=['GET', 'POST'])
 def checkout():
-    return render_template('user/delivery_checkout.html')
+    if 'user_id' not in session:
+        session['login_required'] = True
+        return redirect(url_for('user_login'))
+
+    user_id = session['user_id']
+
+    # -------------- POST: user clicked "Proceed to Checkout" --------------
+    if request.method == 'POST':
+        selected_items_raw = request.form.get("selected_items", "[]")
+
+        try:
+            selected_items = json.loads(selected_items_raw)
+        except:
+            selected_items = []
+
+        if not selected_items:
+            flash("Please select at least one item to checkout.", "warning")
+            return redirect(url_for('cart'))
+
+        # ✔ Store selected items in session TEMPORARILY
+        session['checkout_selected'] = selected_items
+
+        # ✔ Redirect to GET (PRG pattern)
+        return redirect(url_for('checkout'))
+
+
+    # -------------- GET: safe page load WITHOUT resubmission --------------
+    selected_items = session.get('checkout_selected')
+
+    if not selected_items:
+        return redirect(url_for('cart'))
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    placeholders = ",".join(["%s"] * len(selected_items))
+    query = f"""
+        SELECT 
+            c.id AS cart_id,
+            c.quantity,
+            b.id AS book_id,
+            b.title,
+            b.author,
+            b.genre,
+            b.price,
+            b.cover,
+            b.stock_quantity
+        FROM cart c
+        JOIN books b ON c.book_id = b.id
+        WHERE c.user_id = %s AND c.id IN ({placeholders})
+    """
+
+    cursor.execute(query, [user_id] + selected_items)
+    items = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    # Compute totals
+    subtotal = sum(float(item["price"]) * item["quantity"] for item in items)
+    total_books = len(items)
+
+    # OPTIONAL CLEANUP: clear session after retrieving items
+    # So reloading checkout page doesn’t break anything
+    # session.pop('checkout_selected', None)
+
+    return render_template(
+        'user/delivery_checkout.html',
+        items=items,
+        subtotal=subtotal,
+        total_books=total_books
+    )
+
 
 # =========================
 #  ADMIN PANEL

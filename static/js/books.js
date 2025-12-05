@@ -241,7 +241,7 @@ function showCuteToast(iconHtml, title) {
         iconHtml: iconHtml,
         title: title,
         showConfirmButton: false,
-        timer: 1500,
+        timer: 1000,
         timerProgressBar: true,
         customClass: { icon: "no-default-icon" }
     });
