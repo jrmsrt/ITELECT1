@@ -88,23 +88,22 @@
                     <button class="btn-view">View Details</button>
                 </a>
             </div>
-            {% endfor %}
-            {% else %}
-            <div class="empty-order">
-                <img src="{{ url_for('static', filename='media/empty-order.webp') }}"
-                    alt="Empty Order" class="empty-order-img">
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="empty-order">
+            <img src="{{ url_for('static', filename='media/empty-order.webp') }}"
+                alt="Empty Order" class="empty-order-img">
 
-                <h3>Your don't have any orders yet.</h3>
-                <p>Every adventure starts with a single page. <br>
-                    Browse our collection and discover your next great read!</p>
+            <h3>Your don't have any orders yet.</h3>
+            <p>Every adventure starts with a single page. <br>
+                Browse our collection and discover your next great read!</p>
 
-                <a href="{{ url_for('shop_books') }}" class="empty-order-btn">
-                    Browse Books
-                </a>
-            </div>
+            <a href="{{ url_for('shop_books') }}" class="empty-order-btn">
+                Browse Books
+            </a>
         </div>
     {% endif %}
-
 </div>
 
 {% endblock %}

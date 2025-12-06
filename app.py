@@ -72,7 +72,6 @@ def home():
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
 
-    # Example: fetch the 6 most recently added books
     cursor.execute("SELECT * FROM books ORDER BY created_at DESC LIMIT 6")
     featured_books = cursor.fetchall()
 

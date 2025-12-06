@@ -327,3 +327,4 @@ document.querySelector(".place-order").addEventListener("click", (e) => {
 
     document.getElementById("full_address").value = fullAddress;
 });
+

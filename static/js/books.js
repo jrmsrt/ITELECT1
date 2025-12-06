@@ -328,7 +328,6 @@ function addToCart(bookId, quantity = 1) {
             });
         }
 
-
         else if (data.status === "book_not_found") {
             Swal.fire({
                 icon: "error",
