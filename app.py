@@ -1002,7 +1002,6 @@ def checkout():
             return redirect(url_for('cart'))
 
         session['checkout_selected'] = selected_items
-
         return redirect(url_for('checkout'))
 
     selected_items = session.get('checkout_selected')
@@ -1013,11 +1012,20 @@ def checkout():
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
 
-    # FETCH USER INFORMATION TO AUTO-FILL CHECKOUT FORM
+    # FETCH USER BASIC INFO
     cursor.execute("SELECT name, email FROM users WHERE id = %s", (user_id,))
     user = cursor.fetchone()
     user_name = user["name"] if user else ""
     user_email = user["email"] if user else ""
+
+    # FETCH SAVED ADDRESSES
+    cursor.execute("""
+        SELECT id, full_name, phone, address_text, is_default
+        FROM user_addresses
+        WHERE user_id = %s
+        ORDER BY is_default DESC, id DESC
+    """, (user_id,))
+    saved_addresses = cursor.fetchall()
 
     # FETCH CHECKOUT ITEMS
     placeholders = ",".join(["%s"] * len(selected_items))
@@ -1043,7 +1051,6 @@ def checkout():
     cursor.close()
     conn.close()
 
-    # Compute totals
     subtotal = sum(float(item["price"]) * item["quantity"] for item in items)
     total_books = len(items)
 
@@ -1053,9 +1060,9 @@ def checkout():
         subtotal=subtotal,
         total_books=total_books,
         user_name=user_name,
-        user_email=user_email
+        user_email=user_email,
+        saved_addresses=saved_addresses     # <── ADDED
     )
-
 
 # =========================
 #  PLACE ORDER ROUTE
@@ -1078,12 +1085,68 @@ def place_order():
         return redirect(url_for('cart'))
 
     payment_method = request.form.get("payment_method")
-    address = request.form.get("address")
 
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
 
-    # Fetch selected cart items
+    # CHECK IF USER HAS SAVED ADDRESSES
+    cursor.execute("SELECT COUNT(*) AS cnt FROM user_addresses WHERE user_id = %s", (user_id,))
+    addr_count = cursor.fetchone()["cnt"]
+
+    # ================================
+    # CASE 1: USER SELECTED A SAVED ADDRESS
+    # ================================
+    if addr_count > 0:
+        selected_address_id = request.form.get("selected_address")
+
+        cursor.execute("""
+            SELECT address_text 
+            FROM user_addresses
+            WHERE id = %s AND user_id = %s
+        """, (selected_address_id, user_id))
+
+        row = cursor.fetchone()
+        if not row:
+            return "Invalid address selected.", 400
+
+        final_address = row["address_text"]  # <── Use stored formatted address
+
+    else:
+        # ==================================================
+        # CASE 2: FIRST ORDER → SAVE THE ADDRESS TO DATABASE
+        # ==================================================
+        full_name = request.form.get("fullName")
+        raw_phone = request.form.get("phone", "").strip()
+
+        # Remove leading 0 (e.g. 09123456789 → 9123456789)
+        phone = raw_phone[1:] if raw_phone.startswith("0") else raw_phone
+
+
+        street = request.form.get("street")
+
+        # Use text versions if available (correct PH names)
+        barangay = request.form.get("barangay-text") or request.form.get("barangay")
+        city = request.form.get("city-text") or request.form.get("city")
+        province = request.form.get("province-text") or request.form.get("province")
+        region = request.form.get("region-text") or request.form.get("region")
+
+        zip_code = request.form.get("zip")
+
+
+        # Build full formatted address
+        final_address = f"{street}, {barangay}, {city}, {province}, {region}, {zip_code}"
+
+        # Save to user_addresses (first & default)
+        cursor.execute("""
+            INSERT INTO user_addresses (user_id, full_name, phone, address_text, is_default)
+            VALUES (%s, %s, %s, %s, 1)
+        """, (user_id, full_name, phone, final_address))
+
+        conn.commit()
+
+    # ================================
+    # FETCH SELECTED CART ITEMS
+    # ================================
     placeholders = ",".join(["%s"] * len(selected_items))
     query = f"""
         SELECT 
@@ -1103,40 +1166,39 @@ def place_order():
     cursor.execute(query, [user_id] + selected_items)
     items = cursor.fetchall()
 
-    # Compute total
+    # COMPUTE TOTAL
     total = sum(float(item["price"]) * item["quantity"] for item in items)
 
-    # Generate unique public order code
+    # GENERATE PUBLIC ORDER CODE
     order_code = generate_order_code()
 
+    # INSERT ORDER
     cursor.execute("""
         INSERT INTO orders (user_id, address, payment_method, total, status, order_code)
         VALUES (%s, %s, %s, %s, %s, %s)
-    """, (user_id, address, payment_method, total, "Order Placed", order_code))
+    """, (user_id, final_address, payment_method, total, "Order Placed", order_code))
 
     conn.commit()
     order_id = cursor.lastrowid
 
-    # Insert order items
+    # INSERT ORDER ITEMS + STOCK + CLEAR CART
     for item in items:
         line_total = float(item["price"]) * item["quantity"]
 
         cursor.execute("""
-            INSERT INTO order_items (order_id, book_id, quantity, price, 
-                                     line_total, title, cover, author, genre)
+            INSERT INTO order_items (order_id, book_id, quantity, price,
+                                    line_total, title, cover, author, genre)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
         """, (
             order_id, item["book_id"], item["quantity"], item["price"],
             line_total, item["title"], item["cover"], item["author"], item["genre"]
         ))
 
-        # Deduct stock
         cursor.execute("""
             UPDATE books SET stock_quantity = stock_quantity - %s
             WHERE id = %s
         """, (item["quantity"], item["book_id"]))
 
-        # Remove from cart
         cursor.execute("DELETE FROM cart WHERE id = %s", (item["cart_id"],))
 
     conn.commit()
@@ -1147,6 +1209,7 @@ def place_order():
     session.pop("checkout_selected", None)
 
     return redirect(url_for("orders"))
+
 
 
 

@@ -364,7 +364,6 @@ input::placeholder {
     transition: width 0.45s ease;
 }
 
-/* Gradient text + underline on hover */
 .cancel-btn a:hover {
     background: linear-gradient(90deg, #ffdd8a, #e7c286, #b68b2d);
     background-clip: text;
@@ -378,3 +377,93 @@ input::placeholder {
     animation: shimmer 1.5s linear infinite;
 }
 
+.address-section {
+    font-family: Arial, sans-serif;
+    padding: 15px;
+    color: #333;
+}
+
+.address-card {
+    display: flex;
+    gap: 12px;
+    padding: 12px 0;
+    cursor: pointer;
+}
+
+.address-card input[type="radio"] {
+    width: 20px;
+    height: 20px;
+    accent-color: #ff6a3d;
+    cursor: pointer;
+}
+
+.address-content {
+    flex: 1;
+}
+
+.address-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.addr-name {
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.addr-phone {
+    margin-left: 10px;
+    color: #777;
+    font-size: 14px;
+}
+
+.addr-full {
+    font-size: 14px;
+    margin-top: 4px;
+    color: #444;
+    line-height: 1.4;
+}
+
+.edit-link {
+    color: #7c7c7c;
+    font-size: 14px;
+    text-decoration: none;
+}
+
+.edit-link:hover {
+    text-decoration: underline;
+}
+
+.default-tag {
+    display: inline-block;
+    border: 1px solid #ff6a3d;
+    color: #ff6a3d;
+    padding: 2px 6px;
+    font-size: 12px;
+    border-radius: 4px;
+    margin-top: 6px;
+}
+
+hr {
+    border: none;
+    border-bottom: 1px solid #eee;
+    margin: 10px 0;
+}
+
+.add-new-address {
+    width: 100%;
+    background: none;
+    border: none;
+    font-size: 16px;
+    color: #ff6a3d;
+    margin-top: 15px;
+    padding: 12px 0;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.add-new-address span {
+    font-size: 20px;
+    margin-right: 6px;
+}

@@ -9,137 +9,210 @@
 <script src="{{ url_for('static', filename='js/checkout.js') }}" defer></script>
 
 <div class="checkout-container">
+
   <!-- LEFT SECTION -->
   <div class="checkout-details">
     <h2>Checkout Details</h2>
-    <p class="subtext">Please enter your information to complete the order.</p>
+    <!-- ========================= -->
+    <!--  START FORM TAG HERE     -->
+    <!-- ========================= -->
+    <form id="placeOrderForm" action="{{ url_for('place_order') }}" method="POST">
 
-    <h3><i class="fa-solid fa-location-dot"></i> Shipping Address</h3>
+      <h3><i class="fa-solid fa-location-dot"></i> Shipping Address</h3>
 
-    <div class="form-grid">
-      <div class="form-group">
+      {% if saved_addresses|length == 0 %}
+      <!-- ==============================
+           FIRST ORDER → ADDRESS FORM
+           ============================== -->
+
+      <p class="subtext">Please enter your information to complete the order.</p>
+
+      <div class="form-grid">
+
         <!-- FULL NAME -->
-        <label>Full Name</label>
-        <input type="text" id="fullName" class="form-input"
-              value="{{ user_name }}" placeholder="Enter your full name">
-        <p class="field-error" id="fullNameError"></p>
-      </div>
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" id="fullName" name="fullName"
+                 class="form-input" value="{{ user_name }}">
+          <p class="field-error" id="fullNameError"></p>
+        </div>
 
-      <!-- EMAIL -->
-      <div class="form-group">
-        <label>Email</label>
-        <input type="email" id="emailCheckout" class="form-input"
-              value="{{ user_email }}" placeholder="Enter your email">
-        <p class="field-error" id="emailCheckoutError"></p>
-      </div>
+        <!-- EMAIL -->
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="emailCheckout" name="emailCheckout"
+                 class="form-input" value="{{ user_email }}">
+          <p class="field-error" id="emailCheckoutError"></p>
+        </div>
 
-      <!-- PHONE NUMBER -->
-      <div class="form-group">
-        <label>Phone Number</label>
-        <input type="text" id="phone" class="form-input" placeholder="09XXXXXXXXX">
-        <p class="field-error" id="phoneError"></p>
-      </div>
+        <!-- PHONE -->
+        <div class="form-group">
+          <label>Phone Number</label>
+          <input type="text" id="phone" name="phone" class="form-input"
+                 placeholder="09XXXXXXXXX">
+          <p class="field-error" id="phoneError"></p>
+        </div>
 
-      <!-- REGION -->
-      <div class="form-group">
-        <label>Region</label>
-        <select id="region" class="form-input">
+        <!-- REGION -->
+        <div class="form-group">
+          <label>Region</label>
+          <select id="region" name="region" class="form-input">
             <option value="">Choose Region</option>
-        </select>
-        <p class="field-error" id="regionError"></p>
-      </div>
+          </select>
+          <input type="hidden" id="region-text" name="region-text">
+          <p class="field-error" id="regionError"></p>
+        </div>
 
-      <!-- PROVINCE -->
-      <div class="form-group">
-        <label>Province</label>
-        <select id="province" class="form-input">
+        <!-- PROVINCE -->
+        <div class="form-group">
+          <label>Province</label>
+          <select id="province" name="province" class="form-input">
             <option value="">Select Province</option>
-        </select>
-        <input type="hidden" id="province-text">
-        <p class="field-error" id="provinceError"></p>
-      </div>
+          </select>
+          <input type="hidden" id="province-text" name="province-text">
+          <p class="field-error" id="provinceError"></p>
+        </div>
 
-      <!-- CITY -->
-      <div class="form-group">
-        <label>City/Municipality</label>
-        <select id="city" class="form-input">
+        <!-- CITY -->
+        <div class="form-group">
+          <label>City/Municipality</label>
+          <select id="city" name="city" class="form-input">
             <option value="">Select City/Municipality</option>
-        </select>
-        <input type="hidden" id="city-text">
-        <p class="field-error" id="cityError"></p>
-      </div>
+          </select>
+          <input type="hidden" id="city-text" name="city-text">
+          <p class="field-error" id="cityError"></p>
+        </div>
 
-      <!-- BARANGAY -->
-      <div class="form-group">
-        <label>Barangay</label>
-        <select id="barangay" class="form-input">
+        <!-- BARANGAY -->
+        <div class="form-group">
+          <label>Barangay</label>
+          <select id="barangay" name="barangay" class="form-input">
             <option value="">Select Barangay</option>
-        </select>
-        <input type="hidden" id="barangay-text">
-        <p class="field-error" id="barangayError"></p>
-      </div>
-
-      <!-- ZIP CODE -->
-      <div class="form-group">
-        <label>ZIP Code</label>
-        <input type="text" id="zip" class="form-input" placeholder="NNNN">
-        <p class="field-error" id="zipError"></p>
-      </div>
-
-      <!-- STREET ADDRESS -->
-      <div class="form-group full">
-        <label>Street Address</label>
-        <input type="text" id="street" class="form-input" placeholder="House number, street, etc.">
-        <p class="field-error" id="streetError"></p>
-      </div>
-    </div>
-
-    <div class="section">
-      <h3><i class="fa-solid fa-money-bill"></i> Payment Method</h3>
-      <div class="payment-options">
-        <div class="payment-option active" id="cod">
-          <i class="fa-solid fa-dollar-sign"></i> Cash on Delivery
+          </select>
+          <input type="hidden" id="barangay-text" name="barangay-text">
+          <p class="field-error" id="barangayError"></p>
         </div>
-        <div class="payment-option" id="online">
-          <i class="fa-solid fa-credit-card"></i> Online Payment
+
+        <!-- ZIP CODE -->
+        <div class="form-group">
+          <label>ZIP Code</label>
+          <input type="text" id="zip" name="zip" class="form-input">
+          <p class="field-error" id="zipError"></p>
         </div>
+
+        <!-- STREET ADDRESS -->
+        <div class="form-group full">
+          <label>Street Address</label>
+          <input type="text" id="street" name="street"
+                 class="form-input" placeholder="House number, street, etc.">
+          <p class="field-error" id="streetError"></p>
+        </div>
+
       </div>
-    </div>
-  </div>
 
-  <!-- RIGHT SECTION -->
-  <div class="order-summary">
-      <h2><i class="fa-solid fa-cart-shopping"></i> Order Summary</h2>
+      {% else %}
 
-      <div class="order-items">
+      <!-- ==============================
+           RETURNING USER → RADIO LIST
+           ============================== -->
+      <p class="subtext">Select a saved address or add a new one.</p>
+      <div class="address-section">
 
-        {% if items %}
-        {% for item in items %}
-        <div class="item">
-          <img src="{{ url_for('static', filename='uploads/' ~ item.cover) if item.cover else url_for('static', filename='images/no-cover.png') }}"
-              alt="{{ item.title }}">
+        {% for addr in saved_addresses %}
+        <label class="address-card">
+          <input type="radio"
+                 name="selected_address"
+                 value="{{ addr.id }}"
+                 {% if addr.is_default == 1 %}checked{% endif %}>
 
-          <div class="details">
-            <h4>{{ item.title }}</h4>
-            <p class="author">by {{ item.author }}</p>
-            <p class="genre">{{ item.genre }}</p>
+          <div class="address-content">
+            <div class="address-header">
+              <div>
+                <span class="addr-name">{{ addr.full_name }}</span>
+                <span class="addr-phone">(+63) {{ addr.phone[:3] }} {{ addr.phone[3:6] }} {{ addr.phone[6:] }}</span>
+              </div>
+
+              <a href="#" class="edit-link">Edit</a>
+            </div>
+
+            <p class="addr-full">{{ addr.address_text }}</p>
+
+            {% if addr.is_default == 1 %}
+            <span class="default-tag">Default</span>
+            {% endif %}
           </div>
+        </label>
 
-          <div class="price">
-            <strong>₱{{ "{:,.2f}".format(item.price) }}</strong>
-            <p>Qty: {{ item.quantity }}</p>
-          </div>
-        </div>
-        {% endfor %}
-        {% else %}
-          <p>No items selected.</p>
+        {% if not loop.last %}
+        <hr>
         {% endif %}
+        {% endfor %}
+
+        <button class="add-new-address" type="button">
+          <span>+</span> Add a new address
+        </button>
 
       </div>
+
+      {% endif %}
+
+      <!-- PAYMENT METHOD SECTION -->
+      <div class="section">
+        <h3><i class="fa-solid fa-money-bill"></i> Payment Method</h3>
+
+        <div class="payment-options">
+          <div class="payment-option active" id="cod">
+            <i class="fa-solid fa-dollar-sign"></i> Cash on Delivery
+          </div>
+          <div class="payment-option" id="online">
+            <i class="fa-solid fa-credit-card"></i> Online Payment
+          </div>
+        </div>
+      </div>
+
+      <!-- HIDDEN FIELDS FOR SUBMISSION -->
+      <input type="hidden" name="payment_method" id="payment_method">
+
+    </form>
+    <!-- END OF FULL FORM -->
+
+  </div>
+  <!-- END LEFT SECTION -->
+
+  <!-- ===================== -->
+  <!--   RIGHT ORDER SUMMARY -->
+  <!-- ===================== -->
+
+  <div class="order-summary">
+    <h2><i class="fa-solid fa-cart-shopping"></i> Order Summary</h2>
+
+    <div class="order-items">
+      {% if items %}
+      {% for item in items %}
+      <div class="item">
+        <img src="{{ url_for('static', filename='uploads/' ~ item.cover) if item.cover else url_for('static', filename='images/no-cover.png') }}"
+             alt="{{ item.title }}">
+
+        <div class="details">
+          <h4>{{ item.title }}</h4>
+          <p class="author">by {{ item.author }}</p>
+          <p class="genre">{{ item.genre }}</p>
+        </div>
+
+        <div class="price">
+          <strong>₱{{ "{:,.2f}".format(item.price) }}</strong>
+          <p>Qty: {{ item.quantity }}</p>
+        </div>
+      </div>
+      {% endfor %}
+      {% else %}
+      <p>No items selected.</p>
+      {% endif %}
+    </div>
 
     <!-- ORDER TOTALS -->
     <div class="order-totals">
-      
+
       {% set vat = (subtotal * 12 / 112) %}
       {% set net = subtotal - vat %}
       {% set total = subtotal %}
@@ -168,20 +241,17 @@
       <h4>Delivery Estimate</h4>
       <p>Your order will be delivered within 3–5 business days after processing.</p>
     </div>
-    <form id="placeOrderForm" action="{{ url_for('place_order') }}" method="POST">
 
-        <input type="hidden" name="payment_method" id="payment_method">
-        <input type="hidden" name="address" id="full_address">
-
-        <button type="submit" class="place-order">
-            Place Order <i class="fa-solid fa-arrow-right"></i>
-        </button>
-    </form>
+    <button type="submit" class="place-order">
+        Place Order <i class="fa-solid fa-arrow-right"></i>
+      </button>
 
     <div class="cancel-btn">
-        <a href="{{ url_for('cart') }}">Cancel</a>
+      <a href="{{ url_for('cart') }}">Cancel</a>
     </div>
+
   </div>
 
+</div>
 
 {% endblock %}
