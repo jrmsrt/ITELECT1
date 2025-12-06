@@ -231,6 +231,28 @@ function updateFavoriteCount() {
 
 
 /* =========================
+    UNFAVORITING BOOKS
+========================= */
+
+function confirmUnfavorite(bookId) {
+    Swal.fire({
+        title: "Remove from Favorites?",
+        text: "This book will be removed from your favorites list.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d37f8c",
+        cancelButtonColor: "#6c757d",
+        confirmButtonText: "Yes, remove it",
+        cancelButtonText: "Cancel",
+        background: "#fff",
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = `/remove_favorite/${bookId}`;
+        }
+    });
+}
+
+/* =========================
     TOAST HELPER (NO PERSISTENCE)
 ========================= */
 
@@ -285,11 +307,27 @@ function addToCart(bookId, quantity = 1) {
 
         else if (data.status === "out_of_stock") {
             Swal.fire({
+                toast: true,
                 icon: "error",
-                title: "Out of Stock",
-                text: "Sorry, this book is currently out of stock."
+                position: "top-end",
+                html: "<strong>Out of Stock</strong><br><small>Sorry, this book is currently out of stock.</small>",
+                timer: 1100,
+                showConfirmButton: false,
+                timerProgressBar: false,
             });
         }
+
+        else if (data.status === "max_reached") {
+            Swal.fire({
+                toast: true,
+                icon: "warning",
+                position: "top-end",
+                text: "Maximum stock already in cart",
+                timer: 1500,
+                showConfirmButton: false
+            });
+        }
+
 
         else if (data.status === "book_not_found") {
             Swal.fire({

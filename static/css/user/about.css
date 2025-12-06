@@ -7,8 +7,6 @@
   box-sizing: border-box;
 }
 
-/* About Page Styling */
-
 :root {
     --gold: #e7c286;
     --dark-color: #d4a65e;
@@ -18,7 +16,6 @@
     --sub: #6b7280;
 }
 
-/* About Header Banner */
 .bg {
     padding: 0.5rem 0;
     background: url(/static/media/banner.png) no-repeat;

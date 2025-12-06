@@ -64,12 +64,12 @@
     max-width: 1200px;
     margin: 2rem auto;
     padding: 0.8rem 1rem;
-    flex-wrap: nowrap; /* PREVENTS WRAPPING */
+    flex-wrap: nowrap;
 }
 
 
 .search-input {
-    flex: 1; /* takes all extra space */
+    flex: 1;
     min-width: 180px;
     padding: 0.7rem 1rem;
     border: 2px solid var(--input-border);
@@ -245,10 +245,9 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 90px; /* or any size you want */
+    max-width: 90px;
 }
 
-/* Description — keep if still needed elsewhere */
 .book-card .desc {
    white-space: pre-line;
     overflow: hidden;
@@ -263,7 +262,6 @@
     padding-top: 10px;
  }
 
-/* Price */
 .price-stock {
     display: flex;
     justify-content: space-between;
@@ -315,19 +313,16 @@
   transform: scale(1.05);
 }
 
-/* Default: outline heart */
 .regular-heart {
     display: inline-block;
     color: var(--burgundy);
 }
 
-/* Default: solid heart hidden */
 .solid-heart {
     display: none;
     color: var(--burgundy);
 }
 
-/* When FAVORITED — show solid heart */
 .fav-btn.favorited {
   background: var(--burgundy);
 }
@@ -340,7 +335,6 @@
     display: inline-block;
 }
 
-/* HOVER STATE — always show ONE white solid heart */
 .fav-btn:hover .regular-heart {
     display: none !important;
 }
@@ -349,21 +343,17 @@
     color: white !important;
 }
 
-/* Keep button visible when favorited */
 .fav-btn.favorited {
     opacity: 1 !important;
     visibility: visible !important;
 }
 
-/* Hover button animation */
 .fav-btn:hover {
     background: var(--burgundy);
     transform: scale(1.15);
     transition: 0.2s ease;
 }
 
-
-/* Bottom Action Buttons (Always visible) */
 .book-bottom-actions {
   display: flex;
   justify-content: space-between;
@@ -373,7 +363,6 @@
   gap: 10px;
 }
 
-/* Base Style for Buttons */
 .book-bottom-actions .action-btn {
   display: flex;
   align-items: center;
@@ -388,11 +377,10 @@
   cursor: pointer;
   transition: all 0.3s ease;
   color: #fff;
-  height: 38px; /* same height for both */
+  height: 38px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.15);
 }
 
-/* Add to Cart button - wider and gold */
 .book-bottom-actions .add-cart {
   flex: 1.3;
   background: linear-gradient(135deg, #d37f8c, #c89f5d, #e7c286);
@@ -401,13 +389,11 @@
   transition: background-position 0.6s ease, transform 0.3s ease, filter 0.3s ease;
 }
 
-/* Details button - narrower and dark */
 .book-bottom-actions .details {
   flex: 0.9;
   background: #333;
 }
 
-/* Hover Effects */
 .book-bottom-actions .add-cart:hover {
   background-position: right center;
   transform: translateY(-2px);
@@ -419,7 +405,6 @@
   transform: translateY(-2px);
 }
 
-/* Icon sizing */
 .book-bottom-actions i {
   font-size: 0.95rem;
 }
@@ -440,7 +425,6 @@
 
 /* ------------------- ZOOM ANIMATION ------------------- */
 
-/* OPEN animation */
 @keyframes zoomIn {
     from {
         transform: scale(0.7);
@@ -452,7 +436,6 @@
     }
 }
 
-/* CLOSE animation */
 @keyframes zoomOut {
     from {
         transform: scale(1);
@@ -464,7 +447,6 @@
     }
 }
 
-/* Apply animation by toggling classes from JS */
 .modal-content.zoom-in {
     animation: zoomIn 0.25s ease forwards;
 }
@@ -554,16 +536,14 @@
     padding-right: 10px;
     padding: 15px;
     margin-bottom: 1rem;
-    white-space: normal; /* Keep paragraph spacing */
+    white-space: pre-line;
 }
 
-/* Indent ALL paragraphs (even after breaks) */
 .modal-description p {
     text-indent: 2rem;
     margin-bottom: 1rem;
 }
 
-/* Scrollbar */
 .modal-description::-webkit-scrollbar {
     width: 8px;
 }
@@ -586,24 +566,6 @@
     margin-top: .4rem;
 }
 
-/* ------------------- ADD TO CART BUTTON ------------------- */
-.modal-add-cart {
-    margin-top: 1rem;
-    padding: 10px 18px;
-    background: var(--dark-color);
-    color: #fff;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: .3s;
-}
-
-.modal-add-cart:hover {
-    background: var(--gold);
-    transform: scale(1.05);
-}
-
 /* ------------ FADE FOR OVERLAY ------------ */
 
 /* Fade-in overlay */
@@ -612,23 +574,19 @@
     to { opacity: 1; }
 }
 
-/* Fade-out overlay */
 @keyframes fadeOutOverlay {
     from { opacity: 1; }
     to { opacity: 0; }
 }
 
-/* Class applied when opening */
 .modal-overlay.fade-in {
     animation: fadeInOverlay 0.25s ease forwards;
 }
 
-/* Class applied when closing */
 .modal-overlay.fade-out {
     animation: fadeOutOverlay 0.25s ease forwards;
 }
 
-/* Remove SweetAlert default icon circle */
 .no-default-icon,
 .swal2-icon {
     border: none !important;
@@ -637,7 +595,6 @@
     padding: 0 !important;
 }
 
-/* Heart Animation */
 .heart-anim {
     position: relative;
     display: inline-block;
@@ -645,7 +602,6 @@
     animation: popBounce 0.55s ease-out forwards;
 }
 
-/* POP + BOUNCE animation */
 @keyframes popBounce {
     0%   { transform: scale(0.7); opacity: 0.4; }
     40%  { transform: scale(1.45); opacity: 1; }
@@ -654,21 +610,18 @@
     100% { transform: scale(1); }
 }
 
-/* Sparkles around heart */
 .sparkle {
     position: absolute;
     font-size: 14px;
     opacity: 0;
     animation: sparkleBurst 0.6s ease-out forwards;
-    color: #ff91c9; /* soft pink sparkle */
+    color: #ff91c9;
 }
 
-/* Sparkle positions */
 .sparkle-1 { top: -10px; left: -12px; }
 .sparkle-2 { top: -12px; right: -10px; }
 .sparkle-3 { bottom: -5px; right: -5px; }
 
-/* Sparkle animation */
 @keyframes sparkleBurst {
     0%   { transform: scale(0.2) rotate(0deg); opacity: 0; }
     30%  { transform: scale(1.4) rotate(15deg); opacity: 1; }
@@ -676,14 +629,12 @@
     100% { transform: scale(0.2) rotate(-10deg); opacity: 0; }
 }
 
-/* 💔 Heartbreak Animation */
 .heartbreak-anim {
     display: inline-block;
     font-size: 24px;
     animation: heartbreakPop 0.55s ease-out forwards;
 }
 
-/* POP + SHAKE + SETTLE */
 @keyframes heartbreakPop {
     0%   { transform: scale(0.7); opacity: 0.4; }
     30%  { transform: scale(1.4); opacity: 1; }
@@ -694,20 +645,17 @@
     100% { transform: translateX(0) scale(1); }
 }
 
-/* ✦ Crack particles */
 .crack {
     position: absolute;
     font-size: 12px;
     opacity: 0;
-    color: #ff6b82; /* soft broken-heart pink */
+    color: #ff6b82;
     animation: crackBurst 0.6s ease-out forwards;
 }
 
-/* crack positions */
 .crack-1 { top: -6px; right: -8px; }
 .crack-2 { bottom: -4px; left: -6px; }
 
-/* Crack animation */
 @keyframes crackBurst {
     0%   { transform: scale(0.2) rotate(0deg); opacity: 0; }
     25%  { transform: scale(1.1) rotate(20deg); opacity: 1; }
@@ -715,14 +663,12 @@
     100% { transform: scale(0.2) rotate(-20deg); opacity: 0; }
 }
 
-/* Container that sits INSIDE SweetAlert icon box */
 .login-icon {
     position: relative;
     width: 60px;
     height: 60px;
 }
 
-/* Lock perfectly centered */
 .login-lock {
     position: absolute;
     top: 90%;
@@ -732,7 +678,6 @@
     animation: lockBounce 1s infinite ease-in-out;
 }
 
-/* Sparkles */
 .login-sparkle {
     position: absolute;
     font-size: 22px;
@@ -755,14 +700,12 @@
     100% { opacity: 0; transform: translateY(-6px); }
 }
 
-
-/* FORCE SWEETALERT TO CENTER CUSTOM ICON */
 .swal2-icon.swal2-custom-icon {
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
     padding: 0 !important;
-    margin: 0 auto 10px auto !important; /* IMPORTANT: centers above title */
+    margin: 0 auto 10px auto !important;
     width: 80px !important;
     height: 80px !important;
 }

@@ -170,7 +170,6 @@ textarea::placeholder {
   color: var(--placeholder);
 }
 
-/* Two side-by-side inputs */
 .flex-row {
     display: flex;
     gap: 16px;
@@ -182,12 +181,9 @@ textarea::placeholder {
     flex-direction: column;
 }
 
-/* Image Styling */
 img {
     border-radius: 4px;
 }
-
-/* ===== BUTTON GROUP (Copied from Book Cards) ===== */
 
 .button-group {
     display: flex;
@@ -197,7 +193,6 @@ img {
     margin-top: 20px;
 }
 
-/* Base button styling (same as .action-btn) */
 .button-group button,
 .button-group a {
     display: flex;
@@ -217,7 +212,6 @@ img {
     text-decoration: none;
 }
 
-/* SAVE BUTTON — gold gradient */
 .save-btn {
     flex: 1.2;
     background: linear-gradient(135deg, #d37f8c, #c89f5d, #e7c286);
@@ -231,7 +225,6 @@ img {
     filter: brightness(1.08);
 }
 
-/* RESET BUTTON — dark */
 .reset-btn {
     flex: 1;
     background: #333;
@@ -242,7 +235,6 @@ img {
     transform: translateY(-2px);
 }
 
-/* CANCEL BUTTON — neutral gray */
 .cancel-btn {
     flex: 1;
     background: #6c757d;
@@ -271,10 +263,9 @@ img {
     }
 }
 
-/* Match Tagify wrapper to your input fields */
 .tagify {
     width: 100%;
-    padding: 4px 8px; /* slight inner padding so tags fit */
+    padding: 4px 8px;
     margin-bottom: 12px;
     font-size: 1rem;
     border: 1px solid var(--input-border);
@@ -282,19 +273,16 @@ img {
     transition: border-color 0.3s, box-shadow 0.3s;
 }
 
-/* Focus effect (same as your input fields) */
 .tagify.tagify--focus {
     border-color: var(--gold);
     box-shadow: 0 0 5px rgba(247, 215, 74, 0.664);
 }
 
-/* Make the internal text input match your style */
 .tagify__input {
     padding: 5px 6px !important;
     font-size: 1rem;
 }
 
-/* Optional: improve spacing between tags */
 .tagify__tag {
     margin: 4px;
 }

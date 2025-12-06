@@ -23,25 +23,6 @@ body {
     background-position: center;
 }
 
-::-webkit-scrollbar {
-  width: 10px;
-}
-
-/* Track */
-::-webkit-scrollbar-track {
-  background: #f1f1f1; 
-}
- 
-/* Handle */
-::-webkit-scrollbar-thumb {
-  background: #888; 
-}
-
-/* Handle on hover */
-::-webkit-scrollbar-thumb:hover {
-  background: #555; 
-}
-
 .verification-container {
     font-family: 'Outfit', sans-serif;
     width: 100%;
@@ -68,7 +49,6 @@ body {
     letter-spacing: 2px;
 }
 
-/* OTP INPUTS */
 .otp-group {
     display: flex;
     justify-content: center;
@@ -139,13 +119,11 @@ body {
     color: white;
 }
 
-/* ALERT STYLE (matches your design exactly) */
-/* make sure alert is a flex container (you already have this) */
 .alert {
     display: grid;
-    grid-template-columns: 1fr auto; /* text column, then close button column */
+    grid-template-columns: 1fr auto;
     align-items: center;
-    gap: 12px;                      /* space between text and button when needed */
+    gap: 12px;
     padding: 12px 16px;
     border-radius: 6px;
     margin-bottom: 15px;
@@ -155,18 +133,15 @@ body {
     overflow: hidden;
 }
 
-/* Make the text a block that can wrap */
 .alert-text {
-    /* allow wrapping and truncated overflow if needed */
     overflow-wrap: anywhere;
     word-wrap: break-word;
-    min-width: 0;   /* important for flex/grid text shrink */
+    min-width: 0;
     text-align: left;
 }
 
-/* Close button fixed to the right column (no auto margin needed) */
 .alert .close-btn {
-    justify-self: end;  /* place button to the far right of its grid cell */
+    justify-self: end;
     background: none;
     border: none;
     font-size: 20px;
@@ -175,7 +150,6 @@ body {
     padding: 0 4px;
 }
 
-/* your color variants (unchanged) */
 .alert.error {
     background: #ffefef;
     color: #a70000;
@@ -198,15 +172,11 @@ body {
     display: none;
 }
 
-
-
-/* fade-in */
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(-8px) scale(0.995); }
     to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* slide-out */
 .alert.slide-up {
     animation: slideOut 0.35s ease forwards;
 }

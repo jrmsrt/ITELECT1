@@ -32,7 +32,7 @@
                 {{ navlink('about', 'About') }}
                 {{ navlink('contact', 'Contact') }}
                 {{ navlink('shop_books', 'Books') }}
-                {{ navlink('favorites', 'My Orders') }}
+                {{ navlink('orders', 'My Orders') }}
             </nav>
 
             <!-- Right Icons -->
@@ -95,7 +95,6 @@
         dropdown.classList.toggle("show");
     }
 
-    // Close dropdown when clicking outside
     document.addEventListener("click", function (e) {
         const menu = document.getElementById("userMenu");
         const dropdown = document.getElementById("userDropdown");

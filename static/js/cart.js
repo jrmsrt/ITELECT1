@@ -26,6 +26,9 @@ function confirmDelete(cartId) {
 }
 
 
+/* ----------------------------------------
+    QUANTITY CONTROL
+---------------------------------------- */
 document.addEventListener("DOMContentLoaded", function () {
     console.log("Quantity system active!");
 
@@ -109,19 +112,35 @@ function updateQtyButtons(input, minusBtn, addBtn, maxQty) {
 
 
 /* ----------------------------------------
-   UPDATE QTY IN UI (Live Update)
+   UPDATE QTY IN UI + SAVE TO DATABASE
 ---------------------------------------- */
 function updateQty(cartId, qty, container, unitPrice) {
-    // Update line total
+    // 1. Update line total
     const totalField = container.parentElement.querySelector(".item-total");
     const newTotal = qty * unitPrice;
     totalField.textContent = `₱${newTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
 
-    // Update order summary subtotal
+    // 2. Update summary totals
     updateGrandTotal();
 
-    // TODO: If backend update needed, call AJAX here
+    // 3. Save to backend (simple version)
+    fetch("/cart/update-qty", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            cart_id: cartId,
+            quantity: qty
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === "updated") {
+            console.log(`Saved: Cart item ${cartId} = quantity ${qty}`);
+        }
+    })
+    .catch(err => console.error("Error saving quantity:", err));
 }
+
 
 /* ----------------------------------------
    ITEM COUNT LIVE
@@ -243,9 +262,12 @@ document.getElementById("checkout-form").addEventListener("submit", function (e)
     if (!selected || selected.length === 0) {
         e.preventDefault();
         Swal.fire({
+            toast: true,
+            position: "top-end",
             icon: "warning",
-            title: "No items selected",
-            text: "Please select at least one item before checking out."
+            text: "No items selected. Please select at least one item before checking out.",
+            showConfirmButton: false,
+            timer: 1500
         });
     }
 });

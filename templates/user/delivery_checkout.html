@@ -4,8 +4,9 @@
 
 <title>Checkout - BookHaven</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/user/delivery_checkout.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="/static/js/address.js"></script>
+<script src="{{ url_for('static', filename='js/checkout.js') }}" defer></script>
 
 <div class="checkout-container">
   <!-- LEFT SECTION -->
@@ -17,50 +18,79 @@
 
     <div class="form-grid">
       <div class="form-group">
+        <!-- FULL NAME -->
         <label>Full Name</label>
-        <input type="text" placeholder="Enter your full name">
+        <input type="text" id="fullName" class="form-input"
+              value="{{ user_name }}" placeholder="Enter your full name">
+        <p class="field-error" id="fullNameError"></p>
       </div>
+
+      <!-- EMAIL -->
       <div class="form-group">
         <label>Email</label>
-        <input type="email" placeholder="Enter your email">
+        <input type="email" id="emailCheckout" class="form-input"
+              value="{{ user_email }}" placeholder="Enter your email">
+        <p class="field-error" id="emailCheckoutError"></p>
       </div>
+
+      <!-- PHONE NUMBER -->
       <div class="form-group">
         <label>Phone Number</label>
-        <input type="text" placeholder="09XXXXXXXXX">
+        <input type="text" id="phone" class="form-input" placeholder="09XXXXXXXXX">
+        <p class="field-error" id="phoneError"></p>
       </div>
 
+      <!-- REGION -->
       <div class="form-group">
         <label>Region</label>
-        <select id="region"><option>Select Region</option></select>
-        <input type="hidden" id="region-text">
+        <select id="region" class="form-input">
+            <option value="">Choose Region</option>
+        </select>
+        <p class="field-error" id="regionError"></p>
       </div>
 
+      <!-- PROVINCE -->
       <div class="form-group">
         <label>Province</label>
-        <select id="province"><option>Select Province</option></select>
+        <select id="province" class="form-input">
+            <option value="">Select Province</option>
+        </select>
         <input type="hidden" id="province-text">
+        <p class="field-error" id="provinceError"></p>
       </div>
 
+      <!-- CITY -->
       <div class="form-group">
         <label>City/Municipality</label>
-        <select id="city"><option>Select City/Municipality</option></select>
+        <select id="city" class="form-input">
+            <option value="">Select City/Municipality</option>
+        </select>
         <input type="hidden" id="city-text">
+        <p class="field-error" id="cityError"></p>
       </div>
 
+      <!-- BARANGAY -->
       <div class="form-group">
         <label>Barangay</label>
-        <select id="barangay"><option>Select Barangay</option></select>
+        <select id="barangay" class="form-input">
+            <option value="">Select Barangay</option>
+        </select>
         <input type="hidden" id="barangay-text">
+        <p class="field-error" id="barangayError"></p>
       </div>
 
+      <!-- ZIP CODE -->
       <div class="form-group">
         <label>ZIP Code</label>
-        <input type="text" id="zip" placeholder="Auto-filled" required>
+        <input type="text" id="zip" class="form-input" placeholder="NNNN">
+        <p class="field-error" id="zipError"></p>
       </div>
 
+      <!-- STREET ADDRESS -->
       <div class="form-group full">
         <label>Street Address</label>
-        <input type="text" placeholder="House number, street, etc.">
+        <input type="text" id="street" class="form-input" placeholder="House number, street, etc.">
+        <p class="field-error" id="streetError"></p>
       </div>
     </div>
 
@@ -78,17 +108,16 @@
   </div>
 
   <!-- RIGHT SECTION -->
-<!-- RIGHT SECTION -->
-<div class="order-summary">
-    <h2><i class="fa-solid fa-cart-shopping"></i> Order Summary</h2>
+  <div class="order-summary">
+      <h2><i class="fa-solid fa-cart-shopping"></i> Order Summary</h2>
 
-    <div class="order-items">
+      <div class="order-items">
 
-      {% if items %}
+        {% if items %}
         {% for item in items %}
         <div class="item">
           <img src="{{ url_for('static', filename='uploads/' ~ item.cover) if item.cover else url_for('static', filename='images/no-cover.png') }}"
-               alt="{{ item.title }}">
+              alt="{{ item.title }}">
 
           <div class="details">
             <h4>{{ item.title }}</h4>
@@ -102,37 +131,57 @@
           </div>
         </div>
         {% endfor %}
-      {% else %}
-        <p>No items selected.</p>
-      {% endif %}
+        {% else %}
+          <p>No items selected.</p>
+        {% endif %}
 
+      </div>
+
+    <!-- ORDER TOTALS -->
+    <div class="order-totals">
+      
+      {% set vat = (subtotal * 12 / 112) %}
+      {% set net = subtotal - vat %}
+      {% set total = subtotal %}
+
+      <p>
+        <span>Subtotal ({{ total_books }} item{{ 's' if total_books != 1 else '' }})</span>
+        <span>₱{{ "{:,.2f}".format(net) }} <small style="color:#777;">(VAT-excl)</small></span>
+      </p>
+
+      <p><span>Shipping</span><span>FREE</span></p>
+
+      <p>
+        <span>VAT (12%)</span>
+        <span>₱{{ "{:,.2f}".format(vat) }}</span>
+      </p>
+
+      <hr>
+
+      <h3 class="total">
+        <span>Total</span>
+        <span>₱{{ "{:,.2f}".format(total) }} <small style="color:#777;">(VAT-incl)</small></span>
+      </h3>
     </div>
 
-  <!-- ORDER TOTALS -->
-  <div class="order-totals">
-    
-    {% set vat = (subtotal * 12 / 112) %}
-    {% set net = subtotal - vat %}
-    {% set total = subtotal %}
+    <div class="delivery">
+      <h4>Delivery Estimate</h4>
+      <p>Your order will be delivered within 3–5 business days after processing.</p>
+    </div>
+    <form id="placeOrderForm" action="{{ url_for('place_order') }}" method="POST">
 
-    <p>
-      <span>Subtotal ({{ total_books }} item{{ 's' if total_books != 1 else '' }})</span>
-      <span>₱{{ "{:,.2f}".format(net) }} <small style="color:#777;">(VAT-excl)</small></span>
-    </p>
+        <input type="hidden" name="payment_method" id="payment_method">
+        <input type="hidden" name="address" id="full_address">
 
-    <p><span>Shipping</span><span>FREE</span></p>
+        <button type="submit" class="place-order">
+            Place Order <i class="fa-solid fa-arrow-right"></i>
+        </button>
+    </form>
 
-    <p>
-      <span>VAT (12%)</span>
-      <span>₱{{ "{:,.2f}".format(vat) }}</span>
-    </p>
-
-    <hr>
-
-    <h3 class="total">
-      <span>Total</span>
-      <span>₱{{ "{:,.2f}".format(total) }} <small style="color:#777;">(VAT-incl)</small></span>
-    </h3>
+    <div class="cancel-btn">
+        <a href="{{ url_for('cart') }}">Cancel</a>
+    </div>
   </div>
+
 
 {% endblock %}

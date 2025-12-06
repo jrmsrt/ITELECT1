@@ -93,7 +93,6 @@ body {
     width: 100%;
 }
 
-/* Container shaped like Ionic segment (pill) */
 .segment {
   position: relative;
   display: inline-flex;
@@ -112,7 +111,6 @@ body {
     justify-content: center;
 }
 
-/* Button style (unselected) */
 .seg-btn {
     appearance: none;
     -webkit-appearance: none;
@@ -159,12 +157,10 @@ body {
   box-shadow: 0 1px 10px rgba(0, 0, 0, 0.132), inset 0 1px 0 rgba(255,255,255,0.15);
 }
 
-/* Add transition to the segment indicator for smooth sliding on clicks */
 .seg-indicator {
     transition: transform 0.3s ease, width 0.3s ease;
 }
 
-/* Class to disable transitions (used on initial load) */
 .seg-indicator.no-transition {
     transition: none;
 }
@@ -174,7 +170,6 @@ body {
   border-radius: 8px;
 }
 
-/* Responsive tiny adjustments */
 @media (max-width: 420px) {
   .seg-btn {
     padding: 8px 12px;
@@ -185,7 +180,6 @@ body {
   .seg-indicator { top: 3px; height: calc(100% - 6px); }
 }
 
-/* Sign In Form */
 .signin-form {
     background: white;
     padding: 32px;
@@ -198,7 +192,6 @@ body {
     overflow: hidden;
 }
 
-/* Exit animations */
 .slide-out-left {
     opacity: 0;
     transform: translateX(-40px);
@@ -209,7 +202,6 @@ body {
     transform: translateX(40px);
 }
 
-/* Entry animations */
 .slide-in-left {
     opacity: 1;
     transform: translateX(0);
@@ -221,7 +213,7 @@ body {
 }
 
 #user-form {
-    display: block; /* default */
+    display: block;
 }
 
 .form-group {
@@ -235,7 +227,6 @@ body {
     color: #0f172a;
 }
 
-/* --- Smooth form switch animation (ADD ONLY) --- */
 .form-section {
     transition: 
         opacity 0.35s ease,
@@ -315,7 +306,6 @@ body {
     transition: width 0.45s ease;
 }
 
-/* Gradient text + underline on hover */
 .forgot-password:hover {
     background: linear-gradient(90deg, #ffdd8a, #e7c286, #b68b2d);
     background-clip: text;
@@ -354,7 +344,6 @@ body {
     text-align: center; margin-top: 15px; font-size: 12px; color: #666;
 }
 
-/* Back to Home link */
 .back-home {
     display: inline-flex;
     align-items: center;
@@ -372,7 +361,6 @@ body {
     transform: translateX(-3px);
 }
 
-/* Register Link */
 .register-link {
     text-align: center;
     margin-top: 20px;
@@ -401,7 +389,6 @@ body {
     transition: width 0.45s ease;
 }
 
-/* Gradient text + underline on hover */
 .register-link a:hover {
     background: linear-gradient(90deg, #ffdd8a, #e7c286, #b68b2d);
     background-clip: text;
@@ -441,7 +428,6 @@ body {
     transform-origin: top center;
 }
 
-/* Colors */
 .alert.error {
     background: #ffefef;
     color: #a70000;
@@ -459,7 +445,6 @@ body {
     border-left: 4px solid #1b7a3a;
 }
 
-/* close button */
 .alert .close-btn {
     background: none;
     border: none;
@@ -468,13 +453,11 @@ body {
     color: inherit;
 }
 
-/* Fade-in */
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(-8px) scale(0.995); }
     to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* Slide-up + fade-out for closing */
 .alert.slide-up {
     animation: slideOut 0.35s ease forwards;
 }

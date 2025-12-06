@@ -23,7 +23,6 @@ body {
     background-position: center;
 }
 
-/* WRAPPER */
 .contact-container {
     max-width: 1200px;
     margin: 60px auto;
@@ -33,7 +32,6 @@ body {
     gap: 40px;
 }
 
-/* LEFT SIDE — CONTACT INFO */
 .contact-info-box {
     background: #fff;
     border-radius: 18px;
@@ -68,7 +66,7 @@ body {
 }
 
 .info-item i {
-font-size: 1.5rem; /* increase icon size */
+font-size: 1.5rem;
         color: white;
         width: 45px;
         height: 45px;
@@ -84,14 +82,14 @@ font-size: 1.5rem; /* increase icon size */
 
 .info-item label {
     color: var(--sub);
-    display: flex; /* make label behave like a box */
+    display: flex;
     width: 250px;
     text-align: right;
 }
 
 .label-row {
     display: flex;
-    justify-content: space-between; /* label left, counter right */
+    justify-content: space-between;
     align-items: center;
     margin-bottom: 0.3rem;
 }
@@ -106,7 +104,6 @@ font-size: 1.5rem; /* increase icon size */
     color: #555;
 }
 
-/* RIGHT SIDE — CONTACT FORM */
 .contact-form-box {
     background: #fff;
     border-radius: 18px;
@@ -180,7 +177,6 @@ font-size: 1.5rem; /* increase icon size */
   background: #a1a1aa;
 }
 
-/* SUBMIT BUTTON */
 .send-btn {
     background: linear-gradient(135deg, #d37f8c, #c89f5d, #e7c286);
     background-size: 180% 180%;

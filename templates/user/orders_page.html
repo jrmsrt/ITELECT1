@@ -1,0 +1,110 @@
+{% extends 'user/main_header.html' %}
+
+{% block content %}
+
+<title>My Orders - BookHaven</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user/orders_page.css') }}">
+
+<div class="orders-wrapper">
+
+    {% if orders %}
+        {% for order in orders %}
+
+        <div class="order-box">
+
+            <!-- HEADER -->
+            <div class="order-header">
+                <span class="order-id">
+                    ORDER CODE: <strong>{{ order.order_code }}</strong>
+                </span>
+                <span class="order-status">
+                    <i class="{{ order.status_icon }}"></i>  {{ order.status }}
+                    <span class="info-icon">
+                        <i class="fa-regular fa-circle-question"></i>
+                        <span class="tooltip-box">
+                            Last Update Time<br>
+                            {{ order.created_at }}
+                        </span>
+                    </span>
+                    <span class="divider"> | </span> 
+                    {% if order.status == 'Order Placed' %}
+                        <span class="ship-status">TO SHIP</span>
+                    {% elif order.status == 'Order Paid' %}
+                        <span class="ship-status">TO SHIP</span>
+                    {% elif order.status == 'Order Shipped Out' %}
+                        <span class="ship-status">ON THE WAY</span>
+                    {% elif order.status == 'Order Received' %}
+                        <span class="ship-status">DELIVERED</span>
+                    {% endif %}
+                </span>
+            </div>
+
+            <hr>
+
+            <!-- ITEMS SECTION -->
+            <div class="order-items-section">
+                <p class="section-title">Ordered Items</p>
+
+                {% for item in order.order_items %}
+                <div class="order-item">
+                    <img src="{{ url_for('static', filename='uploads/' ~ item.cover) if item.cover else url_for('static', filename='images/no-cover.png') }}"
+                        alt="{{ item.title }}">
+
+                    <div class="item-details">
+                        <h4>{{ item.title }}</h4>
+                        <p class="author">by {{ item.author }}</p>
+                        <p class="genre">{{ item.genre }}</p>
+                    </div>
+
+                    <div class="item-price">
+                        <strong>₱{{ "{:,.2f}".format(item.price) }}</strong>
+                        <p>Qty: {{ item.quantity }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- FOOTER -->
+            <div class="order-footer">
+                <div class="left">
+                    <p class="delivery-type">FOR DELIVERY</p>
+                    <p class="payment-mode">PAYMENT METHOD: <span>{{ order.payment_method }}</span></p>
+                </div>
+
+                <div class="right">
+                    <p class="total-label">ORDER TOTAL:
+                        <span class="total-amount">₱{{ "{:,.2f}".format(order.total) }}</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- BUTTONS -->
+            <div class="order-actions">
+                {% if order.status == 'Order Placed' or order.status == 'Order Paid' %}
+                <button class="btn-cancel">Cancel Order</button>
+                {% endif %}
+
+                <a href="{{ url_for('order_details', order_id=order.order_id) }}">
+                    <button class="btn-view">View Details</button>
+                </a>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="empty-order">
+                <img src="{{ url_for('static', filename='media/empty-order.webp') }}"
+                    alt="Empty Order" class="empty-order-img">
+
+                <h3>Your don't have any orders yet.</h3>
+                <p>Every adventure starts with a single page. <br>
+                    Browse our collection and discover your next great read!</p>
+
+                <a href="{{ url_for('shop_books') }}" class="empty-order-btn">
+                    Browse Books
+                </a>
+            </div>
+        </div>
+    {% endif %}
+
+</div>
+
+{% endblock %}

@@ -4,6 +4,7 @@
     --burgundy: #7b2d43;
     --input-border: #e5e7eb;
     --placeholder: #9ca3af;
+    font-family: 'Outfit', sans-serif;
 }
 
 .favorites {
@@ -14,7 +15,6 @@
   text-align: center;
 }
 
-/* Section Title */
 .favorites h2 {
   background: linear-gradient(90deg, #b68b2d, var(--burgundy), #4b2e83);
     background-clip: text;
@@ -25,14 +25,12 @@
   margin-bottom: 0.3rem;
 }
 
-/* Subtitle */
 .subtitle {
   color: #777;
   margin-bottom: 2rem;
   font-size: 0.95rem;
 }
 
-/* Filter Bar Styles */
 .filter-bar {
     display: flex;
     align-items: center;
@@ -42,12 +40,12 @@
     max-width: 1200px;
     margin: 2rem auto;
     padding: 0.8rem 1rem;
-    flex-wrap: nowrap; /* PREVENTS WRAPPING */
+    flex-wrap: nowrap;
 }
 
 
 .search-input {
-    flex: 1; /* takes all extra space */
+    flex: 1;
     min-width: 180px;
     padding: 0.7rem 1rem;
     border: 2px solid var(--input-border);
@@ -119,7 +117,6 @@
     transform: translateY(-2px);
 }
 
-
 .results-count {
   text-align: center;
   font-size: 0.95rem;
@@ -129,7 +126,6 @@
   opacity: 0.9;
 }
 
-/* Grid Layout */
 .book-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -139,14 +135,12 @@
   margin: 0 auto;
 }
 
-/* Book Card */
 .book-card {
   width: 100%;
   max-width: 240px;
   text-align: left;
 }
 
-/* Book Cover Container */
 .book-cover {
   position: relative;
   background-color: #f4f4f5;
@@ -161,7 +155,6 @@
   overflow: hidden;
 }
 
-/* Book Image */
 .book-cover img {
   width: 100%;
   height: 250px;
@@ -172,8 +165,6 @@
   cursor: pointer;
 }
 
-/* Book Information */
-/* Title */
 .book-card .book-title {
   white-space: pre-line;
     overflow: hidden;
@@ -188,7 +179,6 @@
   color: #111;
 }
 
-/* "by Author | Genre" */
 .book-card .book-meta {
   font-size: 0.85rem;
   color: #777;
@@ -213,10 +203,9 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 90px; /* or any size you want */
+    max-width: 90px;
 }
 
-/* Description — keep if still needed elsewhere */
 .book-card .desc {
    white-space: pre-line;
     overflow: hidden;
@@ -231,7 +220,6 @@
     padding-top: 10px;
  }
 
-/* Price */
 .price-stock {
     display: flex;
     justify-content: space-between;
@@ -252,11 +240,10 @@
 }
 
 .price-stock .stock.out {
-    color: #d9534f; /* red */
+    color: #d9534f;
     font-weight: 600;
 }
 
-/* Bottom Action Buttons (Always visible) */
 .book-bottom-actions {
   display: flex;
   justify-content: space-between;
@@ -266,7 +253,6 @@
   gap: 10px;
 }
 
-/* Base Style for Buttons */
 .book-bottom-actions .action-btn {
   display: flex;
   align-items: center;
@@ -281,11 +267,10 @@
   cursor: pointer;
   transition: all 0.3s ease;
   color: #fff;
-  height: 38px; /* same height for both */
+  height: 38px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.15);
 }
 
-/* Add to Cart button - wider and gold */
 .book-bottom-actions .unfav {
   flex: 1.3;
   background: linear-gradient(135deg, #d37f8c, #c89f5d, #e7c286);
@@ -294,13 +279,11 @@
   transition: background-position 0.6s ease, transform 0.3s ease, filter 0.3s ease;
 }
 
-/* Details button - narrower and dark */
 .book-bottom-actions .details {
   flex: 0.9;
   background: #333;
 }
 
-/* Hover Effects */
 .book-bottom-actions .unfav:hover {
   background-position: right center;
   transform: translateY(-2px);
@@ -312,7 +295,6 @@
   transform: translateY(-2px);
 }
 
-/* Icon sizing */
 .book-bottom-actions i {
   font-size: 0.95rem;
 }
@@ -337,7 +319,6 @@
 
 /* ------------------- ZOOM ANIMATION ------------------- */
 
-/* OPEN animation */
 @keyframes zoomIn {
     from {
         transform: scale(0.7);
@@ -349,7 +330,6 @@
     }
 }
 
-/* CLOSE animation */
 @keyframes zoomOut {
     from {
         transform: scale(1);
@@ -361,7 +341,6 @@
     }
 }
 
-/* Apply animation by toggling classes from JS */
 .modal-content.zoom-in {
     animation: zoomIn 0.25s ease forwards;
 }
@@ -451,16 +430,14 @@
     padding-right: 10px;
     padding: 20px;
     margin-bottom: 1rem;
-    white-space: normal; /* Keep paragraph spacing */
+    white-space: normal;
 }
 
-/* Indent ALL paragraphs (even after breaks) */
 .modal-description p {
     text-indent: 2rem;
     margin-bottom: 1rem;
 }
 
-/* Scrollbar */
 .modal-description::-webkit-scrollbar {
     width: 8px;
 }
@@ -503,41 +480,37 @@
 
 /* ------------ FADE FOR OVERLAY ------------ */
 
-/* Fade-in overlay */
 @keyframes fadeInOverlay {
     from { opacity: 0; }
     to { opacity: 1; }
 }
 
-/* Fade-out overlay */
 @keyframes fadeOutOverlay {
     from { opacity: 1; }
     to { opacity: 0; }
 }
 
-/* Class applied when opening */
 .modal-overlay.fade-in {
     animation: fadeInOverlay 0.25s ease forwards;
 }
 
-/* Class applied when closing */
 .modal-overlay.fade-out {
     animation: fadeOutOverlay 0.25s ease forwards;
 }
 
 .no-favorites {
-    min-height: 50vh;          /* gives it space to center */
+    min-height: 50vh;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;   /* perfect vertical centering */
+    justify-content: center;
     text-align: center;
 }
 
 
 .no-favorites i {
     font-size: 5rem;
-    color: #b76e79;  /* elegant heartbreak color */
+    color: #b76e79;
     opacity: 0.8;
     margin-bottom: 1.2rem;
 }

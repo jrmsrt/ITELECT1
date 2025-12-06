@@ -16,6 +16,8 @@ import string
 import secrets
 import os
 import json
+import random
+import string
 from datetime import datetime, timedelta
 
 app = Flask(__name__)
@@ -575,6 +577,10 @@ def reset_password(token):
 
     return render_template('user/reset_password.html', msg=msg, msg_type=msg_type, token=token)
 
+
+# =========================
+#  STATIC PAGES
+# =========================
 @app.route('/about')
 def about():
     return render_template('user/about.html')
@@ -621,6 +627,10 @@ def shop_books():
         genres=genres,
         favorite_ids=favorite_ids
     )
+
+
+
+
 
 # =========================
 #  FAVORITES ROUTE
@@ -779,7 +789,7 @@ def cart():
         subtotal=subtotal
     )
 
-
+# Adding to cart
 @app.route('/cart/add', methods=['POST'])
 def add_to_cart():
     if 'user_id' not in session:
@@ -823,14 +833,31 @@ def add_to_cart():
         existing = cursor.fetchone()
 
         if existing:
+            if existing['quantity'] >= book['stock_quantity']:
+                return jsonify({
+                    "status": "max_reached",
+                    "message": "Cannot add more. Only limited stock available.",
+                    "quantity": existing['quantity']
+                })
+
             new_qty = existing['quantity'] + quantity
+
+            if new_qty > book['stock_quantity']:
+                new_qty = book['stock_quantity']
+
             cursor.execute("""
                 UPDATE cart
                 SET quantity = %s
                 WHERE id = %s
             """, (new_qty, existing['id']))
-            action = "updated"
-            final_qty = new_qty
+
+            conn.commit()
+
+            return jsonify({
+                "status": "updated",
+                "quantity": new_qty
+            })
+
         else:
             cursor.execute("""
                 INSERT INTO cart (user_id, username, book_id, quantity)
@@ -854,7 +881,7 @@ def add_to_cart():
         cursor.close()
         conn.close()
 
-
+# Deleting book from cart
 @app.route('/cart/remove/<int:cart_id>', methods=['POST'])
 def remove_from_cart(cart_id):
     if 'user_id' not in session:
@@ -873,6 +900,7 @@ def remove_from_cart(cart_id):
 
     return redirect(url_for('cart'))
 
+# Cart count for header
 @app.context_processor
 def inject_cart_count():
     user_id = session.get("user_id")
@@ -884,7 +912,7 @@ def inject_cart_count():
     cursor = conn.cursor(dictionary=True)
 
     cursor.execute("""
-        SELECT COALESCE(SUM(quantity), 0) AS count
+        SELECT COUNT(*) AS count
         FROM cart
         WHERE user_id = %s
     """, (user_id,))
@@ -894,6 +922,7 @@ def inject_cart_count():
     conn.close()
 
     return {"cart_count": result["count"]}
+
 
 @app.route('/cart/count')
 def get_cart_count():
@@ -905,7 +934,7 @@ def get_cart_count():
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("""
-        SELECT COALESCE(SUM(quantity), 0) AS count
+        SELECT COUNT(*) AS count
         FROM cart
         WHERE user_id = %s
     """, (user_id,))
@@ -914,6 +943,40 @@ def get_cart_count():
     conn.close()
 
     return {"count": result["count"] if result else 0}
+
+
+# Quantity update saving
+@app.route('/cart/update-qty', methods=['POST'])
+def update_cart_qty():
+    if 'user_id' not in session:
+        return jsonify({"status": "not_logged_in"})
+
+    data = request.get_json()
+    cart_id = data.get("cart_id")
+    new_qty = data.get("quantity")
+
+    try:
+        new_qty = int(new_qty)
+        if new_qty < 1:
+            new_qty = 1
+    except:
+        return jsonify({"status": "invalid_quantity"})
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("""
+        UPDATE cart 
+        SET quantity = %s
+        WHERE id = %s AND user_id = %s
+    """, (new_qty, cart_id, session["user_id"]))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return jsonify({"status": "updated", "quantity": new_qty})
+
 
 
 # =========================
@@ -937,17 +1000,12 @@ def checkout():
             selected_items = []
 
         if not selected_items:
-            flash("Please select at least one item to checkout.", "warning")
             return redirect(url_for('cart'))
 
-        # ✔ Store selected items in session TEMPORARILY
         session['checkout_selected'] = selected_items
 
-        # ✔ Redirect to GET (PRG pattern)
         return redirect(url_for('checkout'))
 
-
-    # -------------- GET: safe page load WITHOUT resubmission --------------
     selected_items = session.get('checkout_selected')
 
     if not selected_items:
@@ -956,6 +1014,13 @@ def checkout():
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
 
+    # FETCH USER INFORMATION TO AUTO-FILL CHECKOUT FORM
+    cursor.execute("SELECT name, email FROM users WHERE id = %s", (user_id,))
+    user = cursor.fetchone()
+    user_name = user["name"] if user else ""
+    user_email = user["email"] if user else ""
+
+    # FETCH CHECKOUT ITEMS
     placeholders = ",".join(["%s"] * len(selected_items))
     query = f"""
         SELECT 
@@ -983,17 +1048,207 @@ def checkout():
     subtotal = sum(float(item["price"]) * item["quantity"] for item in items)
     total_books = len(items)
 
-    # OPTIONAL CLEANUP: clear session after retrieving items
-    # So reloading checkout page doesn’t break anything
-    # session.pop('checkout_selected', None)
-
     return render_template(
         'user/delivery_checkout.html',
         items=items,
         subtotal=subtotal,
-        total_books=total_books
+        total_books=total_books,
+        user_name=user_name,
+        user_email=user_email
     )
 
+
+# =========================
+#  PLACE ORDER ROUTE
+# =========================
+def generate_order_code():
+    prefix = "BH"
+    random_part = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+    return f"{prefix}-{random_part}"
+
+
+@app.route('/place-order', methods=['POST'])
+def place_order():
+    if 'user_id' not in session:
+        return redirect(url_for('user_login'))
+
+    user_id = session['user_id']
+    selected_items = session.get('checkout_selected')
+
+    if not selected_items:
+        return redirect(url_for('cart'))
+
+    payment_method = request.form.get("payment_method")
+    address = request.form.get("address")
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    # Fetch selected cart items
+    placeholders = ",".join(["%s"] * len(selected_items))
+    query = f"""
+        SELECT 
+            c.id AS cart_id,
+            c.quantity,
+            b.id AS book_id,
+            b.title,
+            b.author,
+            b.genre,
+            b.price,
+            b.cover
+        FROM cart c
+        JOIN books b ON c.book_id = b.id
+        WHERE c.user_id = %s AND c.id IN ({placeholders})
+    """
+
+    cursor.execute(query, [user_id] + selected_items)
+    items = cursor.fetchall()
+
+    # Compute total
+    total = sum(float(item["price"]) * item["quantity"] for item in items)
+
+    # Generate unique public order code
+    order_code = generate_order_code()
+
+    cursor.execute("""
+        INSERT INTO orders (user_id, address, payment_method, total, status, order_code)
+        VALUES (%s, %s, %s, %s, %s, %s)
+    """, (user_id, address, payment_method, total, "Order Placed", order_code))
+
+    conn.commit()
+    order_id = cursor.lastrowid
+
+    # Insert order items
+    for item in items:
+        line_total = float(item["price"]) * item["quantity"]
+
+        cursor.execute("""
+            INSERT INTO order_items (order_id, book_id, quantity, price, 
+                                     line_total, title, cover, author, genre)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (
+            order_id, item["book_id"], item["quantity"], item["price"],
+            line_total, item["title"], item["cover"], item["author"], item["genre"]
+        ))
+
+        # Deduct stock
+        cursor.execute("""
+            UPDATE books SET stock_quantity = stock_quantity - %s
+            WHERE id = %s
+        """, (item["quantity"], item["book_id"]))
+
+        # Remove from cart
+        cursor.execute("DELETE FROM cart WHERE id = %s", (item["cart_id"],))
+
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+    session.pop("checkout_selected", None)
+
+    return redirect(url_for("orders"))
+
+
+
+# =========================
+#  ORDERS ROUTE
+# =========================
+STATUS_ICONS = {
+    "Order Placed": "fa-solid fa-receipt",
+    "Order Paid": "fa-solid fa-circle-dollar-to-slot",
+    "Order Shipped Out": "fa-regular fa-truck",
+    "Order Received": "fa-solid fa-box-open",
+    "Order Canceled": "fa-solid fa-ban"
+}
+
+@app.route('/orders-page')
+def orders():
+    if 'user_id' not in session:
+        return redirect(url_for('user_login'))
+
+    user_id = session['user_id']
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT 
+            id AS order_id,
+            order_code,
+            user_id,
+            address,
+            payment_method,
+            status,
+            total,
+            created_at
+        FROM orders 
+        WHERE user_id = %s
+        ORDER BY created_at DESC
+    """, (user_id,))
+
+    orders = cursor.fetchall()
+
+    # Fetch each order’s items
+    for order in orders:
+        cursor.execute("""
+            SELECT 
+                book_id,
+                title,
+                author,
+                genre,
+                cover,
+                quantity,
+                price,
+                line_total
+            FROM order_items
+            WHERE order_id = %s
+        """, (order["order_id"],))
+        
+        order["order_items"] = cursor.fetchall()
+        order["status_icon"] = STATUS_ICONS.get(order["status"], "fa-solid fa-circle-info")
+
+    cursor.close()
+    conn.close()
+
+    return render_template("user/orders_page.html", orders=orders)
+
+
+@app.route('/order/<int:order_id>')
+def order_details(order_id):
+    if 'user_id' not in session:
+        return redirect(url_for('user_login'))
+
+    user_id = session['user_id']
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    # Fetch order
+    cursor.execute("""
+        SELECT *
+        FROM orders
+        WHERE id = %s AND user_id = %s
+    """, (order_id, user_id))
+
+    order = cursor.fetchone()
+
+    if not order:
+        return "Order not found", 404
+
+    # Fetch order items
+    cursor.execute("""
+        SELECT *
+        FROM order_items
+        WHERE order_id = %s
+    """, (order_id,))
+    
+    order_items = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return render_template("user/order_details.html", order=order, items=order_items)
 
 # =========================
 #  ADMIN PANEL

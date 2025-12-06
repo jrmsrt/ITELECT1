@@ -41,12 +41,12 @@
     max-width: 1200px;
     margin: 2rem auto;
     padding: 0.8rem 1rem;
-    flex-wrap: nowrap; /* PREVENTS WRAPPING */
+    flex-wrap: nowrap;
 }
 
 
 .search-input {
-    flex: 1; /* takes all extra space */
+    flex: 1;
     min-width: 180px;
     padding: 0.7rem 1rem;
     border: 2px solid var(--input-border);
@@ -116,7 +116,6 @@
     background: #c9c9c9;
     transform: translateY(-2px);
 }
-
 
 .results-count {
   text-align: center;
@@ -217,7 +216,6 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
-
 
 /* Description — keep if still needed elsewhere */
 .book-card .desc {
