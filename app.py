@@ -1211,6 +1211,42 @@ def place_order():
     return redirect(url_for("orders"))
 
 
+# =========================
+#  ADDING AND SAVING A NEW ADDRESS
+# =========================
+@app.route("/add-address", methods=["POST"])
+def add_address():
+    if "user_id" not in session:
+        return jsonify({"error": "Not logged in"}), 403
+
+    user_id = session["user_id"]
+
+    full_name = request.form.get("fullName")
+    phone_raw = request.form.get("phone", "").strip()
+    phone = phone_raw[1:] if phone_raw.startswith("0") else phone_raw
+
+    street = request.form.get("street")
+    barangay = request.form.get("barangay-text") or request.form.get("barangay")
+    city = request.form.get("city-text") or request.form.get("city")
+    province = request.form.get("province-text") or request.form.get("province")
+    region = request.form.get("region-text") or request.form.get("region")
+    zip_code = request.form.get("zip")
+
+    final_address = f"{street}, {barangay}, {city}, {province}, {region}, {zip_code}"
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT INTO user_addresses (user_id, full_name, phone, address_text, is_default)
+        VALUES (%s, %s, %s, %s, 0)
+    """, (user_id, full_name, phone, final_address))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return jsonify({ "success": True })
 
 
 # =========================

@@ -109,29 +109,24 @@ function previewImage(event) {
     }
 }
 
-/* Unified Reset Function (FINAL VERSION) */
 function resetForm() {
 
-    // Detect which form exists on the page
     const form =
         document.getElementById("editBookForm") ||
         document.getElementById("addBookForm");
 
     if (!form) return;
 
-    // Reset all text / number / textarea inputs
     form.querySelectorAll("input[type='text'], input[type='number'], textarea")
         .forEach(field => {
             field.value = "";
         });
 
-    // Reset file input
     const coverInput = document.getElementById("coverInput");
     if (coverInput) {
         coverInput.value = "";
     }
 
-    // Reset image preview
     const preview = document.getElementById("preview-img");
     const placeholder = document.getElementById("placeholder-text");
 
@@ -162,7 +157,7 @@ function showLoginRequiredDialog(message = "You must be logged in to continue.")
     Swal.fire({
         iconHtml: loginRequiredIcon,
         customClass: {
-            icon: "swal2-custom-icon",   // <-- THE FIX
+            icon: "swal2-custom-icon",
             popup: "swal2-custom-popup"
         },
         title: "Login Required",
@@ -462,13 +457,10 @@ document.addEventListener("click", function (e) {
 
 document.addEventListener("DOMContentLoaded", () => {
 
-    // Sync cart badge on all pages with header
     updateCartCount();
 
-    // Modal bindings (only works on shop-books page)
     setupModalDetails();
 
-    // Grid add-to-cart buttons
     document.querySelectorAll(".add-cart").forEach(btn => {
         btn.addEventListener("click", function () {
             const card = this.closest(".book-card");
@@ -481,7 +473,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // Modal add-to-cart button
     const modalAddCartBtn = document.querySelector(".modal-add-cart");
     if (modalAddCartBtn) {
         modalAddCartBtn.addEventListener("click", function () {
