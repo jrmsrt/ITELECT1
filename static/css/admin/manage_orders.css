@@ -9,18 +9,33 @@
 body {
     line-height: 1.6;
     color: #333;
-    background: url(/static/media/banner.png) no-repeat center center;
-    background-size: cover;
-    background-position: center;
     font-family: 'Outfit', sans-serif;
 }
 
 .orders-wrapper {
-    min-height: auto;
-    width: 90%;
-    max-width: 900px;
+    min-height: 100vh;
+    width: 100%;
+    max-width: 930px;
     margin: 2rem auto;
     font-family: 'Inter', sans-serif;
+}
+
+.orders-wrapper h2 {
+    text-align: center;
+  background: linear-gradient(90deg, #b68b2d, var(--burgundy), #4b2e83);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+
+.subtitle {
+  color: #777;
+  margin-bottom: 2rem;
+  font-size: 0.95rem;
+  text-align: center;
 }
 
 .order-box {
@@ -40,20 +55,16 @@ body {
 
 .order-id {
     font-size: 1rem;
-    font-weight: 600;
-}
-
-.order-status {
-    font-weight: 400;
-    color: #06b980;
-}
-
-.order-status .divider {
-    color: #a4a4a4;
 }
 
 .ship-status {
     color: var(--dark-color);
+}
+
+hr {
+    border: none;
+    border-bottom: 1px solid #cacaca;
+    margin: 10px 0;
 }
 
 .info-icon {
@@ -110,6 +121,11 @@ body {
     margin-bottom: 0.5rem;
     font-weight: 600;
     color: #333;
+}
+
+.customer-details {
+    padding-left: 1rem;
+    border-left: 3px solid var(--gold);
 }
 
 .order-item {
@@ -236,7 +252,7 @@ body {
     gap: 10px;
 }
 
-.btn-cancel {
+.btn-view {
     padding: 8px 15px;
     background: #fff;
     border: 2px solid var(--gold);
@@ -248,7 +264,7 @@ body {
     transition: background-position 0.6s ease, transform 0.3s ease, filter 0.3s ease, box-shadow 0.3s ease;
 }
 
-.btn-cancel:hover {
+.btn-view:hover {
     background: var(--gold);
     color: white;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
@@ -256,7 +272,7 @@ body {
     filter: brightness(1.08);
 }
 
-.btn-view {
+.btn-update {
     padding: 8px 15px;
     color: white;
     border: none;
@@ -269,32 +285,19 @@ body {
     transition: background-position 0.6s ease, transform 0.3s ease, filter 0.3s ease, box-shadow 0.3s ease;
 }
 
-.btn-view:hover {
+.btn-update:hover {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
     transform: translateY(-2px);
     filter: brightness(1.08);
 }
 
-.empty-order-box {
-    padding: 0.1rem 0;
-    text-align: center;
-}
-
-.empty-order-box .empty-order {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-
 .empty-order {
-    padding: 2rem 0.2rem;
+    min-height: 100vh;
     text-align: center;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 1rem;
 }
 
 .empty-order-img {
@@ -331,4 +334,30 @@ body {
 
 .empty-order-btn:hover {
   color: var(--dark-color);
+}
+
+.status-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.status-dropdown {
+    padding: 4px 6px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.save-status-btn {
+    padding: 5px 10px;
+    border-radius: 6px;
+    border: none;
+    background: var(--burgundy);
+    color: white;
+    cursor: pointer;
+}
+.save-status-btn:hover {
+    opacity: 0.85;
 }

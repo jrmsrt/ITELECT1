@@ -1,0 +1,117 @@
+﻿{% extends 'admin/sidebar.html' %}
+
+{% block content %}
+
+<title>Add Book</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/announcements.css') }}">
+<link href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{{ url_for('static', filename='js/announcements.js') }}" defer></script>
+
+<div class="main-container">
+    <div class="content">
+
+        <!-- FORM WRAPS BOTH COLUMNS -->
+        <form id="announcement-form"
+              method="POST"
+              action="{{ url_for('admin_announcements') }}"
+              enctype="multipart/form-data"
+              style="display: flex; width: 100%; gap: 20px;">
+
+            <!-- LEFT SIDE -->
+            <div class="left-container">
+                <h2>Post an Announcement</h2>
+
+                <div class="form-animated-wrapper">
+                    <div class="image-preview-wrapper">
+                        <div class="image-preview" id="imagePreview">
+                            <span id="placeholder-text">Announcement Photo</span>
+                            <img id="preview-img" src="#" alt="Preview" style="display:none;">
+                        </div>
+                    </div>
+
+                    <div class="file-upload-wrapper">
+                        <input type="file" id="coverInput" name="photo"
+                            accept="image/*" onchange="previewImage(event)">
+                    </div>
+
+                    <label for="title">Title:</label>
+                    <input type="text" name="title" id="title" placeholder="Enter announcement title" required>
+
+                    <label for="content">Content:</label>
+                    <textarea name="content" id="content" rows="15" placeholder="Write the announcement details here..." required></textarea>
+
+                    <div class="button-group">
+                        <button type="submit" class="save-btn">
+                            <i class="fa-solid fa-plus"></i> Post
+                        </button>
+
+                        <button type="button" class="reset-btn" onclick="resetForm()">
+                            <i class="fa-solid fa-rotate-left"></i> Reset
+                        </button>
+
+                        <button type="button" class="cancel-btn" id="cancel-edit-btn" style="display: none;">
+                            <i class="fa-solid fa-xmark"></i>Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT SIDE -->
+            <div class="right-container">
+                <div class="posted-announcements">
+                    {% if announcements %}
+                        <a class="section-note">Announcements you posted will show up here.</a>
+                    {% endif %}
+                    {% for announcement in announcements %}
+                    <div class="announcements">
+                        <div class="announcements-header">
+                            <span>{{ announcement.title }}</span>
+                            <div class="dropdown">
+                                <span class="dots-icon"><i class="fas fa-ellipsis-v"></i></span>
+                                <div class="dropdown-content">
+                                    <a href="#"
+                                        class="edit-btn"
+                                        data-id="{{ announcement.id }}"
+                                        data-title="{{ announcement.title | escape }}"
+                                        data-content="{{ announcement.content | escape }}"
+                                        data-photo="{{ announcement.photo }}">
+                                        Edit
+                                    </a>
+                                    <a href="{{ url_for('admin_announcement_delete', id=announcement.id) }}">Delete</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="announcement-content">
+                            {% if announcement.photo %}
+                            <div class="announcement-photo-wrapper">
+                                <img src="{{ url_for('static', filename='uploads/announcements/' ~ announcement.photo) }}" alt="Announcement Photo">
+                            </div>
+                            {% endif %}
+                            <span>
+                                {{ announcement.content | replace('\n', '<br>') | safe }}<br>
+                                <br><small>Posted by the ADMIN on: <strong>{{ announcement.created_at.strftime('%B %d, %Y at %I:%M %p') }}</strong></small>
+                            </span>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="empty-post">
+                        <img src="{{ url_for('static', filename='media/announcement-empty.png') }}" 
+                            alt="No Announcements" 
+                            class="empty-post-img">
+
+                        <h3>No Announcements Posted Yet</h3>
+                        <p>Announcements you create will appear here. <br>
+                            Use the form on the left to post your first announcement.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+{% endblock %}

@@ -38,8 +38,15 @@ function filterBooks() {
     const author = authorFilter.value.toLowerCase();
     const genre = genreFilter.value.toLowerCase();
 
-    const cards = document.querySelectorAll(".book-card");
+    const cards = document.querySelectorAll(".book-card, .item");
     let visibleCount = 0;
+
+    cards.forEach(card => {
+        if (!card.dataset.originalDisplay) {
+            card.dataset.originalDisplay = getComputedStyle(card).display;
+        }
+    });
+
 
     cards.forEach(card => {
         const matchesSearch =
@@ -60,7 +67,7 @@ function filterBooks() {
 
         const show = matchesSearch && matchesTitle && matchesAuthor && matchesGenre;
 
-        card.style.display = show ? "block" : "none";
+        card.style.display = show ? card.dataset.originalDisplay : "none";
 
         if (show) visibleCount++;
     });
@@ -93,6 +100,9 @@ function confirmDeleteBook(bookId) {
 }
 
 
+/* =========================
+    UPLOADING THE COVER
+========================= */
 function previewImage(event) {
     const input = event.target;
     const preview = document.getElementById('preview-img');

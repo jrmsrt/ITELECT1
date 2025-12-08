@@ -63,7 +63,7 @@
 
             <div class="book-cover">
                 {% if book.cover %}
-                    <img src="{{ url_for('static', filename='uploads/' ~ book.cover) }}">
+                    <img src="{{ url_for('static', filename='uploads/books/' ~ book.cover) }}">
                     <button class="fav-btn {% if book.id in favorite_ids %}favorited{% endif %}"
                             onclick="toggleFavorite('{{ book.id }}', this)">
                         <i class="fa-regular fa-heart regular-heart"></i>

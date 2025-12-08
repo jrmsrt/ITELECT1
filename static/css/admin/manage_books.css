@@ -11,6 +11,7 @@
   background: #fff;
   color: white;
   text-align: center;
+  min-height: 100vh;
 }
 
 .manage-books h2 {

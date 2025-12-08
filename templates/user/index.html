@@ -79,7 +79,7 @@
 
                 <div class="book-cover">
                     {% if book.cover %}
-                        <img src="{{ url_for('static', filename='uploads/' ~ book.cover) }}" alt="{{ book.title }}">
+                        <img src="{{ url_for('static', filename='uploads/books/' ~ book.cover) }}" alt="{{ book.title }}">
                     {% else %}
                         <img src="/static/images/no-cover.png" alt="No cover available">
                     {% endif %}
@@ -157,80 +157,90 @@
 </section>
 
 <section class="announcements">
-<h2><span>Latest</span> Announcements</h2>
-<p class="subtitle">
-        News, updates, and events you won’t want to miss.
-    </p>
+    <h2><span>Latest</span> Announcements</h2>
+    <p class="subtitle">News, updates, and events you won’t want to miss.</p>
 
-<!-- Swiper Container -->
-<div class="swiper announcements-slider">
-    <div class="swiper-wrapper">
+    <!-- Swiper Container -->
+    <div class="swiper announcements-slider">
+        <div class="swiper-wrapper">
 
-    <!-- Slide 1 -->
-    <div class="swiper-slide announcement-card">
-        <img src="/static/media/nbs.jpg" alt="National Bookstore Week">
-        <div class="announcement-content">
-        <div class="announcement-title">
-            🇵🇭📚 National Bookstore Week at BookHaven
-        </div>
-        <p class="date">📅 July 15–21, 2025</p>
-        <p class="desc">
-            Celebrate the joy of reading with us during National Bookstore Week, a special event dedicated to readers, writers, and dreamers of all ages!
-        </p>
-        <a href="#" class="read-more">Read More →</a>
+            {% if announcements %}
+                {% for a in announcements %}
+                <div class="swiper-slide announcement-card">
+
+                    <!-- Announcement Image -->
+                    <img src="{{ url_for('static', filename='uploads/announcements/' ~ a.photo) if a.photo else '/static/media/default-announcement.jpg' }}"
+                         alt="{{ a.title }}">
+
+                    <div class="announcement-content">
+
+                        <!-- Title -->
+                        <div class="announcement-title">
+                            {{ a.title }}
+                        </div>
+
+                        <!-- Date -->
+                        <p class="date">
+                            📅 {{ a.created_at.strftime('%B %d, %Y') }}
+                        </p>
+
+                        <!-- Short Description -->
+                        <p class="desc">
+                            {{ a.content[:150] }}{% if a.content|length > 150 %}...{% endif %}
+                        </p>
+
+                        <a href="/announcement/{{ a.id }}" class="read-more">Read More →</a>
+                    </div>
+                </div>
+                {% endfor %}
+
+            {% else %}
+            <!-- If no announcements -->
+            <div class="swiper-slide announcement-card">
+                <div class="empty-post">
+                    <img src="{{ url_for('static', filename='media/announcement-empty.png') }}" 
+                        alt="No Announcements" 
+                        class="empty-post-img">
+                        
+                        <h3>No Announcements Yet</h3>
+                        <p>Stay tuned for exciting updates from BookHaven!</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
         </div>
     </div>
-
-    <!-- Slide 2 -->
-    <div class="swiper-slide announcement-card">
-        <img src="/static/media/heh.jpg" alt="New Arrival Alert">
-        <div class="announcement-content">
-        <div class="announcement-title">
-            New Arrival Alert – Fresh Reads Just In!
-        </div>
-        <p class="date">📅 July 25, 2025</p>
-        <p class="desc">
-            We’re thrilled to announce a fresh wave of arrivals at BookHaven! Whether you’re craving heart-pounding thrillers or inspiring nonfiction, we’ve got something new for you.
-        </p>
-        <a href="#" class="read-more">Read More →</a>
-        </div>
-    </div>
-
-    <!-- Slide 3 -->
-    <div class="swiper-slide announcement-card">
-        <img src="/static/media/mari.png" alt="Exclusive Author Event">
-        <div class="announcement-content">
-        <div class="announcement-title">
-            Exclusive Author Event – Meet Marinette Dupain-Cheng!
-        </div>
-        <p class="date">📅 August 12, 2025 · 1:00 PM</p>
-        <p class="desc">
-            Calling all book lovers and aspiring writers! Join us for an exclusive author meet-and-greet with the brilliant Marinette Dupain-Cheng — a chance to hear her story and get your favorite book signed!
-        </p>
-        <a href="#" class="read-more">Read More →</a>
-        </div>
-    </div>
-
-    <!-- Slide 4 -->
-    <div class="swiper-slide announcement-card">
-        <img src="/static/media/announcement3.jpg" alt="Community Reading Drive">
-        <div class="announcement-content">
-        <div class="announcement-title">
-            Community Reading Drive – Share the Love of Books!
-        </div>
-        <p class="date">📅 September 5–10, 2025</p>
-        <p class="desc">
-            Be part of our Reading Drive! Donate old books, exchange your favorites, or volunteer to read to children. Let’s keep stories alive and imaginations growing together.
-        </p>
-        <a href="#" class="read-more">Read More →</a>
-        </div>
-    </div>
-
-    </div>
-</div>
 </section>
+
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <script src="/static/js/slider.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+{% if session.get('login_success') %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    Swal.fire({
+        toast: true,
+        position: "top-end",
+        iconHtml: `
+            <span class="sparkle sparkle-1">✨</span>
+            <span class="sparkle sparkle-2">✨</span>
+            <span class="sparkle sparkle-3">✨</span>
+            <span class="save-icon">😊</span>
+            `,
+            customClass: { icon: "no-default-icon" },
+        title: "{{ session.get('login_success_message') }}",
+        showConfirmButton: false,
+        timer: 1500,
+        timerProgressBar: true
+    });
+});
+</script>
+
+{% set _ = session.pop('login_success', None) %}
+{% set _ = session.pop('login_success_message', None) %}
+{% endif %}
+
 
 {% endblock %}

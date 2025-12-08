@@ -2,15 +2,15 @@
 
 {% block content %}
 
-<title>Manage Books</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/manage_books.css') }}">
+<title>Book Catalog</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/books_list.css') }}">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="{{ url_for('static', filename='js/books.js') }}" defer></script>
 
-<section class="manage-books">
-    <h2>Manage Books</h2>
+<section class="catalog">
+    <h2>Books Catalog</h2>
     <p class="subtitle">
-        View, edit, or remove books from your collection with ease. Keep your library up-to-date and organized.
+        This page displays all books currently registered in the system. Easily oversee every book in the store’s catalog.
     </p>
 
     <!-- Search + Filters -->
@@ -52,51 +52,43 @@
     </div>
 
     <!-- BOOK GRID -->
-    <div class="book-grid" id="bookGrid">
-        {% for book in books %}
-        <div class="book-card"
-             data-title="{{ book.title|lower }}"
-             data-author="{{ book.author|lower }}"
-             data-genre="{{ book.genre|lower }}"
-             data-description="{{ book.description|lower }}">
-
-            <div class="book-cover">
+    <div class="book-list" id="bookGrid">
+        {% if books %}
+            {% for book in books %}
+            <div class="item"
+                data-title="{{ book.title|lower }}"
+                data-author="{{ book.author|lower }}"
+                data-genre="{{ book.genre|lower }}"
+                data-description="{{ book.description|lower }}">
                 {% if book.cover %}
                     <img src="{{ url_for('static', filename='uploads/books/' ~ book.cover) }}">
                 {% else %}
                     <img src="/static/images/no-cover.png">
                 {% endif %}
+
+                <div class="details">
+                    <h4>{{ book.title }}</h4>
+                    <p class="author">by {{ book.author }}</p>
+                    <p class="genre">{{ book.genre }}</p>
+                    <p><i class="fa-solid fa-barcode"></i>ISBN: {{ book.isbn }}</p>
+                    <p>Uploaded On: {{ book.created_at.strftime("%B %d, %Y %H:%M") }}</p>
+                </div>
+
+                <div class="price">
+                    {% if book.stock_quantity > 0 %}
+                        <span class="stock">{{ book.stock_quantity }} in stock</span>
+                    {% else %}
+                        <span class="stock out">Out of Stock</span>
+                    {% endif %}
+                    <strong>₱{{ "{:,.2f}".format(book.price) }}</strong>
+                </div>
             </div>
-
-            <h3 class="book-title">{{ book.title }}</h3>
-            <p class="book-meta">
-                by <span class="author">{{ book.author }}</span> | <span class="genre">{{ book.genre }}</span>
-            </p>
-            <p class="desc">{{ book.description }}</p>
-
-            <div class="price-stock">
-                <span class="price">₱{{ '%.2f' | format(book.price) }}</span>
-
-                {% if book.stock_quantity > 0 %}
-                    <span class="stock">{{ book.stock_quantity }} in stock</span>
-                {% else %}
-                    <span class="stock out">Out of Stock</span>
-                {% endif %}
-            </div>
-
-            <div class="book-bottom-actions">
-                <a href="{{ url_for('edit_book', book_id=book.id) }}" class="action-btn edit">
-                    <i class="fa-regular fa-pen-to-square"></i> Edit Details
-                </a>
-                <a class="action-btn delete"
-                onclick="confirmDeleteBook('{{ book.id }}')">
-                    <i class="fa-regular fa-trash-can"></i> Delete
-                </a>
-            </div>
-
-        </div>
-        {% endfor %}
+            {% endfor %}
+        {% else %}
+            <p>No items selected.</p>
+        {% endif %}
     </div>
+
 
 </section>
 

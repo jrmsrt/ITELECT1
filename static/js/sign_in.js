@@ -148,12 +148,12 @@ function closeAlert() {
 
     window.addEventListener('resize', () => {
         const active = segment.querySelector('.seg-btn.active') || buttons[activeIndex];
-        if (active) activateButton(active, false, false);  // No animation on resize
+        if (active) activateButton(active, false, false);
     });
 
     const ro = new ResizeObserver(() => {
         const active = segment.querySelector('.seg-btn.active') || buttons[activeIndex];
-        if (active) activateButton(active, false, false);  // No animation on resize
+        if (active) activateButton(active, false, false);
     });
     ro.observe(segment);
 })();

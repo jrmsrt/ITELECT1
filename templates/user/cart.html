@@ -44,7 +44,7 @@
 
           <div class="book-info">
             {% if item.cover %}
-              <img src="{{ url_for('static', filename='uploads/' ~ item.cover) }}"
+              <img src="{{ url_for('static', filename='uploads/books/' ~ item.cover) }}"
                    alt="{{ item.title }}" class="cart-img">
             {% else %}
               <img src="/static/images/no-cover.png"

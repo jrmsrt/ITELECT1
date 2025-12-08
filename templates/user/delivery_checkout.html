@@ -27,7 +27,7 @@
                     <label>Full Name</label>
                     <input type="text" id="fullName"
                     name="fullName" class="form-input"
-                    value="{{ user_name }}" placeholder="Enter your full name">
+                    value="{{ user_name }}" placeholder="Enter your full name (First Name Last Name)">
                     <p class="field-error" id="fullNameError"></p>
                 </div>
 
@@ -132,10 +132,11 @@
 
             {% for addr in saved_addresses %}
             <label class="address-card">
+                <input type="hidden" name="selected_address" id="selected_address_hidden">
                 <input type="radio"
                     name="selected_address"
                     value="{{ addr.id }}"
-                    {% if addr.is_default == 1 %}checked{% endif %}>
+                    {% if addr.is_default %}checked{% endif %}>
 
                 <div class="address-content">
                     <div class="address-header">
@@ -147,7 +148,7 @@
                         <a href="#" class="edit-link">Edit</a>
                     </div>
 
-                    <p class="addr-full">{{ addr.address_text }}</p>
+                    <p class="addr-full">{{ addr.address }}</p>
 
                     {% if addr.is_default == 1 %}
                     <span class="default-tag">Default</span>
@@ -202,27 +203,27 @@
         <h2><i class="fa-solid fa-cart-shopping"></i> Order Summary</h2>
 
         <div class="order-items">
-        {% if items %}
-        {% for item in items %}
-        <div class="item">
-            <img src="{{ url_for('static', filename='uploads/' ~ item.cover) if item.cover else url_for('static', filename='images/no-cover.png') }}"
-                alt="{{ item.title }}">
+            {% if items %}
+                {% for item in items %}
+                <div class="item">
+                    <img src="{{ url_for('static', filename='uploads/books/' ~ item.cover) if item.cover else url_for('static', filename='images/no-cover.png') }}"
+                        alt="{{ item.title }}">
 
-            <div class="details">
-                <h4>{{ item.title }}</h4>
-                <p class="author">by {{ item.author }}</p>
-                <p class="genre">{{ item.genre }}</p>
-            </div>
+                    <div class="details">
+                        <h4>{{ item.title }}</h4>
+                        <p class="author">by {{ item.author }}</p>
+                        <p class="genre">{{ item.genre }}</p>
+                    </div>
 
-            <div class="price">
-                <strong>₱{{ "{:,.2f}".format(item.price) }}</strong>
-                <p>Qty: {{ item.quantity }}</p>
-            </div>
-        </div>
-        {% endfor %}
-        {% else %}
-        <p>No items selected.</p>
-        {% endif %}
+                    <div class="price">
+                        <strong>₱{{ "{:,.2f}".format(item.price) }}</strong>
+                        <p>Qty: {{ item.quantity }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p>No items selected.</p>
+            {% endif %}
         </div>
 
         <div class="order-totals">

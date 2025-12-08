@@ -35,20 +35,20 @@
           <span>Add Books</span>
         </a>
       </li>
-      <li class="{% if active_page == 'admin_books_list' %}active{% endif %}">
-        <a href="">
+      <li class="{% if active_page == 'books_list' %}active{% endif %}">
+        <a href="{{ url_for('books_list') }}">
           <i class="fas fa-list-ul"></i>
           <span>Books List</span>
         </a>
       </li>
-      <li class="{% if active_page == 'admin_orders_list' %}active{% endif %}">
-        <a href="">
+      <li class="{% if active_page == 'manage_orders' %}active{% endif %}">
+        <a href="{{ url_for('manage_orders') }}">
           <i class="fas fa-users"></i>
           <span>Orders List</span>
         </a>
       </li>
       <li class="{% if active_page == 'announcements' %}active{% endif %}">
-          <a href="">
+          <a href="{{ url_for('admin_announcements') }}">
               <i class="fas fa-bullhorn"></i>
               <span>Post Announcement</span>
           </a>

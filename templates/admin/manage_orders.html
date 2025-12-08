@@ -1,0 +1,157 @@
+{% extends 'admin/sidebar.html' %}
+
+{% block content %}
+
+<title>Manage Orders</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/manage_orders.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<div class="orders-wrapper">
+    <h2>Update Orders</h2>
+    <p class="subtitle">
+        View, monitor, and update customer order statuses.  
+        <br>Use the dropdown to change an order’s status, then click <strong>Update</strong> to save changes.
+    </p>
+
+    {% if orders %}
+        {% for order in orders %}
+
+        <div class="order-box">
+
+            <!-- HEADER -->
+            <div class="order-header"> 
+                <span class="order-id">
+                    ORDER ID: <strong>{{ order.order_code }}</strong>
+                </span>
+                <span class="order-status">
+                    <form id="status-form-{{ order.order_id }}" class="status-form" 
+                        method="POST" action="{{ url_for('update_order_status') }}">
+                        <input type="hidden" name="order_id" value="{{ order.order_id }}">
+                        <p>Status:</p>
+                        <select name="status" class="status-dropdown">
+                            <option value="Order Placed" 
+                                {% if order.status == 'Order Placed' %}selected{% endif %}>
+                                Order Placed
+                            </option>
+
+                            <option value="Order Paid" 
+                                {% if order.status == 'Order Paid' %}selected{% endif %}>
+                                Order Paid
+                            </option>
+
+                            <option value="Order Shipped Out" 
+                                {% if order.status == 'Order Shipped Out' %}selected{% endif %}>
+                                Order Shipped Out
+                            </option>
+
+                            <option value="Order Delivered" 
+                                {% if order.status == 'Order Delivered' %}selected{% endif %}>
+                                Order Delivered
+                            </option>
+                        </select>
+                    </form>
+                </span>
+            </div>
+
+            <hr>
+
+            <!-- CUSTOMER DETAILS -->
+            <p class="section-title">Customer Details</p>
+            <div class="customer-details">
+                <p>
+                    {{ order.full_name }}
+                    <span class="phone">| (+63) {{ order.phone }}</span>
+                </p>
+
+                <p class="full-address">
+                    {{ order.address }}
+                </p>
+            </div>
+
+            <!-- ITEMS SECTION -->
+            <div class="order-items-section">
+                <p class="section-title">Ordered Items</p>
+
+                {% for item in order.order_items %}
+                <div class="order-item">
+                    <img src="{{ url_for('static', filename='uploads/books/' ~ item.cover) if item.cover else url_for('static', filename='images/no-cover.png') }}"
+                        alt="{{ item.title }}">
+
+                    <div class="item-details">
+                        <h4>{{ item.title }}</h4>
+                        <p class="author">by {{ item.author }}</p>
+                        <p class="genre">{{ item.genre }}</p>
+                    </div>
+
+                    <div class="item-price">
+                        <strong>₱{{ "{:,.2f}".format(item.price) }}</strong>
+                        <p>Qty: {{ item.quantity }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- FOOTER -->
+            <div class="order-footer">
+                <div class="left">
+                    <p class="delivery-type">FOR DELIVERY</p>
+                    <p class="payment-mode">PAYMENT METHOD: <span>{{ order.payment_method }}</span></p>
+                    
+                </div>
+
+                <div class="right">
+                    <p class="total-label">ORDER TOTAL:
+                        <span class="total-amount">₱{{ "{:,.2f}".format(order.total) }}</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- BUTTONS -->
+            <div class="order-bottom">
+                <p class="date">Order created at: <span>{{ order.created_at }}</span></p>
+            
+                <div class="order-actions">
+                    <button class="btn-view">View Details</button>
+
+                    <button type="submit" form="status-form-{{ order.order_id }}" class="btn-update">
+                        Update
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="empty-order">
+            <img src="{{ url_for('static', filename='media/empty-order.webp') }}"
+                alt="Empty Order" class="empty-order-img">
+
+            <h3>Your don't have any orders yet.</h3>
+            <p>Every adventure starts with a single page. <br>
+                Browse our collection and discover your next great read!</p>
+
+            <a href="{{ url_for('shop_books') }}" class="empty-order-btn">
+                Browse Books
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+{% if session.get('order_update_success') %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "success",
+        title: "Order status updated!",
+        showConfirmButton: false,
+        timer: 1200,
+        timerProgressBar: true
+    });
+});
+</script>
+{% set _ = session.pop('order_update_success', None) %}
+{% endif %}
+
+
+{% endblock %}

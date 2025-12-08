@@ -2,8 +2,9 @@
 
 {% block content %}
 
-<title>My Orders - BookHaven</title>
+<title>My Orders | BookHaven</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/user/orders_page.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <div class="orders-wrapper">
 
@@ -15,15 +16,24 @@
             <!-- HEADER -->
             <div class="order-header">
                 <span class="order-id">
-                    ORDER CODE: <strong>{{ order.order_code }}</strong>
+                    ORDER ID: <strong>{{ order.order_code }}</strong>
                 </span>
                 <span class="order-status">
-                    <i class="{{ order.status_icon }}"></i>  {{ order.status }}
+                    <i class="{{ order.status_icon }}"></i>  
+                    {% if order.status == 'Order Placed' %}
+                        Order is placed
+                    {% elif order.status == 'Order Paid' %}
+                        Preparing to ship your items
+                    {% elif order.status == 'Order Shipped Out' %}
+                        Your order out for delivery
+                    {% elif order.status == 'Order Delivered' %}
+                        Order has been delivered
+                    {% endif %}
                     <span class="info-icon">
                         <i class="fa-regular fa-circle-question"></i>
                         <span class="tooltip-box">
                             Last Update Time<br>
-                            {{ order.created_at }}
+                            {{ order.updated_at if order.updated_at else order.created_at }}
                         </span>
                     </span>
                     <span class="divider"> | </span> 
@@ -33,8 +43,8 @@
                         <span class="ship-status">TO SHIP</span>
                     {% elif order.status == 'Order Shipped Out' %}
                         <span class="ship-status">ON THE WAY</span>
-                    {% elif order.status == 'Order Received' %}
-                        <span class="ship-status">DELIVERED</span>
+                    {% elif order.status == 'Order Delivered' %}
+                        <span class="ship-status">COMPLETED</span>
                     {% endif %}
                 </span>
             </div>
@@ -47,7 +57,7 @@
 
                 {% for item in order.order_items %}
                 <div class="order-item">
-                    <img src="{{ url_for('static', filename='uploads/' ~ item.cover) if item.cover else url_for('static', filename='images/no-cover.png') }}"
+                    <img src="{{ url_for('static', filename='uploads/books/' ~ item.cover) if item.cover else url_for('static', filename='images/no-cover.png') }}"
                         alt="{{ item.title }}">
 
                     <div class="item-details">
@@ -69,6 +79,7 @@
                 <div class="left">
                     <p class="delivery-type">FOR DELIVERY</p>
                     <p class="payment-mode">PAYMENT METHOD: <span>{{ order.payment_method }}</span></p>
+                    
                 </div>
 
                 <div class="right">
@@ -79,31 +90,55 @@
             </div>
 
             <!-- BUTTONS -->
-            <div class="order-actions">
-                {% if order.status == 'Order Placed' or order.status == 'Order Paid' %}
-                <button class="btn-cancel">Cancel Order</button>
-                {% endif %}
+            <div class="order-bottom">
+                <p class="date">Order created at: <span>{{ order.created_at }}</span></p>
+            
+                <div class="order-actions">
+                    {% if order.status == 'Order Placed' or order.status == 'Order Paid' %}
+                    <button class="btn-cancel">Cancel Order</button>
+                    {% endif %}
 
-                <a href="{{ url_for('order_details', order_id=order.order_id) }}">
-                    <button class="btn-view">View Details</button>
-                </a>
+                    <a href="{{ url_for('order_details', order_id=order.order_id) }}">
+                        <button class="btn-view">View Details</button>
+                    </a>
+                </div>
             </div>
         </div>
         {% endfor %}
         {% else %}
-        <div class="empty-order">
-            <img src="{{ url_for('static', filename='media/empty-order.webp') }}"
-                alt="Empty Order" class="empty-order-img">
+        <div class="order-box empty-order-box">
+            <div class="empty-order">
+                <img src="{{ url_for('static', filename='media/empty-order.webp') }}"
+                    alt="Empty Order" class="empty-order-img">
 
-            <h3>Your don't have any orders yet.</h3>
-            <p>Every adventure starts with a single page. <br>
-                Browse our collection and discover your next great read!</p>
+                <h3>Your don't have any orders yet.</h3>
+                <p>Every adventure starts with a single page. <br>
+                    Browse our collection and discover your next great read!</p>
 
-            <a href="{{ url_for('shop_books') }}" class="empty-order-btn">
-                Browse Books
-            </a>
+                <a href="{{ url_for('shop_books') }}" class="empty-order-btn">
+                    Browse Books
+                </a>
+            </div>
         </div>
     {% endif %}
 </div>
+
+{% if session.get('order_success') %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "success",
+        title: "Order placed successfully!",
+        showConfirmButton: false,
+        timer: 1200,
+        timerProgressBar: true
+    });
+});
+</script>
+{% set _ = session.pop('order_success', None) %}
+{% endif %}
+
 
 {% endblock %}

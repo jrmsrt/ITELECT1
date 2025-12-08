@@ -4,8 +4,7 @@ from flask import (
 )
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 from flask_mail import Mail, Message
-from werkzeug.security import generate_password_hash
-from werkzeug.security import check_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import mysql.connector
 from flask_mysqldb import MySQL
@@ -29,6 +28,14 @@ app.secret_key = 'JRM0218@'
 UPLOAD_FOLDER = 'static/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+app.config['ANNOUNCEMENT_FOLDER'] = os.path.join(app.root_path, 'static/uploads/announcements')
+app.config['ANNOUNCEMENT_FOLDER'] = os.path.join(app.root_path, 'static', 'uploads', 'announcements')
+os.makedirs(app.config['ANNOUNCEMENT_FOLDER'], exist_ok=True)
+
+app.config['BOOKS_FOLDER'] = os.path.join(app.root_path, 'static/uploads/books')
+app.config['BOOKS_FOLDER'] = os.path.join(app.root_path, 'static', 'uploads', 'books')
+os.makedirs(app.config['BOOKS_FOLDER'], exist_ok=True)
 
 # =========================
 # MAIL CONFIG
@@ -75,10 +82,13 @@ def home():
     cursor.execute("SELECT * FROM books ORDER BY created_at DESC LIMIT 6")
     featured_books = cursor.fetchall()
 
+    cursor.execute("SELECT * FROM announcements ORDER BY created_at DESC LIMIT 10")
+    announcements = cursor.fetchall()
+
     cursor.close()
     conn.close()
 
-    return render_template('user/index.html', featured_books=featured_books)
+    return render_template('user/index.html', featured_books=featured_books, announcements=announcements)
 
 # =========================
 #  USER LOGIN (USER + ADMIN)
@@ -111,9 +121,8 @@ def user_login():
             else:
                 session['admin'] = admin['username']
                 session['admin_id'] = admin['id']
-                session['redirect_url'] = 'admin-dashboard'
-                session['msg_type'] = "success"
-                return redirect(url_for('user_login'))
+                session['admin_login_success'] = True
+                return redirect(url_for('admin_dashboard'))
         else:
             # -------- USER LOGIN ----------
             username = request.form.get('username', '').strip()
@@ -153,9 +162,10 @@ def user_login():
             if password_ok:
                 session['user'] = user['username']
                 session['user_id'] = user['id']
-                session['redirect_url'] = '/'
-                session['msg_type'] = "success"
-                return redirect(url_for('user_login'))
+                session['login_success'] = True
+                session['login_success_message'] = f"Welcome back, {user['username']}!"
+                return redirect('/')
+
             else:
                 session['login_msg'] = "Incorrect password."
                 session['msg_type'] = "error"
@@ -628,9 +638,6 @@ def shop_books():
     )
 
 
-
-
-
 # =========================
 #  FAVORITES ROUTE
 # =========================
@@ -832,6 +839,15 @@ def add_to_cart():
         existing = cursor.fetchone()
 
         if existing:
+                # Prevent more than 10 in cart
+            if existing['quantity'] >= 10:
+                return jsonify({
+                    "status": "max_reached",
+                    "message": "Maximum of 10 per item allowed.",
+                    "quantity": existing['quantity']
+                })  
+
+
             if existing['quantity'] >= book['stock_quantity']:
                 return jsonify({
                     "status": "max_reached",
@@ -840,6 +856,9 @@ def add_to_cart():
                 })
 
             new_qty = existing['quantity'] + quantity
+            if new_qty > 10:
+                new_qty = 10
+
 
             if new_qty > book['stock_quantity']:
                 new_qty = book['stock_quantity']
@@ -853,7 +872,8 @@ def add_to_cart():
             conn.commit()
 
             return jsonify({
-                "status": "updated",
+                "status": "ok",
+                "action": "updated",
                 "quantity": new_qty
             })
 
@@ -1020,7 +1040,7 @@ def checkout():
 
     # FETCH SAVED ADDRESSES
     cursor.execute("""
-        SELECT id, full_name, phone, address_text, is_default
+        SELECT id, full_name, phone, address, is_default
         FROM user_addresses
         WHERE user_id = %s
         ORDER BY is_default DESC, id DESC
@@ -1061,7 +1081,7 @@ def checkout():
         total_books=total_books,
         user_name=user_name,
         user_email=user_email,
-        saved_addresses=saved_addresses     # <── ADDED
+        saved_addresses=saved_addresses
     )
 
 # =========================
@@ -1086,6 +1106,12 @@ def place_order():
 
     payment_method = request.form.get("payment_method")
 
+    # Capture full name + phone for storing in orders table
+    full_name = request.form.get("fullName")
+    raw_phone = request.form.get("phone", "").strip()
+    phone = raw_phone[1:] if raw_phone.startswith("0") else raw_phone
+
+
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
 
@@ -1100,7 +1126,7 @@ def place_order():
         selected_address_id = request.form.get("selected_address")
 
         cursor.execute("""
-            SELECT address_text 
+            SELECT full_name, phone, address
             FROM user_addresses
             WHERE id = %s AND user_id = %s
         """, (selected_address_id, user_id))
@@ -1109,7 +1135,9 @@ def place_order():
         if not row:
             return "Invalid address selected.", 400
 
-        final_address = row["address_text"]  # <── Use stored formatted address
+        full_name = row["full_name"]
+        phone = row["phone"]
+        final_address = row["address"]
 
     else:
         # ==================================================
@@ -1120,7 +1148,6 @@ def place_order():
 
         # Remove leading 0 (e.g. 09123456789 → 9123456789)
         phone = raw_phone[1:] if raw_phone.startswith("0") else raw_phone
-
 
         street = request.form.get("street")
 
@@ -1138,7 +1165,7 @@ def place_order():
 
         # Save to user_addresses (first & default)
         cursor.execute("""
-            INSERT INTO user_addresses (user_id, full_name, phone, address_text, is_default)
+            INSERT INTO user_addresses (user_id, full_name, phone, address, is_default)
             VALUES (%s, %s, %s, %s, 1)
         """, (user_id, full_name, phone, final_address))
 
@@ -1174,9 +1201,9 @@ def place_order():
 
     # INSERT ORDER
     cursor.execute("""
-        INSERT INTO orders (user_id, address, payment_method, total, status, order_code)
-        VALUES (%s, %s, %s, %s, %s, %s)
-    """, (user_id, final_address, payment_method, total, "Order Placed", order_code))
+        INSERT INTO orders (user_id, address, payment_method, total, status, order_code, full_name, phone)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+    """, (user_id, final_address, payment_method, total, "Order Placed", order_code, full_name, phone))
 
     conn.commit()
     order_id = cursor.lastrowid
@@ -1207,6 +1234,7 @@ def place_order():
     conn.close()
 
     session.pop("checkout_selected", None)
+    session["order_success"] = True
 
     return redirect(url_for("orders"))
 
@@ -1235,29 +1263,39 @@ def add_address():
     final_address = f"{street}, {barangay}, {city}, {province}, {region}, {zip_code}"
 
     conn = get_connection()
-    cursor = conn.cursor()
+    cursor = conn.cursor(dictionary=True)
 
+    # 1. Clear all existing defaults for this user
     cursor.execute("""
-        INSERT INTO user_addresses (user_id, full_name, phone, address_text, is_default)
-        VALUES (%s, %s, %s, %s, 0)
+        UPDATE user_addresses 
+        SET is_default = 0 
+        WHERE user_id = %s
+    """, (user_id,))
+
+    # 2. Insert NEW address as default
+    cursor.execute("""
+        INSERT INTO user_addresses (user_id, full_name, phone, address, is_default)
+        VALUES (%s, %s, %s, %s, 1)
     """, (user_id, full_name, phone, final_address))
+
+    new_id = cursor.lastrowid
 
     conn.commit()
     cursor.close()
     conn.close()
 
-    return jsonify({ "success": True })
+    return jsonify({ "success": True, "new_address_id": new_id})
 
 
 # =========================
 #  ORDERS ROUTE
 # =========================
 STATUS_ICONS = {
-    "Order Placed": "fa-solid fa-receipt",
+    "Order Placed": "fa-regular fa-clock",
     "Order Paid": "fa-solid fa-circle-dollar-to-slot",
     "Order Shipped Out": "fa-regular fa-truck",
-    "Order Received": "fa-solid fa-box-open",
-    "Order Canceled": "fa-solid fa-ban"
+    "Order Delivered": "fa-solid fa-box-open",
+    "Order Cancelled": "fa-solid fa-ban"
 }
 
 @app.route('/orders-page')
@@ -1279,7 +1317,8 @@ def orders():
             payment_method,
             status,
             total,
-            created_at
+            created_at,
+            updated_at
         FROM orders 
         WHERE user_id = %s
         ORDER BY created_at DESC
@@ -1351,9 +1390,62 @@ def order_details(order_id):
 # =========================
 #  ADMIN PANEL
 # =========================
-@app.route('/admin-dashboard')
+@app.route('/admin/dashboard')
 def admin_dashboard():
+    if 'admin' not in session:
+        return redirect('/user-login')
     return render_template('admin/sidebar.html')
+
+
+# =========================
+#  ADD BOOK ROUTE
+# =========================
+@app.route('/admin/add-book', methods=['GET', 'POST'])
+def add_book():
+    if 'admin' not in session:
+        return redirect('/admin-login')
+
+    # Show form
+    if request.method == 'GET':
+        return render_template('admin/add_book.html', active_page='add_books')
+
+    # Handle form submission
+    title = request.form['title']
+    author = request.form['author']
+    isbn = request.form['isbn']
+    raw_genres = request.form.get("genre", "[]")
+    genres_list = [g["value"] for g in json.loads(raw_genres)]
+    genre = ", ".join(genres_list)
+    description = request.form['description']
+    price = float(request.form['price'])
+    stock_quantity = int(request.form['stock_quantity'])
+    cover_file = request.files.get('cover')
+
+    status = "Available" if stock_quantity > 0 else "Not Available"
+
+    # Save uploaded cover
+    cover_filename = None
+    if cover_file and cover_file.filename:
+        cover_filename = secure_filename(cover_file.filename)
+        cover_path = os.path.join(app.config['BOOKS_FOLDER'], cover_filename)
+        cover_file.save(cover_path)
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT INTO books (title, author, isbn, genre, description, price,
+                        stock_quantity, cover, status)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+    """, (title, author, isbn, genre, description, price,
+        stock_quantity, cover_filename, status))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return redirect(url_for('manage_books'))
+
 
 # =========================
 #  MANAGE BOOKS ROUTE
@@ -1441,12 +1533,12 @@ def update_book():
     # New cover uploaded
     if cover_file and cover_file.filename:
         filename = secure_filename(cover_file.filename)
-        save_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        save_path = os.path.join(app.config['BOOKS_FOLDER'], filename)
         cover_file.save(save_path)
 
         # OPTIONAL: delete old file
         if old_cover:
-            old_path = os.path.join(app.config['UPLOAD_FOLDER'], old_cover)
+            old_path = os.path.join(app.config['BOOKS_FOLDER'], old_cover)
             if os.path.exists(old_path):
                 os.remove(old_path)
 
@@ -1500,7 +1592,7 @@ def delete_book(book_id):
 
     # Remove image file if exists
     if book['cover']:
-        cover_path = os.path.join(app.config['UPLOAD_FOLDER'], book['cover'])
+        cover_path = os.path.join(app.config['BOOKS_FOLDER'], book['cover'])
         if os.path.exists(cover_path):
             os.remove(cover_path)
 
@@ -1511,55 +1603,260 @@ def delete_book(book_id):
 
 
 # =========================
-#  ADD BOOK ROUTE
+#  BOOKS LIST PAGE
 # =========================
-@app.route('/admin/add-book', methods=['GET', 'POST'])
-def add_book():
+@app.route('/admin/books-list')
+def books_list():
+    if 'admin' not in session:
+        return redirect('/user-login')
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM books ORDER BY id")
+    books = cursor.fetchall()
+
+    # ---- Build UNIQUE GENRE LIST for Admin Filters ----
+    genre_set = set()
+    for b in books:
+        if b["genre"]:
+            parts = [g.strip() for g in b["genre"].split(",")]
+            genre_set.update(parts)
+
+    genres = sorted(genre_set)
+
+    cursor.close()
+    conn.close()
+    
+    return render_template('admin/books_list.html',
+                            books=books,
+                            genres=genres,
+                            active_page='books_list')
+
+
+# =========================
+#  ADMIN MANAGE ORDERS
+# =========================
+@app.route('/admin/manage-orders')
+def manage_orders():
     if 'admin' not in session:
         return redirect('/admin-login')
 
-    # Show form
-    if request.method == 'GET':
-        return render_template('admin/add_book.html', active_page='add_books')
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
 
-    # Handle form submission
-    title = request.form['title']
-    author = request.form['author']
-    isbn = request.form['isbn']
-    raw_genres = request.form.get("genre", "[]")
-    genres_list = [g["value"] for g in json.loads(raw_genres)]
-    genre = ", ".join(genres_list)
-    description = request.form['description']
-    price = float(request.form['price'])
-    stock_quantity = int(request.form['stock_quantity'])
-    cover_file = request.files.get('cover')
+    # FETCH ALL ORDERS FROM ALL USERS
+    cursor.execute("""
+        SELECT 
+            o.id AS order_id,
+            o.order_code,
+            o.status,
+            o.payment_method,
+            o.total,
+            o.created_at,
+            o.address,
+            o.full_name,
+            o.phone
+            FROM orders o
+        ORDER BY o.created_at DESC
+    """)
+    orders = cursor.fetchall()
 
-    status = "Available" if stock_quantity > 0 else "Not Available"
+    # FETCH ITEMS FOR EACH ORDER
+    for order in orders:
+        cursor.execute("""
+            SELECT 
+                oi.book_id,
+                oi.quantity,
+                b.title,
+                b.author,
+                b.genre,
+                b.price,
+                b.cover
+            FROM order_items oi
+            JOIN books b ON oi.book_id = b.id
+            WHERE oi.order_id = %s
+        """, (order['order_id'],))
+        
+        order['order_items'] = cursor.fetchall()
+        order["status_icon"] = STATUS_ICONS.get(order["status"], "")
 
-    # Save uploaded cover
-    cover_filename = None
-    if cover_file and cover_file.filename:
-        cover_filename = secure_filename(cover_file.filename)
-        cover_path = os.path.join(app.config['UPLOAD_FOLDER'], cover_filename)
-        cover_file.save(cover_path)
+    cursor.close()
+    conn.close()
+
+    return render_template(
+        'admin/manage_orders.html',
+        orders=orders,
+        active_page='manage_orders'
+    )
+
+
+@app.route('/admin/update-order-status', methods=['POST'])
+def update_order_status():
+    if 'admin' not in session:
+        return redirect('/admin-login')
+
+    order_id = request.form.get('order_id')
+    new_status = request.form.get('status')
+
+    if not order_id or not new_status:
+        flash("Invalid data submitted.", "error")
+        return redirect(url_for('manage_orders'))
 
     conn = get_connection()
     cursor = conn.cursor()
 
+    # Update status
     cursor.execute("""
-        INSERT INTO books (title, author, isbn, genre, description, price,
-                        stock_quantity, cover, status)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-    """, (title, author, isbn, genre, description, price,
-        stock_quantity, cover_filename, status))
+        UPDATE orders
+        SET status = %s,
+        updated_at = NOW()
+        WHERE id = %s
+    """, (new_status, order_id))
 
     conn.commit()
     cursor.close()
     conn.close()
 
-    return redirect(url_for('manage_books'))
+    session['order_update_success'] = True
+
+    return redirect(url_for('manage_orders'))
 
 
+# =========================
+#  ADMIN ANNOUNCEMENTs POSTING
+# =========================
+@app.route('/admin/announcements', methods=['GET', 'POST'])
+def admin_announcements():
+    if 'admin' not in session:
+        return redirect('/admin-login')
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    if request.method == 'POST':
+        title = request.form['title']
+        content = request.form['content']
+        photo_file = request.files.get('photo')
+
+        photo_filename = None
+
+        # Save photo into ANNOUNCEMENT_FOLDER
+        if photo_file and photo_file.filename:
+            photo_filename = secure_filename(photo_file.filename)
+            save_path = os.path.join(app.config['ANNOUNCEMENT_FOLDER'], photo_filename)
+            photo_file.save(save_path)
+
+        cursor.execute(
+            "INSERT INTO announcements (title, content, photo) VALUES (%s, %s, %s)",
+            (title, content, photo_filename)
+        )
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+        return redirect(url_for('admin_announcements'))
+
+    cursor.execute("SELECT * FROM announcements ORDER BY id DESC")
+    announcements = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    session["announcement_post_success"] = True
+
+    return render_template(
+        'admin/announcements.html',
+        announcements=announcements,
+        active_page='announcements'
+    )
+
+# --- Edit Announcement
+@app.route('/admin/announcements/edit/<int:id>', methods=['POST'])
+def admin_announcement_edit(id):
+    if 'admin' not in session:
+        return redirect('/admin-login')
+
+    title = request.form['title']
+    content = request.form['content']
+    photo_file = request.files.get('photo')
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    # Fetch existing photo
+    cursor.execute("SELECT photo FROM announcements WHERE id = %s", (id,))
+    existing = cursor.fetchone()
+
+    if photo_file and photo_file.filename:
+        new_filename = secure_filename(photo_file.filename)
+        new_path = os.path.join(app.config['ANNOUNCEMENT_FOLDER'], new_filename)
+        photo_file.save(new_path)
+
+        # Delete old image if exists
+        if existing and existing["photo"]:
+            old_path = os.path.join(app.config['ANNOUNCEMENT_FOLDER'], existing["photo"])
+            if os.path.exists(old_path):
+                os.remove(old_path)
+
+        cursor.execute("""
+            UPDATE announcements
+            SET title = %s, content = %s, photo = %s
+            WHERE id = %s
+        """, (title, content, new_filename, id))
+
+    else:
+        cursor.execute("""
+            UPDATE announcements
+            SET title = %s, content = %s
+            WHERE id = %s
+        """, (title, content, id))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    session["announcement_edit_success"] = True
+
+    return redirect(url_for('admin_announcements'))
+
+
+# --- Delete Announcement
+@app.route('/admin/announcements/delete/<int:id>')
+def admin_announcement_delete(id):
+    if 'admin' not in session:
+        return redirect('/admin-login')
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    # Fetch stored filename
+    cursor.execute("SELECT photo FROM announcements WHERE id = %s", (id,))
+    announcement = cursor.fetchone()
+
+    if not announcement:
+        cursor.close()
+        conn.close()
+        return "Announcement not found", 404
+
+    # Delete DB record
+    cursor.execute("DELETE FROM announcements WHERE id = %s", (id,))
+    conn.commit()
+
+    # Delete actual photo file
+    if announcement["photo"]:
+        photo_path = os.path.join(app.config['ANNOUNCEMENT_FOLDER'], announcement["photo"])
+        if os.path.exists(photo_path):
+            os.remove(photo_path)
+
+    cursor.close()
+    conn.close()
+
+    return redirect(url_for('admin_announcements'))
+
+
+# =========================
+#  LOGOUT ROUTE
+# =========================
 @app.route('/logout')
 def logout():
     session.clear()
