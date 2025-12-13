@@ -997,7 +997,6 @@ def update_cart_qty():
     return jsonify({"status": "updated", "quantity": new_qty})
 
 
-
 # =========================
 #  DELIVERY CHECKOUT BOOK ROUTE
 # =========================
@@ -1083,6 +1082,7 @@ def checkout():
         user_email=user_email,
         saved_addresses=saved_addresses
     )
+
 
 # =========================
 #  PLACE ORDER ROUTE
@@ -1387,6 +1387,7 @@ def order_details(order_id):
 
     return render_template("user/order_details.html", order=order, items=order_items)
 
+
 # =========================
 #  ADMIN PANEL
 # =========================
@@ -1498,7 +1499,7 @@ def edit_book(book_id):
     if not book:
         return "Book not found", 404
 
-    return render_template('admin/edit_book.html', book=book)
+    return render_template('admin/edit_book.html', book=book, active_page='manage_books')
 
 # EDITED DETAILS UPDATE IN DATBASE
 @app.route('/update_book', methods=['POST'])

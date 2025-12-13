@@ -562,6 +562,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return
         }
 
+
         // PRE-CAPTURE payment method (avoid race condition)
         const activeOption = document.querySelector(".payment-option.active");
         let paymentValue = "";
