@@ -1,0 +1,190 @@
+{% extends 'user/main_header.html' %}
+
+{% block content %}
+
+<title>Order Details | BookHaven</title>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user/order_details.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<div class="order-details-wrapper">
+
+    <!-- ================= HEADER ================= -->
+    <div class="order-header-inline">
+        <a href="{{ url_for('orders') }}" class="back-link">
+            <i class="fa-solid fa-arrow-left"></i> Back
+        </a>
+
+        <div class="order-meta">
+            <span class="order-code">ORDER ID: <strong>{{ order.order_code }}</strong></span>
+            <span class="order-status-text">
+                {% if order.status == 'Order Placed' %}
+                    ORDER PLACED
+                {% elif order.status == 'Order Being Prepared' %}
+                    PREPARING ORDER
+                {% elif order.status == 'Order Shipped Out' %}
+                    OUT FOR DELIVERY
+                {% elif order.status == 'Order Delivered' %}
+                    ORDER COMPLETED
+                {% elif order.status == 'Order Cancelled' %}
+                    ORDER CANCELLED
+                {% endif %}
+            </span>
+        </div>
+    </div>
+
+    <!-- ================= TIMELINE ================= -->
+    {% set status_map = {} %}
+    {% for s in status_history %}
+        {% set _ = status_map.update({ s.status: s }) %}
+    {% endfor %}
+
+    <div class="order-timeline-inline">
+
+        <!-- ORDER PLACED -->
+        <div class="timeline-step {% if status_map.get('Order Placed') %}active{% endif %}">
+            <div class="icon"><i class="fa-solid fa-receipt"></i></div>
+            <p>Order Placed</p>
+            {% if status_map.get('Order Placed') %}
+                <small>{{ status_map['Order Placed'].created_at.strftime("%m/%d/%Y %H:%M") }}</small>
+            {% endif %}
+        </div>
+
+        <!-- ORDER PREPARING] -->
+        <div class="timeline-step {% if status_map.get('Order Being Prepared') %}active{% endif %}">
+            <div class="icon"><i class="fa-solid fa-boxes-packing"></i></div>
+            <p>Order Being Prepared</p>
+            {% if status_map.get('Order Being Prepared') %}
+                <small>{{ status_map['Order Being Prepared'].created_at.strftime("%m/%d/%Y %H:%M") }}</small>
+            {% endif %}
+        </div>
+
+        <!-- SHIPPED (DELIVERY ONLY) -->
+        {% if order.fulfillment_method == 'Delivery' %}
+        <div class="timeline-step {% if status_map.get('Order Shipped Out') %}active{% endif %}">
+            <div class="icon"><i class="fa-solid fa-truck-fast"></i></div>
+            <p>Order Shipped Out</p>
+            {% if status_map.get('Order Shipped Out') %}
+                <small>{{ status_map['Order Shipped Out'].created_at.strftime("%m/%d/%Y %H:%M") }}</small>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- FINAL STEP -->
+        <div class="timeline-step {% if status_map.get('Order Delivered') %}active{% endif %}">
+            <div class="icon"><i class="fa-solid fa-circle-check"></i></div>
+            <p>
+                {% if order.fulfillment_method == 'Pick-up' %}
+                    Order Picked Up
+                {% else %}
+                    Order Received
+                {% endif %}
+            </p>
+            {% if status_map.get('Order Delivered') %}
+                <small>{{ status_map['Order Delivered'].created_at.strftime("%m/%d/%Y %H:%M") }}</small>
+            {% endif %}
+        </div>
+
+    </div>
+
+
+    <!-- ================= STRIPE DIVIDER ================= -->
+    <div class="stripe-divider"></div>
+
+    <!-- ================= DELIVERY / PICKUP INFO ================= -->
+    <section class="order-section">
+        <h3>
+            {% if order.fulfillment_method == 'Pick-up' %}
+                Pick-up Information
+            {% else %}
+                Delivery Address
+            {% endif %}
+        </h3>
+
+        <p class="name">{{ order.full_name }}</p>
+        <p class="phone">(+63) {{ order.phone }}</p>
+
+        <p class="address">
+            {% if order.fulfillment_method == 'Pick-up' %}
+                BookHaven Main Branch<br>
+                123 BookHaven Street, Parañaque City
+            {% else %}
+                {{ order.address }}
+            {% endif %}
+        </p>
+    </section>
+
+    <!-- ================= STATUS HISTORY ================= -->
+    <section class="order-section">
+        <h3>Order Status History</h3>
+
+        <div class="status-history">
+            {% for s in status_history %}
+            <div class="status-row {% if loop.first %}completed{% endif %}">
+                <div class="status-icon">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <div class="status-content">
+                    <strong>{{ s.status }}</strong>
+                    <p>{{ s.message }}</p>
+                    <small>{{ s.created_at.strftime("%m/%d/%Y %H:%M") }}</small>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+    </section>
+
+    <!-- ================= ORDERED ITEMS ================= -->
+    <section class="order-section">
+        <h3>Ordered Items</h3>
+
+        {% for item in items %}
+        <div class="order-item-row">
+            <img src="{{ url_for('static', filename='uploads/books/' ~ item.cover) if item.cover else url_for('static', filename='images/no-cover.png') }}">
+
+            <div class="item-info">
+                <div class="title">{{ item.title }}</div>
+                <div class="meta"><span>by {{ item.author }}</span> | {{ item.genre }}</div>
+                <div class="qty">Qty: {{ item.quantity }}</div>
+            </div>
+
+            <div class="item-price">
+                ₱{{ "{:,.2f}".format(item.line_total) }}
+            </div>
+        </div>
+        {% endfor %}
+    </section>
+
+    <!-- ================= SUMMARY ================= -->
+    <section class="order-section summary">
+        <div class="summary-row">
+            <span>Fulfillment Method</span>
+            <span>{{ order.fulfillment_method }}</span>
+        </div>
+
+        <div class="summary-row">
+            <span>Payment Method</span>
+            <span>{{ order.payment_method }}</span>
+        </div>
+
+        <div class="summary-row">
+            <span>Total</span>
+            <strong>₱{{ "{:,.2f}".format(order.total) }}</strong>
+        </div>
+    </section>
+
+    <!-- ================= ACTION BUTTONS ================= -->
+    <div class="details-actions">
+        <a href="{{ url_for('contact') }}">
+            <button class="btn-contact">Contact Seller</button>
+        </a>
+        <button class="btn-view">View E-Invoice</button>
+        <a href="{{ url_for('shop_books') }}">
+            <button class="btn-buy-again">Buy Again</button>
+        </a>
+    </div>
+
+</div>
+
+{% endblock %}

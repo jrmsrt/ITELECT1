@@ -29,7 +29,7 @@
 
                         {% if book.cover %}
                             <img id="preview-img"
-                                 src="{{ url_for('static', filename='uploads/' ~ book.cover) }}"
+                                 src="{{ url_for('static', filename='uploads/books/' ~ book.cover) }}"
                                  alt="Book Cover">
                         {% else %}
                             <span id="placeholder-text">Book Cover</span>
@@ -39,7 +39,6 @@
                     </div>
                 </div>
 
-                <!-- File upload BELOW the preview (INSIDE form) -->
                 <div class="file-upload-wrapper">
                     <input type="file" id="coverInput" name="cover"
                            accept="image/*" onchange="previewImage(event)">
@@ -60,7 +59,7 @@
                 <input type="text" name="genre" value="{{ book.genre }}" id="genreInput" placeholder="Add genres..." required>
                 
                 <label>ISBN</label>
-                <input type="text" name="isbn" value="{{ book.isbn }}" placeholder="Enter book's ISBN (e.g., 978-xxx-xxxx-x)" required>
+                <input type="text" name="isbn" value="{{ book.isbn }}" placeholder="Enter book's ISBN (e.g., 978-xxx-xxxx-x)">
 
 
                 <div class="flex-row">

@@ -24,32 +24,66 @@
                     ORDER ID: <strong>{{ order.order_code }}</strong>
                 </span>
                 <span class="order-status">
-                    <form id="status-form-{{ order.order_id }}" class="status-form" 
-                        method="POST" action="{{ url_for('update_order_status') }}">
-                        <input type="hidden" name="order_id" value="{{ order.order_id }}">
-                        <p>Status:</p>
-                        <select name="status" class="status-dropdown">
-                            <option value="Order Placed" 
-                                {% if order.status == 'Order Placed' %}selected{% endif %}>
-                                Order Placed
-                            </option>
 
-                            <option value="Order Paid" 
-                                {% if order.status == 'Order Paid' %}selected{% endif %}>
-                                Order Paid
-                            </option>
+                    {% if order.status == 'Order Cancelled' %}
 
-                            <option value="Order Shipped Out" 
-                                {% if order.status == 'Order Shipped Out' %}selected{% endif %}>
-                                Order Shipped Out
-                            </option>
+                        <p class="cancelled-status">
+                            <strong>CANCELLED</strong>
+                        </p>
 
-                            <option value="Order Delivered" 
-                                {% if order.status == 'Order Delivered' %}selected{% endif %}>
-                                Order Delivered
-                            </option>
-                        </select>
-                    </form>
+                    {% else %}
+
+                        <form id="status-form-{{ order.order_id }}" class="status-form" 
+                            method="POST" action="{{ url_for('update_order_status') }}">
+                            
+                            <input type="hidden" name="order_id" value="{{ order.order_id }}">
+                            <p>Status:</p>
+
+                            <select name="status" class="status-dropdown"
+                                    {% if order.status == 'Order Delivered' %}disabled{% endif %}>
+                                {% set step = {
+                                'Order Placed': 1,
+                                'Order Being Prepared': 2,
+                                'Order Shipped Out': 3,
+                                'Order Delivered': 4
+                                } %}
+
+                                {% set current = step.get(order.status, 1) %}
+
+                                <option value="Order Placed"
+                                    {% if order.status == 'Order Placed' %}selected{% endif %}
+                                    {% if current >= step['Order Placed'] %}disabled{% endif %}>
+                                    Order Placed
+                                </option>
+
+                                <option value="Order Being Prepared"
+                                    {% if order.status == 'Order Being Prepared' %}selected{% endif %}
+                                    {% if current >= step['Order Being Prepared'] %}disabled{% endif %}>
+                                    Order Being Prepared
+                                </option>
+
+                                {% if order.fulfillment_method == 'Delivery' %}
+                                <option value="Order Shipped Out"
+                                    {% if order.status == 'Order Shipped Out' %}selected{% endif %}
+                                    {% if current >= step['Order Shipped Out'] %}disabled{% endif %}>
+                                    Order Shipped Out
+                                </option>
+                                {% endif %}
+
+                                <option value="Order Delivered"
+                                    {% if order.status == 'Order Delivered' %}selected{% endif %}
+                                    {% if current >= step['Order Delivered'] %}disabled{% endif %}>
+                                    {% if order.fulfillment_method == 'Pick-up' %}
+                                        Order Picked Up
+                                    {% else %}
+                                        Order Delivered
+                                    {% endif %}
+                                </option>
+                            </select>
+                        </form>
+
+                    {% endif %}
+
                 </span>
             </div>
 
@@ -59,12 +93,16 @@
             <p class="section-title">Customer Details</p>
             <div class="customer-details">
                 <p>
-                    {{ order.full_name }}
+                    <span class="name">{{ order.full_name }}</span>
                     <span class="phone">| (+63) {{ order.phone }}</span>
                 </p>
 
                 <p class="full-address">
-                    {{ order.address }}
+                    {% if order.fulfillment_method == 'Pick-up' %}
+                        Pick-up at BookHaven Store
+                    {% else %}
+                        {{ order.address }}
+                    {% endif %}
                 </p>
             </div>
 
@@ -94,7 +132,13 @@
             <!-- FOOTER -->
             <div class="order-footer">
                 <div class="left">
-                    <p class="delivery-type">FOR DELIVERY</p>
+                    <p class="delivery-type">
+                        {% if order.fulfillment_method == 'Pick-up' %}
+                            FOR PICK-UP
+                        {% else %}
+                            FOR DELIVERY
+                        {% endif %}
+                    </p>
                     <p class="payment-mode">PAYMENT METHOD: <span>{{ order.payment_method }}</span></p>
                     
                 </div>
@@ -113,9 +157,13 @@
                 <div class="order-actions">
                     <button class="btn-view">View Details</button>
 
-                    <button type="submit" form="status-form-{{ order.order_id }}" class="btn-update">
+                {% if order.status != 'Order Cancelled' %}
+                    <button type="submit"
+                            form="status-form-{{ order.order_id }}"
+                            class="btn-update">
                         Update
                     </button>
+                {% endif %}
                 </div>
             </div>
         </div>

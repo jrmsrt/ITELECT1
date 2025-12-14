@@ -2,7 +2,6 @@
 //   PHILIPPINE ADDRESS HANDLERS (Supports BOTH address forms)
 // ============================================================
 
-// Helper: loads a JSON file and filters + sorts the results
 function loadAndFilterJSON(path, filterKey, filterValue, sortKey, callback) {
     $.getJSON(path, function (data) {
     const result = data
@@ -11,7 +10,6 @@ function loadAndFilterJSON(path, filterKey, filterValue, sortKey, callback) {
     callback(result);
     });
 }
-
 
 // ============================================================
 // REGION → PROVINCE
@@ -49,7 +47,6 @@ function handleRegionChange() {
         }
     );
 }
-
 
 // ============================================================
 // PROVINCE → CITY
@@ -163,6 +160,33 @@ const savedAddressAnim = `
 // ============================================================
 let isAddingNewAddress = false;
 
+// =========================
+// FORMAT PH PHONE NUMBER
+// =========================
+function formatPHPhone(raw) {
+    if (!raw) return "";
+
+    let digits = raw.replace(/\D/g, "");
+
+    if (digits.length >= 2 && !digits.startsWith("09")) {
+        digits = "09";
+    }
+
+    digits = digits.slice(0, 11);
+
+    if (digits.length <= 4) return digits;
+    if (digits.length <= 7) {
+        return digits.slice(0, 4) + " " + digits.slice(4);
+    }
+
+    return (
+        digits.slice(0, 4) +
+        " " +
+        digits.slice(4, 7) +
+        " " +
+        digits.slice(7)
+    );
+}
 
 // ============================================================
 // MAIN SETUP
@@ -203,19 +227,8 @@ document.addEventListener("DOMContentLoaded", () => {
             option.classList.add("active");
 
             option.style.animation = "pop 0.25s ease";
-            setTimeout(() => (option.style.animation = ""), 250);
         });
     });
-
-    const style = document.createElement("style");
-    style.innerHTML = `
-        @keyframes pop {
-        0%   { transform: scale(1); }
-        50%  { transform: scale(1.06); }
-        100% { transform: scale(1); }
-        }
-    `;
-    document.head.appendChild(style);
 
     // =========================
     // INPUT FIELDS VALIDATION
@@ -223,6 +236,41 @@ document.addEventListener("DOMContentLoaded", () => {
     const fullName = document.getElementById("fullName");
     const email = document.getElementById("emailCheckout");
     const phone = document.getElementById("phone");
+
+    // =========================
+    // PHONE AUTO-FORMATTING (PH)
+    // =========================
+    if (phone) {
+        phone.addEventListener("input", () => {
+            let digits = phone.value.replace(/\D/g, "");
+
+            // Force start with 09
+            if (digits.length >= 2 && !digits.startsWith("09")) {
+                digits = "09";
+            }
+
+            // Limit to 11 digits
+            digits = digits.slice(0, 11);
+
+            // Format: 0917 123 4567
+            let formatted = digits;
+
+            if (digits.length > 4) {
+                formatted = digits.slice(0, 4) + " " + digits.slice(4);
+            }
+            if (digits.length > 7) {
+                formatted =
+                    digits.slice(0, 4) +
+                    " " +
+                    digits.slice(4, 7) +
+                    " " +
+                    digits.slice(7);
+            }
+
+            phone.value = formatted;
+        });
+    }
+
     const zip = document.getElementById("zip");
     const street = document.getElementById("street");
     const placeOrderBtn = document.querySelector(".place-order");
@@ -293,17 +341,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function validatePhone() {
         if (!phone) return true;
+
         const value = phone.value.trim();
-        const pattern = /^09\d{9}$/;
+        const pattern = /^09\d{2} \d{3} \d{4}$/;
 
         if (!value) {
             setFieldError(phone, "This field is required.");
             return false;
         }
+
         if (!pattern.test(value)) {
-            setFieldError(phone, "Phone must start with 09 and contain 11 digits.");
+            setFieldError(phone, "Phone number must be in the format 09XX XXX XXXX.");
             return false;
         }
+
         setFieldError(phone, "");
         return true;
     }
@@ -561,7 +612,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }); 
             return
         }
-
 
         // PRE-CAPTURE payment method (avoid race condition)
         const activeOption = document.querySelector(".payment-option.active");

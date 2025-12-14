@@ -265,9 +265,21 @@ document.getElementById("checkout-form").addEventListener("submit", function (e)
             toast: true,
             position: "top-end",
             icon: "warning",
-            text: "No items selected. Please select at least one item before checking out.",
+            html: "<strong>No items selected.</strong><br><small>Please select at least one item before checking out.</small>",
             showConfirmButton: false,
             timer: 1500
         });
     }
+});
+
+// ===============================
+// FULFILLMENT METHOD (Pickup / Delivery)
+// ===============================
+const fulfillmentRadios = document.querySelectorAll("input[name='fulfillment']");
+const fulfillmentInput = document.getElementById("fulfillment-method-input");
+
+fulfillmentRadios.forEach(radio => {
+  radio.addEventListener("change", () => {
+    fulfillmentInput.value = radio.value;
+  });
 });

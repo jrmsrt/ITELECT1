@@ -376,14 +376,20 @@ function updateCartCount() {
 
 
 /* =========================
-    MODAL + ADD-TO-CART BINDING
+   BOOK DETAILS MODAL
 ========================= */
 
+document.addEventListener("DOMContentLoaded", () => {
+    setupModalDetails();
+});
+
+/* =========================
+   SETUP MODAL EVENTS
+========================= */
 function setupModalDetails() {
     const modal = document.getElementById("bookModal");
     const modalContent = document.querySelector(".modal-content");
     const detailButtons = document.querySelectorAll(".details");
-    const modalAddCartBtn = document.querySelector(".modal-add-cart");
 
     if (!modal || !modalContent || !detailButtons.length) return;
 
@@ -392,30 +398,31 @@ function setupModalDetails() {
             const card = this.closest(".book-card");
             if (!card) return;
 
-            if (modalAddCartBtn) {
-                modalAddCartBtn.setAttribute(
-                    "data-book-id",
-                    card.getAttribute("data-book-id")
-                );
-            }
-
+            // Populate modal content
             document.getElementById("modalTitle").innerText =
-                card.querySelector(".book-title").innerText;
+                card.querySelector(".book-title")?.innerText || "";
+
             document.getElementById("modalAuthor").innerText =
-                card.querySelector(".book-meta span").innerText;
+                card.querySelector(".author")?.innerText || "";
+
             document.getElementById("modalGenre").innerText =
-                card.querySelector(".book-meta").innerText.split("|")[1].trim();
-            document.getElementById("modalDescription").innerHTML =
-                card.querySelector(".desc").innerText;
+                card.querySelector(".genre")?.innerText || "";
+
+            document.getElementById("modalDescription").innerText =
+                card.querySelector(".desc")?.innerText || "";
+
             document.getElementById("modalPrice").innerText =
-                card.querySelector(".price").innerText;
+                card.querySelector(".price")?.innerText || "";
+
             document.getElementById("modalStock").innerText =
-                card.querySelector(".stock").innerText;
+                card.querySelector(".stock")?.innerText || "";
+
+            const coverImg = card.querySelector(".book-cover img");
             document.getElementById("modalCover").src =
-                card.querySelector(".book-cover img").src;
+                coverImg ? coverImg.src : "";
 
+            // Show modal
             modal.style.display = "flex";
-
             modal.classList.remove("fade-out");
             modal.classList.add("fade-in");
 
@@ -426,6 +433,9 @@ function setupModalDetails() {
     });
 }
 
+/* =========================
+   CLOSE MODAL
+========================= */
 function closeModal() {
     const modal = document.getElementById("bookModal");
     const modalContent = document.querySelector(".modal-content");
@@ -443,20 +453,32 @@ function closeModal() {
     }, 250);
 }
 
-/* Close when clicking outside */
-document.addEventListener("click", function (e) {
+/* =========================
+   CLICK OUTSIDE TO CLOSE
+========================= */
+document.addEventListener("click", (e) => {
     const modal = document.getElementById("bookModal");
     const modalContent = document.querySelector(".modal-content");
 
     if (!modal || !modalContent) return;
 
     if (modal.style.display === "flex") {
-        const inside = modalContent.contains(e.target);
-        const detailsBtn = e.target.classList.contains("details");
+        const clickedInside = modalContent.contains(e.target);
+        const clickedDetailsBtn = e.target.closest(".details");
 
-        if (!inside && !detailsBtn) {
+        if (!clickedInside && !clickedDetailsBtn) {
             closeModal();
         }
+    }
+});
+
+
+/* =========================
+   ESC KEY TO CLOSE
+========================= */
+document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+        closeModal();
     }
 });
 

@@ -112,6 +112,16 @@
     </div>
 </div>
 
+<script id="announcement-toast-data" type="application/json">
+{{ {
+    "post": session.get("announcement_post_success", False),
+    "edit": session.get("announcement_edit_success", False),
+    "delete": session.get("announcement_delete_success", False)
+} | tojson }}
+</script>
 
+{% set _ = session.pop('announcement_post_success', None) %}
+{% set _ = session.pop('announcement_edit_success', None) %}
+{% set _ = session.pop('announcement_delete_success', None) %}
 
 {% endblock %}

@@ -4,6 +4,8 @@
 
 <title>My Profile | BookHaven</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/user/edit_profile.css') }}">
+<script src="{{ url_for('static', filename='js/edit_profile.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <div class="profile-container">
 
@@ -14,89 +16,106 @@
 
         <!-- LEFT SIDE: FORM -->
         <div class="profile-left">
-            <form method="POST" class="profile-form">
-                <!-- Username -->
-                <div class="profile-group">
-                    <label for="username" class="profile-label">Username</label>
-                    <input type="text" id="username" name="username" class="profile-input"
-                           placeholder="Enter your username">
-                    <p class="field-hint">Username can only be changed once.</p>
-                </div>
+            <form method="POST" class="profile-form" id="editProfileForm">
 
-                <!-- Name -->
-                <div class="profile-group">
-                    <label for="name" class="profile-label">Name</label>
-                    <input type="text" id="name" name="name" class="profile-input"
-                           placeholder="Enter your name">
-                </div>
+                <!-- 2-COLUMN GRID WRAPPER -->
+                <div class="form-grid">
 
-                <!-- Email -->
-                <div class="profile-group">
-                    <label for="email" class="profile-label">Email</label>
-                    <input type="email" id="email" name="email" class="profile-input"
-                           placeholder="example@gmail.com">
-                </div>
-
-                <!-- Phone -->
-                <div class="profile-group">
-                    <label for="phone" class="profile-label">Phone Number</label>
-                    <input type="tel" id="phone" name="phone" class="profile-input"
-                           placeholder="Enter your phone number">
-                </div>
-
-                <!-- Gender -->
-                <div class="profile-group">
-                    <label class="profile-label">Gender</label>
-                    <div class="gender-options">
-                        <label class="gender-option">
-                            <input type="radio" name="gender" value="male">
-                            <span>Male</span>
-                        </label>
-                        <label class="gender-option">
-                            <input type="radio" name="gender" value="female">
-                            <span>Female</span>
-                        </label>
-                        <label class="gender-option">
-                            <input type="radio" name="gender" value="other">
-                            <span>Other</span>
-                        </label>
+                    <!-- Username -->
+                    <div class="profile-group">
+                        <label for="username" class="profile-label">Username</label>
+                        <input type="text" id="username" name="username" class="profile-input"
+                               placeholder="Enter your username">
+                        <small id="usernameError" class="field-error"></small>
                     </div>
-                </div>
 
-                <!-- Date of Birth -->
-                <div class="profile-group">
-                    <label class="profile-label">Date of birth</label>
-                    <div class="dob-row">
-                        <select name="dob_month" class="profile-input dob-select">
-                            <option value="">Month</option>
-                            <option value="1">January</option>
-                            <option value="2">February</option>
-                            <option value="3">March</option>
-                            <option value="4">April</option>
-                            <option value="5">May</option>
-                            <option value="6">June</option>
-                            <option value="7">July</option>
-                            <option value="8">August</option>
-                            <option value="9">September</option>
-                            <option value="10">October</option>
-                            <option value="11">November</option>
-                            <option value="12">December</option>
-                        </select>
-
-                        <select name="dob_day" class="profile-input dob-select">
-                            <option value="">Date</option>
-                            {% for d in range(1, 32) %}
-                                <option value="{{ d }}">{{ d }}</option>
-                            {% endfor %}
-                        </select>
-                        
-                        <select name="dob_year" class="profile-input dob-select">
-                            <option value="">Year</option>
-                            {% for y in range(1950, 2026) %}
-                                <option value="{{ y }}">{{ y }}</option>
-                            {% endfor %}
-                        </select>
+                    <!-- Name -->
+                    <div class="profile-group">
+                        <label for="name" class="profile-label">Name</label>
+                        <input type="text" id="name" name="name" class="profile-input"
+                               placeholder="Enter your full name">
+                        <small id="nameError" class="field-error"></small>
                     </div>
+
+                    <!-- Email -->
+                    <div class="profile-group">
+                        <label for="email" class="profile-label">Email</label>
+                        <input type="email" id="email" name="email" class="profile-input"
+                               placeholder="yourname@gmail.com">
+                        <small id="emailError" class="field-error"></small>
+                    </div>
+
+                    <!-- Phone -->
+                    <div class="profile-group">
+                        <label for="phone" class="profile-label">Phone Number</label>
+                        <input
+                            type="tel"
+                            id="phone"
+                            name="phone"
+                            class="profile-input"
+                            inputmode="numeric"
+                            placeholder="09XX XXX XXXX"
+                            >
+                        <small id="phoneError" class="field-error"></small>
+                    </div>
+
+                    <!-- Gender -->
+                    <div class="profile-group full">
+                        <label class="profile-label">Gender</label>
+                        <div class="gender-options">
+                            <label class="gender-option">
+                                <input type="radio" name="gender" value="male">
+                                <span>Male</span>
+                            </label>
+                            <label class="gender-option">
+                                <input type="radio" name="gender" value="female">
+                                <span>Female</span>
+                            </label>
+                            <label class="gender-option">
+                                <input type="radio" name="gender" value="other">
+                                <span>Other</span>
+                            </label>
+                        </div>
+                        <small id="genderError" class="field-error"></small>
+                    </div>
+
+                    <!-- Date of Birth (span full width looks better) -->
+                    <div class="profile-group full">
+                        <label class="profile-label">Date of birth</label>
+                        <div class="dob-row">
+                            <select name="dob_month" class="profile-input dob-select">
+                                <option value="">Month</option>
+                                <option value="1">January</option>
+                                <option value="2">February</option>
+                                <option value="3">March</option>
+                                <option value="4">April</option>
+                                <option value="5">May</option>
+                                <option value="6">June</option>
+                                <option value="7">July</option>
+                                <option value="8">August</option>
+                                <option value="9">September</option>
+                                <option value="10">October</option>
+                                <option value="11">November</option>
+                                <option value="12">December</option>
+                            </select>
+
+                            <select name="dob_day" class="profile-input dob-select">
+                                <option value="">Date</option>
+                                {% for d in range(1, 32) %}
+                                    <option value="{{ d }}">{{ d }}</option>
+                                {% endfor %}
+                            </select>
+
+                            <select name="dob_year" class="profile-input dob-select">
+                                <option value="">Year</option>
+                                {% for y in range(1950, 2026) %}
+                                    <option value="{{ y }}">{{ y }}</option>
+                                {% endfor %}
+                            </select>
+                            <small id="dobError" class="field-error"></small>
+                        </div>
+                    </div>
+
                 </div>
 
                 <!-- SAVE BUTTON -->
@@ -111,12 +130,13 @@
         <div class="profile-right">
             <div class="avatar-card">
                 <div class="avatar-circle">
-                    <i class="fas fa-user avatar-icon"></i>
+                    <img id="avatarPreview" class="avatar-img" alt="Profile" />
+                    <i id="avatarIcon" class="fas fa-user avatar-icon"></i>
                 </div>
 
-                <button type="button" class="btn-outline avatar-btn">
-                    Select Image
-                </button>
+                <div class="file-upload-wrapper">
+                    <input type="file" id="avatarInput" accept="image/png,image/jpeg">
+                </div>
 
                 <p class="avatar-hint">File size: maximum 1 MB</p>
                 <p class="avatar-hint">File extension: .JPEG, .PNG</p>

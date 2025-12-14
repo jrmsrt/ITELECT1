@@ -17,7 +17,7 @@ import os
 import json
 import random
 import string
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 app = Flask(__name__)
 app.secret_key = 'JRM0218@'
@@ -176,25 +176,323 @@ def user_login():
     redirect_url = session.pop('redirect_url', '/')
     login_required_flag = session.pop('login_required', False)
     login_required_page = session.pop('login_required_page', '')
-
+    login_toast = session.pop('login_toast', None)
 
     return render_template('user/sign_in.html',
                            msg=msg, msg_type=msg_type,
                            redirect_url=redirect_url, 
                            login_required=login_required_flag,
-                           login_required_page=login_required_page)
+                           login_required_page=login_required_page,
+                           login_toast=login_toast)
 
 
 # =========================
 #  USER EDIT PROFILE ROUTE
 # =========================
-@app.route('/edit-profile')
+@app.route('/edit-profile', methods=['GET', 'POST'])
 def edit_profile():
     if not session.get('user_id'):
         session['login_required'] = True
         return redirect(url_for('user_login'))
-    
+
+    user_id = session['user_id']
+
+    if request.method == 'POST':
+        # -------------------------
+        # GET & SANITIZE INPUTS
+        # -------------------------
+        username   = request.form.get('username', '').strip()
+        name       = request.form.get('name', '').strip()
+        email      = request.form.get('email', '').strip()
+        phone      = request.form.get('phone', '').strip()
+        gender     = request.form.get('gender')
+        dob_month  = request.form.get('dob_month')
+        dob_day    = request.form.get('dob_day')
+        dob_year   = request.form.get('dob_year')
+
+        # -------------------------
+        # REQUIRED FIELD CHECKS
+        # -------------------------
+        if not all([username, name, email, phone, gender, dob_month, dob_day, dob_year]):
+            return jsonify({
+                "ok": False,
+                "error": "All fields are required."
+            }), 400
+
+        # -------------------------
+        # FORMAT VALIDATION
+        # -------------------------
+        if not (6 <= len(username) <= 15):
+            return jsonify({
+                "ok": False,
+                "error": "Username must be 6–15 characters long."
+            }), 400
+
+        name_pattern = r'^([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)(?:[ -][A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)*$'
+        if not re.match(name_pattern, name):
+            return jsonify({
+                "ok": False,
+                "error": "Invalid name format."
+            }), 400
+
+        if not re.match(r'^[a-zA-Z0-9._%+-]+@gmail\.com$', email):
+            return jsonify({
+                "ok": False,
+                "error": "Email must be a valid @gmail.com address."
+            }), 400
+
+        if not re.match(r'^09\d{2} \d{3} \d{4}$', phone):
+            return jsonify({
+                "ok": False,
+                "error": "Phone number must be in the format 09XX XXX XXXX."
+            }), 400
+
+        if gender not in ('male', 'female', 'other'):
+            return jsonify({
+                "ok": False,
+                "error": "Invalid gender selection."
+            }), 400
+
+        # -------------------------
+        # DOB VALIDATION
+        # -------------------------
+        try:
+            dob = date(int(dob_year), int(dob_month), int(dob_day))
+        except ValueError:
+            return jsonify({
+                "ok": False,
+                "error": "Invalid date of birth."
+            }), 400
+
+        # age restriction (16+)
+        today = date.today()
+        age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+        if age < 16:
+            return jsonify({
+                "ok": False,
+                "error": "You must be at least 16 years old."
+            }), 400
+
+        # -------------------------
+        # DATABASE VALIDATION
+        # -------------------------
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        try:
+            # Email uniqueness (exclude current user)
+            cursor.execute(
+                "SELECT id FROM users WHERE email=%s AND id<>%s",
+                (email, user_id)
+            )
+            if cursor.fetchone():
+                return jsonify({
+                    "ok": False,
+                    "error": "Email is already used."
+                }), 400
+
+            # Username uniqueness (exclude current user)
+            cursor.execute(
+                "SELECT id FROM users WHERE username=%s AND id<>%s",
+                (username, user_id)
+            )
+            if cursor.fetchone():
+                return jsonify({
+                    "ok": False,
+                    "error": "Username is already taken."
+                }), 400
+
+            # -------------------------
+            # UPDATE USER
+            # -------------------------
+            cursor.execute("""
+                UPDATE users
+                SET
+                    username = %s,
+                    name     = %s,
+                    email    = %s,
+                    phone    = %s,
+                    gender   = %s,
+                    dob      = %s
+                WHERE id = %s
+            """, (username, name, email, phone, gender, dob, user_id))
+
+            conn.commit()
+
+            return jsonify({"ok": True})
+
+        finally:
+            cursor.close()
+            conn.close()
+
+    # -------------------------
+    # GET REQUEST
+    # -------------------------
     return render_template('user/edit_profile.html')
+
+
+# edit-specific check routes
+@app.route('/check_username_edit')
+def check_username_edit():
+    if not session.get('user_id'):
+        return jsonify({"available": False})
+
+    username = request.args.get('username', '').strip()
+    user_id = session['user_id']
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute(
+        "SELECT id FROM users WHERE username=%s AND id<>%s",
+        (username, user_id)
+    )
+    exists = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    return jsonify({"available": not bool(exists)})
+
+
+@app.route('/check_email_edit')
+def check_email_edit():
+    if not session.get('user_id'):
+        return jsonify({"available": False})
+
+    email = request.args.get('email', '').strip()
+    user_id = session['user_id']
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute(
+        "SELECT id FROM users WHERE email=%s AND id<>%s",
+        (email, user_id)
+    )
+    exists = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    return jsonify({"available": not bool(exists)})
+
+
+# Autofill User Data
+@app.route('/api/user/profile', methods=['GET'])
+def api_user_profile():
+    if not session.get('user_id'):
+        return jsonify({"ok": False, "error": "Unauthorized"}), 401
+
+    user_id = session['user_id']
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("""
+            SELECT id, username, name, email, phone, gender, dob, profile_image
+            FROM users
+            WHERE id=%s
+        """, (user_id,))
+        user = cursor.fetchone()
+        if not user:
+            return jsonify({"ok": False, "error": "User not found"}), 404
+
+        # Convert dob to ISO string if exists
+        if user.get("dob"):
+            user["dob"] = user["dob"].isoformat()
+
+        return jsonify({"ok": True, "user": user})
+    finally:
+        cursor.close()
+        conn.close()
+
+
+# Uploading profile picture
+@app.route('/api/user/profile-picture', methods=['POST'])
+def api_upload_profile_picture():
+    if not session.get('user_id'):
+        return jsonify({"ok": False, "error": "Unauthorized"}), 401
+
+    # --- Profile image only rules ---
+    ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
+    MAX_FILE_SIZE = 1 * 1024 * 1024  # 1 MB
+
+    def allowed_file(filename: str) -> bool:
+        return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+    if 'image' not in request.files:
+        return jsonify({"ok": False, "error": "No file provided"}), 400
+
+    file = request.files['image']
+    if file.filename == '':
+        return jsonify({"ok": False, "error": "No selected file"}), 400
+
+    # ---- size check ----
+    file.seek(0, os.SEEK_END)
+    size = file.tell()
+    file.seek(0)
+    if size > MAX_FILE_SIZE:
+        return jsonify({"ok": False, "error": "Max file size is 1 MB"}), 400
+
+    # ---- extension check ----
+    if not allowed_file(file.filename):
+        return jsonify({"ok": False, "error": "Only JPG and PNG allowed"}), 400
+
+    user_id = session['user_id']
+
+    # Where avatars live on disk
+    avatar_dir = os.path.join(app.static_folder, "uploads", "avatars")
+    os.makedirs(avatar_dir, exist_ok=True)
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        # 1) Get current avatar path from DB
+        cursor.execute("SELECT profile_image FROM users WHERE id=%s", (user_id,))
+        row = cursor.fetchone()
+        old_rel = (row.get("profile_image") if row else None)  # e.g. "uploads/avatars/user_1.jpg"
+
+        # 2) Save new file with deterministic name (can change ext)
+        original = secure_filename(file.filename)
+        ext = original.rsplit(".", 1)[1].lower()
+        new_filename = f"user_{user_id}.{ext}"
+        new_abs = os.path.join(avatar_dir, new_filename)
+
+        file.save(new_abs)
+
+        new_rel = f"uploads/avatars/{new_filename}"
+
+        # 3) Update DB first (so user always ends with a valid image)
+        cursor.execute("UPDATE users SET profile_image=%s WHERE id=%s", (new_rel, user_id))
+        conn.commit()
+
+        # 4) Delete old file (only if it exists and is in avatars folder and is not the same file)
+        if old_rel and old_rel.startswith("uploads/avatars/"):
+            old_abs = os.path.join(app.static_folder, old_rel)
+
+            # Safety: ensure path is inside avatar_dir
+            old_abs_real = os.path.realpath(old_abs)
+            avatar_dir_real = os.path.realpath(avatar_dir)
+
+            if old_abs_real.startswith(avatar_dir_real + os.sep):
+                # Don't delete the newly saved file (overwrite case or same ext)
+                if os.path.realpath(new_abs) != old_abs_real and os.path.isfile(old_abs_real):
+                    try:
+                        os.remove(old_abs_real)
+                    except OSError:
+                        # If delete fails, don't break the upload
+                        pass
+
+        return jsonify({
+            "ok": True,
+            "image_url": url_for('static', filename=new_rel)
+        })
+
+    finally:
+        cursor.close()
+        conn.close()
+
 
 # =========================
 #  USER REGISTRATION ROUTE
@@ -396,8 +694,8 @@ def verify_account():
         session.pop('verification_code', None)
         session.pop('verification_expires_at', None)
 
-        session['verify_success'] = True
-        return redirect(url_for('verify_account'))
+        session['login_toast'] = "verified"
+        return redirect(url_for('user_login'))
 
     verified_success = session.pop('verify_success', False)
 
@@ -785,7 +1083,7 @@ def cart():
     cursor.close()
     conn.close()
 
-    total_items = sum(item['quantity'] for item in items)
+    total_items = len(items)
     subtotal = sum(float(item['price']) * item['quantity'] for item in items)
 
     return render_template(
@@ -998,46 +1296,57 @@ def update_cart_qty():
 
 
 # =========================
-#  DELIVERY CHECKOUT BOOK ROUTE
+#  CHECKOUT DECISION ROUTE
 # =========================
-@app.route('/checkout', methods=['GET', 'POST'])
+@app.route('/checkout', methods=['POST'])
 def checkout():
     if 'user_id' not in session:
-        session['login_required'] = True
         return redirect(url_for('user_login'))
 
-    user_id = session['user_id']
+    selected_items_raw = request.form.get("selected_items", "[]")
+    raw_fulfillment = request.form.get("fulfillment_method")
 
-    # -------------- POST: user clicked "Proceed to Checkout" --------------
-    if request.method == 'POST':
-        selected_items_raw = request.form.get("selected_items", "[]")
-
-        try:
-            selected_items = json.loads(selected_items_raw)
-        except:
-            selected_items = []
-
-        if not selected_items:
-            return redirect(url_for('cart'))
-
-        session['checkout_selected'] = selected_items
-        return redirect(url_for('checkout'))
-
-    selected_items = session.get('checkout_selected')
+    try:
+        selected_items = json.loads(selected_items_raw)
+    except:
+        selected_items = []
 
     if not selected_items:
         return redirect(url_for('cart'))
+    
+    FULFILLMENT_MAP = {
+        "delivery": "Delivery",
+        "pickup": "Pick-up",
+        "Delivery": "Delivery",
+        "Pick-up": "Pick-up"
+    }
 
+    fulfillment = FULFILLMENT_MAP.get(raw_fulfillment)
+
+    if not fulfillment:
+        return "Invalid fulfillment method", 400
+
+    session['checkout_selected'] = selected_items
+    session['fulfillment_method'] = fulfillment
+
+    if fulfillment == "Delivery":
+        return redirect(url_for('checkout_delivery'))
+    else:
+        return redirect(url_for('checkout_pickup'))
+
+
+def load_checkout_data(user_id, selected_items):
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
 
-    # FETCH USER BASIC INFO
-    cursor.execute("SELECT name, email FROM users WHERE id = %s", (user_id,))
+    # USER INFO
+    cursor.execute(
+        "SELECT name, email, phone FROM users WHERE id = %s",
+        (user_id,)
+    )
     user = cursor.fetchone()
-    user_name = user["name"] if user else ""
-    user_email = user["email"] if user else ""
 
-    # FETCH SAVED ADDRESSES
+    # SAVED ADDRESSES
     cursor.execute("""
         SELECT id, full_name, phone, address, is_default
         FROM user_addresses
@@ -1046,7 +1355,7 @@ def checkout():
     """, (user_id,))
     saved_addresses = cursor.fetchall()
 
-    # FETCH CHECKOUT ITEMS
+    # CART ITEMS
     placeholders = ",".join(["%s"] * len(selected_items))
     query = f"""
         SELECT 
@@ -1071,16 +1380,55 @@ def checkout():
     conn.close()
 
     subtotal = sum(float(item["price"]) * item["quantity"] for item in items)
-    total_books = len(items)
+
+    return {
+        "items": items,
+        "subtotal": subtotal,
+        "total_books": len(items),
+        "user_name": user["name"] if user else "",
+        "user_email": user["email"] if user else "",
+        "user_phone": user["phone"] if user else "",
+        "saved_addresses": saved_addresses
+    }
+
+
+# =========================
+#  DELIVERY CHECKOUT ROUTE
+# =========================
+@app.route('/checkout/delivery', methods=['GET'])
+def checkout_delivery():
+    if 'user_id' not in session:
+        return redirect(url_for('user_login'))
+
+    selected_items = session.get('checkout_selected')
+    if not selected_items:
+        return redirect(url_for('cart'))
+
+    data = load_checkout_data(session['user_id'], selected_items)
 
     return render_template(
-        'user/delivery_checkout.html',
-        items=items,
-        subtotal=subtotal,
-        total_books=total_books,
-        user_name=user_name,
-        user_email=user_email,
-        saved_addresses=saved_addresses
+        'user/checkout_delivery.html',
+        **data
+    )
+
+
+# =========================
+#  PICKUP CHECKOUT ROUTE
+# =========================
+@app.route('/checkout/pickup', methods=['GET'])
+def checkout_pickup():
+    if 'user_id' not in session:
+        return redirect(url_for('user_login'))
+
+    selected_items = session.get('checkout_selected')
+    if not selected_items:
+        return redirect(url_for('cart'))
+
+    data = load_checkout_data(session['user_id'], selected_items)
+
+    return render_template(
+        'user/checkout_pickup.html',
+        **data
     )
 
 
@@ -1106,70 +1454,76 @@ def place_order():
 
     payment_method = request.form.get("payment_method")
 
+    # ==========================================================
+    # [ADDED] Get fulfillment_method chosen from cart checkout flow
+    # ==========================================================
+    raw_fulfillment = session.get("fulfillment_method") or request.form.get("fulfillment_method")
+
+    # Normalize old + new values
+    FULFILLMENT_MAP = {
+        "delivery": "Delivery",
+        "pickup": "Pick-up",
+        "Delivery": "Delivery",
+        "Pick-up": "Pick-up"
+    }
+
+    fulfillment_method = FULFILLMENT_MAP.get(raw_fulfillment)
+
+    if not fulfillment_method:
+        return "Invalid fulfillment method", 400
+
     # Capture full name + phone for storing in orders table
     full_name = request.form.get("fullName")
     raw_phone = request.form.get("phone", "").strip()
     phone = raw_phone[1:] if raw_phone.startswith("0") else raw_phone
 
-
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
 
-    # CHECK IF USER HAS SAVED ADDRESSES
-    cursor.execute("SELECT COUNT(*) AS cnt FROM user_addresses WHERE user_id = %s", (user_id,))
-    addr_count = cursor.fetchone()["cnt"]
+    final_address = None
 
-    # ================================
-    # CASE 1: USER SELECTED A SAVED ADDRESS
-    # ================================
-    if addr_count > 0:
-        selected_address_id = request.form.get("selected_address")
+    if fulfillment_method == "Delivery":
+        cursor.execute("SELECT COUNT(*) AS cnt FROM user_addresses WHERE user_id = %s", (user_id,))
+        addr_count = cursor.fetchone()["cnt"]
 
-        cursor.execute("""
-            SELECT full_name, phone, address
-            FROM user_addresses
-            WHERE id = %s AND user_id = %s
-        """, (selected_address_id, user_id))
+        if addr_count > 0:
+            selected_address_id = request.form.get("selected_address")
 
-        row = cursor.fetchone()
-        if not row:
-            return "Invalid address selected.", 400
+            cursor.execute("""
+                SELECT full_name, phone, address
+                FROM user_addresses
+                WHERE id = %s AND user_id = %s
+            """, (selected_address_id, user_id))
 
-        full_name = row["full_name"]
-        phone = row["phone"]
-        final_address = row["address"]
+            row = cursor.fetchone()
+            if not row:
+                return "Invalid address selected.", 400
+
+            full_name = row["full_name"]
+            phone = row["phone"]
+            final_address = row["address"]
+
+        else:
+            # First delivery order → save address
+            street = request.form.get("street")
+
+            barangay = request.form.get("barangay-text") or request.form.get("barangay")
+            city = request.form.get("city-text") or request.form.get("city")
+            province = request.form.get("province-text") or request.form.get("province")
+            region = request.form.get("region-text") or request.form.get("region")
+            zip_code = request.form.get("zip")
+
+            final_address = f"{street}, {barangay}, {city}, {province}, {region}, {zip_code}"
+
+            cursor.execute("""
+                INSERT INTO user_addresses (user_id, full_name, phone, address, is_default)
+                VALUES (%s, %s, %s, %s, 1)
+            """, (user_id, full_name, phone, final_address))
+
+            conn.commit()
 
     else:
-        # ==================================================
-        # CASE 2: FIRST ORDER → SAVE THE ADDRESS TO DATABASE
-        # ==================================================
-        full_name = request.form.get("fullName")
-        raw_phone = request.form.get("phone", "").strip()
-
-        # Remove leading 0 (e.g. 09123456789 → 9123456789)
-        phone = raw_phone[1:] if raw_phone.startswith("0") else raw_phone
-
-        street = request.form.get("street")
-
-        # Use text versions if available (correct PH names)
-        barangay = request.form.get("barangay-text") or request.form.get("barangay")
-        city = request.form.get("city-text") or request.form.get("city")
-        province = request.form.get("province-text") or request.form.get("province")
-        region = request.form.get("region-text") or request.form.get("region")
-
-        zip_code = request.form.get("zip")
-
-
-        # Build full formatted address
-        final_address = f"{street}, {barangay}, {city}, {province}, {region}, {zip_code}"
-
-        # Save to user_addresses (first & default)
-        cursor.execute("""
-            INSERT INTO user_addresses (user_id, full_name, phone, address, is_default)
-            VALUES (%s, %s, %s, %s, 1)
-        """, (user_id, full_name, phone, final_address))
-
-        conn.commit()
+        final_address = "PICKUP"
 
     # ================================
     # FETCH SELECTED CART ITEMS
@@ -1199,14 +1553,47 @@ def place_order():
     # GENERATE PUBLIC ORDER CODE
     order_code = generate_order_code()
 
-    # INSERT ORDER
     cursor.execute("""
-        INSERT INTO orders (user_id, address, payment_method, total, status, order_code, full_name, phone)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-    """, (user_id, final_address, payment_method, total, "Order Placed", order_code, full_name, phone))
+        INSERT INTO orders (
+            user_id,
+            address,
+            payment_method,
+            fulfillment_method,
+            total,
+            status,
+            order_code,
+            full_name,
+            phone
+        )
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+    """, (
+        user_id,
+        final_address,
+        payment_method,
+        fulfillment_method,
+        total,
+        "Order Placed",
+        order_code,
+        full_name,
+        phone
+    ))
 
     conn.commit()
     order_id = cursor.lastrowid
+
+    # ------------------------------------------------
+    # [ADDED] Insert initial order status history
+    # ------------------------------------------------
+    cursor.execute("""
+        INSERT INTO order_status_history (order_id, status, message)
+        VALUES (%s, %s, %s)
+    """, (
+        order_id,
+        "Order Placed",
+        STATUS_MESSAGES["Order Placed"][fulfillment_method]
+    ))
+
+    conn.commit()
 
     # INSERT ORDER ITEMS + STOCK + CLEAR CART
     for item in items:
@@ -1234,6 +1621,7 @@ def place_order():
     conn.close()
 
     session.pop("checkout_selected", None)
+    session.pop("fulfillment_method", None)
     session["order_success"] = True
 
     return redirect(url_for("orders"))
@@ -1292,15 +1680,39 @@ def add_address():
 # =========================
 STATUS_ICONS = {
     "Order Placed": "fa-regular fa-clock",
-    "Order Paid": "fa-solid fa-circle-dollar-to-slot",
+    "Order Being Prepared": "fa-solid fa-boxes-packing",
     "Order Shipped Out": "fa-regular fa-truck",
-    "Order Delivered": "fa-solid fa-box-open",
-    "Order Cancelled": "fa-solid fa-ban"
+    "Order Delivered": "fa-solid fa-box-open"
+}
+
+STATUS_MESSAGES = {
+    "Order Placed": {
+        "Delivery": "Your order has been placed and is awaiting processing.",
+        "Pick-up": "Your order has been received and is awaiting preparation."
+    },
+    "Order Being Prepared": {
+        "Delivery": "Your items are being prepared for shipment.",
+        "Pick-up": "Your order is being prepared and will be ready for pickup."
+    },
+    "Order Shipped Out": {
+        "Delivery": "Your order is out for delivery.",
+        "Pick-up": None
+    },
+    "Order Delivered": {
+        "Delivery": "Your order has been successfully delivered.",
+        "Pick-up": "Your order has been picked up from the store."
+    },
+    "Order Cancelled": {
+        "Delivery": "This order has been cancelled.",
+        "Pick-up": "This order has been cancelled."
+    }
 }
 
 @app.route('/orders-page')
 def orders():
     if 'user_id' not in session:
+        session['login_required'] = True
+        session['login_required_page'] = "orders"
         return redirect(url_for('user_login'))
 
     user_id = session['user_id']
@@ -1314,6 +1726,7 @@ def orders():
             order_code,
             user_id,
             address,
+            fulfillment_method,
             payment_method,
             status,
             total,
@@ -1343,7 +1756,7 @@ def orders():
         """, (order["order_id"],))
         
         order["order_items"] = cursor.fetchall()
-        order["status_icon"] = STATUS_ICONS.get(order["status"], "fa-solid fa-circle-info")
+        order["status_icon"] = STATUS_ICONS.get(order["status"])
 
     cursor.close()
     conn.close()
@@ -1361,11 +1774,25 @@ def order_details(order_id):
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
 
+
     # Fetch order
     cursor.execute("""
-        SELECT *
-        FROM orders
-        WHERE id = %s AND user_id = %s
+        SELECT
+            o.*,
+
+            -- Fallback full name (pickup-safe)
+            COALESCE(NULLIF(o.full_name, ''), u.name) AS full_name,
+
+            -- Fallback phone + remove leading 0
+            CASE
+                WHEN COALESCE(NULLIF(o.phone, ''), u.phone) LIKE '0%'
+                THEN SUBSTRING(COALESCE(NULLIF(o.phone, ''), u.phone), 2)
+                ELSE COALESCE(NULLIF(o.phone, ''), u.phone)
+            END AS phone
+
+        FROM orders o
+        JOIN users u ON o.user_id = u.id
+        WHERE o.id = %s AND o.user_id = %s
     """, (order_id, user_id))
 
     order = cursor.fetchone()
@@ -1382,10 +1809,129 @@ def order_details(order_id):
     
     order_items = cursor.fetchall()
 
+    # ------------------------------------------------
+    # [ADDED] Fetch status history for timeline
+    # ------------------------------------------------
+    cursor.execute("""
+        SELECT status, message, created_at
+        FROM order_status_history
+        WHERE order_id = %s
+        ORDER BY created_at DESC
+    """, (order_id,))
+
+    status_history = cursor.fetchall()
+
     cursor.close()
     conn.close()
 
-    return render_template("user/order_details.html", order=order, items=order_items)
+    return render_template(
+    "user/order_details.html",
+    order=order,
+    items=order_items,
+    status_history=status_history
+)
+
+
+# =========================
+#  CANCEL ORDER
+# =========================
+@app.route('/cancel-order/<int:order_id>', methods=['POST'])
+def cancel_order(order_id):
+    if 'user_id' not in session:
+        return jsonify({"error": "Unauthorized"}), 403
+
+    user_id = session['user_id']
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    # Fetch order
+    cursor.execute("""
+        SELECT status
+        FROM orders
+        WHERE id = %s AND user_id = %s
+    """, (order_id, user_id))
+
+    order = cursor.fetchone()
+
+    if not order:
+        cursor.close()
+        conn.close()
+        return jsonify({"error": "Order not found"}), 404
+
+    # ❌ Block invalid cancellations
+    if order["status"] in ["Order Shipped Out", "Order Delivered"]:
+        cursor.close()
+        conn.close()
+        return jsonify({"error": "Order cannot be cancelled"}), 400
+
+    # Update status
+    cursor.execute("""
+        UPDATE orders
+        SET status = 'Order Cancelled',
+            updated_at = NOW()
+        WHERE id = %s
+    """, (order_id,))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return jsonify({"success": True})
+
+
+# =========================
+#  BUY AGAIN
+# =========================
+@app.route('/buy-again/<int:order_id>', methods=['POST'])
+def buy_again(order_id):
+    if 'user_id' not in session:
+        return jsonify({"error": "Unauthorized"}), 403
+
+    user_id = session['user_id']
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    # Get items from past order
+    cursor.execute("""
+        SELECT book_id, quantity
+        FROM order_items
+        WHERE order_id = %s
+    """, (order_id,))
+    items = cursor.fetchall()
+
+    if not items:
+        cursor.close()
+        conn.close()
+        return jsonify({"error": "No items found"}), 404
+
+    for item in items:
+        # Check if already in cart
+        cursor.execute("""
+            SELECT id, quantity
+            FROM cart
+            WHERE user_id = %s AND book_id = %s
+        """, (user_id, item["book_id"]))
+        existing = cursor.fetchone()
+
+        if existing:
+            cursor.execute("""
+                UPDATE cart
+                SET quantity = quantity + %s
+                WHERE id = %s
+            """, (item["quantity"], existing["id"]))
+        else:
+            cursor.execute("""
+                INSERT INTO cart (user_id, book_id, quantity)
+                VALUES (%s, %s, %s)
+            """, (user_id, item["book_id"], item["quantity"]))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return jsonify({"success": True})
 
 
 # =========================
@@ -1444,6 +1990,8 @@ def add_book():
     conn.commit()
     cursor.close()
     conn.close()
+
+    session["book_add_success"] = True
 
     return redirect(url_for('manage_books'))
 
@@ -1565,6 +2113,8 @@ def update_book():
     cursor.close()
     conn.close()
 
+    session["book_edit_success"] = True
+
     return redirect('/admin/manage-books')
 
 # =========================
@@ -1652,12 +2202,21 @@ def manage_orders():
             o.order_code,
             o.status,
             o.payment_method,
+            o.fulfillment_method,
             o.total,
             o.created_at,
             o.address,
-            o.full_name,
-            o.phone
-            FROM orders o
+
+            COALESCE(NULLIF(o.full_name, ''), u.name) AS full_name,
+
+            CASE
+                WHEN COALESCE(NULLIF(o.phone, ''), u.phone) LIKE '0%'
+                THEN SUBSTRING(COALESCE(NULLIF(o.phone, ''), u.phone), 2)
+                ELSE COALESCE(NULLIF(o.phone, ''), u.phone)
+            END AS phone
+
+        FROM orders o
+        JOIN users u ON o.user_id = u.id
         ORDER BY o.created_at DESC
     """)
     orders = cursor.fetchall()
@@ -1704,22 +2263,83 @@ def update_order_status():
         return redirect(url_for('manage_orders'))
 
     conn = get_connection()
-    cursor = conn.cursor()
+    cursor = conn.cursor(dictionary=True)
 
-    # Update status
+    # ------------------------------------------------
+    # FETCH order fulfillment type (CRITICAL)
+    # ------------------------------------------------
+    cursor.execute("""
+        SELECT fulfillment_method, status
+        FROM orders
+        WHERE id = %s
+    """, (order_id,))
+    order = cursor.fetchone()
+
+    if not order:
+        cursor.close()
+        conn.close()
+        flash("Order not found.", "error")
+        return redirect(url_for('manage_orders'))
+
+    fulfillment = order["fulfillment_method"]
+
+    # ------------------------------------------------
+    # BLOCK INVALID STATUS FOR PICKUP
+    # ------------------------------------------------
+    if fulfillment == "Pick-up" and new_status == "Order Shipped Out":
+        cursor.close()
+        conn.close()
+        flash("Pick-up orders cannot be marked as 'Shipped Out'.", "error")
+        return redirect(url_for('manage_orders'))
+
+    STEP = {
+        "Order Placed": 1,
+        "Order Being Prepared": 2,
+        "Order Shipped Out": 3,
+        "Order Delivered": 4
+    }
+
+    current_step = STEP.get(order["status"], 1)
+    new_step = STEP.get(new_status)
+
+    if not new_step:
+        flash("Invalid status.", "error")
+        return redirect(url_for("manage_orders"))
+
+    # prevent going backward or re-submitting same status
+    if new_step <= current_step:
+        flash("That status is already set (or already passed).", "error")
+        return redirect(url_for("manage_orders"))
+
+    # ------------------------------------------------
+    # UPDATE STATUS
+    # ------------------------------------------------
     cursor.execute("""
         UPDATE orders
         SET status = %s,
-        updated_at = NOW()
+            updated_at = NOW()
         WHERE id = %s
     """, (new_status, order_id))
+
+    # ------------------------------------------------
+    # [ADDED] Insert status change into history table
+    # ------------------------------------------------
+    message = STATUS_MESSAGES.get(new_status, {}).get(fulfillment)
+
+    if not message:
+        message = f"Order status updated to {new_status}"
+
+    cursor.execute("""
+        INSERT INTO order_status_history (order_id, status, message)
+        VALUES (%s, %s, %s)
+    """, (order_id, new_status, message))
+
 
     conn.commit()
     cursor.close()
     conn.close()
 
     session['order_update_success'] = True
-
     return redirect(url_for('manage_orders'))
 
 
@@ -1753,6 +2373,8 @@ def admin_announcements():
         )
         conn.commit()
 
+        session["announcement_post_success"] = True
+
         cursor.close()
         conn.close()
         return redirect(url_for('admin_announcements'))
@@ -1762,8 +2384,6 @@ def admin_announcements():
 
     cursor.close()
     conn.close()
-
-    session["announcement_post_success"] = True
 
     return render_template(
         'admin/announcements.html',
@@ -1851,6 +2471,8 @@ def admin_announcement_delete(id):
 
     cursor.close()
     conn.close()
+
+    session["announcement_delete_success"] = True
 
     return redirect(url_for('admin_announcements'))
 

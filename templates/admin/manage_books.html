@@ -100,4 +100,38 @@
 
 </section>
 
+{% if session.get('book_edit_success') %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "success",
+        title: "Book details updated successfully",
+        showConfirmButton: false,
+        timer: 1500,
+        timerProgressBar: true
+    });
+});
+</script>
+{% set _ = session.pop('book_edit_success', None) %}
+{% endif %}
+
+{% if session.get('book_add_success') %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "success",
+        title: "Book added successfully",
+        showConfirmButton: false,
+        timer: 1500,
+        timerProgressBar: true
+    });
+});
+</script>
+{% set _ = session.pop('book_add_success', None) %}
+{% endif %}
+
 {% endblock %}

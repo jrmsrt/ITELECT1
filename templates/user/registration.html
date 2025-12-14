@@ -15,17 +15,6 @@
         <h1 class="signup-title">Create Account</h1>
 
         <form method="post" action="" id="registrationForm" novalidate>
-            {% if msg %}
-            <div class="alert error" id="alertBox">
-                <span class="alert-text">{{ msg }}</span>
-                <button type="button" class="close-btn" onclick="closeAlert()">×</button>
-            </div>
-            {% else %}
-            <div class="alert error" id="alertBox" style="display:none;">
-                <span class="alert-text"></span>
-                <button type="button" class="close-btn" onclick="closeAlert()">×</button>
-            </div>
-            {% endif %}
             <div class="form-grid">
                 <!-- First Name -->
                 <div class="form-group">

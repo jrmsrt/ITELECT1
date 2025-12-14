@@ -1,0 +1,158 @@
+{% extends 'user/main_header.html' %}
+
+{% block content %}
+
+<title>Pickup Details | BookHaven</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user/checkout_pickup.css') }}">
+<script src="{{ url_for('static', filename='js/checkout_pickup.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<div class="checkout-container">
+
+    <!-- LEFT SIDE -->
+    <div class="checkout-details">
+        <h2>Pickup Details</h2>
+
+        <!-- ============================== -->
+        <!-- PICKUP INFORMATION -->
+        <!-- ============================== -->
+        <div class="section">
+            <h3><i class="fa-solid fa-store"></i> BookHaven Store Location</h3>
+
+            <div class="pickup-card">
+                <p class="pickup-store-name"><strong>BookHaven Main Branch</strong></p>
+
+                <p class="pickup-address">
+                    📍 123 BookHaven Street,<br>
+                    Barangay Readersville,<br>
+                    Parañaque City, Metro Manila
+                </p>
+
+                <p class="pickup-hours">
+                    🕒 <strong>Store Hours</strong><br>
+                    Monday – Saturday: 9:00 AM – 6:00 PM<br>
+                    Sunday: 10:00 AM – 5:00 PM
+                </p>
+            </div>
+        </div>
+
+        <!-- ============================== -->
+        <!-- PICKUP PROCESS -->
+        <!-- ============================== -->
+        <div class="section">
+            <h3><i class="fa-solid fa-box-open"></i> How Pickup Works</h3>
+
+            <ol class="pickup-steps">
+                <li>
+                    Place your order and select <strong>Pickup</strong> as the delivery method.
+                </li>
+                <li>
+                    Wait for a confirmation email or notification that your order is <strong>ready for pickup</strong>.
+                </li>
+                <li>
+                    Visit the BookHaven store within store hours.
+                </li>
+                <li>
+                    Present your <strong>order confirmation</strong> (digital or printed).
+                </li>
+                <li>
+                    Collect your books and enjoy reading! 📚
+                </li>
+            </ol>
+
+            <p class="pickup-note">
+                ⏳ Orders are usually ready within <strong>1–2 business days</strong>.
+                Please pick up your order within <strong>7 days</strong> after confirmation.
+            </p>
+        </div>
+
+        <!-- ============================== -->
+        <!-- PAYMENT METHOD -->
+        <!-- ============================== -->
+        <div class="section">
+            <h3><i class="fa-solid fa-money-bill"></i> Payment Method</h3>
+
+            <div class="payment-options">
+                <div class="payment-option active" id="store">
+                    <i class="fa-solid fa-dollar-sign"></i> Pay at Store
+                </div>
+
+                <div class="payment-option" id="online">
+                    <i class="fa-solid fa-credit-card"></i> Online Payment
+                </div>
+            </div>
+        </div>
+
+        <form id="placeOrderForm" action="{{ url_for('place_order') }}" method="POST">
+            <input type="hidden" name="fulfillment_method" value="pickup">
+            <input type="hidden" name="payment_method" id="payment_method">
+        </form>
+    </div>
+
+    <!-- ===================== -->
+    <!-- RIGHT ORDER SUMMARY -->
+    <!-- ===================== -->
+    <div class="order-summary">
+        <h2><i class="fa-solid fa-cart-shopping"></i> Order Summary</h2>
+
+        <div class="order-items">
+            {% if items %}
+                {% for item in items %}
+                <div class="item">
+                    <img src="{{ url_for('static', filename='uploads/books/' ~ item.cover) if item.cover else url_for('static', filename='images/no-cover.png') }}"
+                        alt="{{ item.title }}">
+
+                    <div class="details">
+                        <h4>{{ item.title }}</h4>
+                        <p class="author">by {{ item.author }}</p>
+                        <p class="genre">{{ item.genre }}</p>
+                    </div>
+
+                    <div class="price">
+                        <strong>₱{{ "{:,.2f}".format(item.price) }}</strong>
+                        <p>Qty: {{ item.quantity }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p>No items selected.</p>
+            {% endif %}
+        </div>
+
+        <div class="order-totals">
+
+            {% set vat = (subtotal * 12 / 112) %}
+            {% set net = subtotal - vat %}
+            {% set total = subtotal %}
+
+            <p>
+                <span>Subtotal ({{ total_books }} item{{ 's' if total_books != 1 else '' }})</span>
+                <span>₱{{ "{:,.2f}".format(net) }} <small style="color:#777;">(VAT-excl)</small></span>
+            </p>
+
+            <p><span>Pickup Fee</span><span>FREE</span></p>
+
+            <p>
+                <span>VAT (12%)</span>
+                <span>₱{{ "{:,.2f}".format(vat) }}</span>
+            </p>
+
+            <hr>
+
+            <h3 class="total">
+                <span>Total</span>
+                <span>₱{{ "{:,.2f}".format(total) }} <small style="color:#777;">(VAT-incl)</small></span>
+            </h3>
+        </div>
+
+        <button type="submit" class="place-order" form="placeOrderForm">
+            <i class="fa-solid fa-check"></i> Confirm Pickup Order
+        </button>
+        
+        <div class="cancel-btn">
+            <a href="{{ url_for('cart') }}">Cancel</a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

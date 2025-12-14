@@ -20,14 +20,35 @@
                 </span>
                 <span class="order-status">
                     <i class="{{ order.status_icon }}"></i>  
-                    {% if order.status == 'Order Placed' %}
-                        Order is placed
-                    {% elif order.status == 'Order Paid' %}
-                        Preparing to ship your items
-                    {% elif order.status == 'Order Shipped Out' %}
-                        Your order out for delivery
-                    {% elif order.status == 'Order Delivered' %}
-                        Order has been delivered
+
+                    {% if order.status != 'Order Cancelled' %}
+
+                        {% if order.status == 'Order Placed' %}
+                            {% if order.fulfillment_method == 'Pick-up' %}
+                                Order is being processed
+                            {% else %}
+                                Order is placed
+                            {% endif %}
+
+                        {% elif order.status == 'Order Being Prepared' %}
+                            {% if order.fulfillment_method == 'Pick-up' %}
+                                Your order is being prepared for pick-up
+                            {% else %}
+                                Preparing to ship your items
+                            {% endif %}
+
+                        {% elif order.status == 'Order Shipped Out' %}
+                            Your order is out for delivery
+
+                        {% elif order.status == 'Order Delivered' %}
+                            {% if order.fulfillment_method == 'Pick-up' %}
+                                Order has been picked up
+                            {% else %}
+                                Order has been delivered
+                            {% endif %}
+
+                        {% endif %}
+
                     {% endif %}
                     <span class="info-icon">
                         <i class="fa-regular fa-circle-question"></i>
@@ -37,15 +58,30 @@
                         </span>
                     </span>
                     <span class="divider"> | </span> 
-                    {% if order.status == 'Order Placed' %}
-                        <span class="ship-status">TO SHIP</span>
-                    {% elif order.status == 'Order Paid' %}
-                        <span class="ship-status">TO SHIP</span>
-                    {% elif order.status == 'Order Shipped Out' %}
-                        <span class="ship-status">ON THE WAY</span>
-                    {% elif order.status == 'Order Delivered' %}
-                        <span class="ship-status">COMPLETED</span>
-                    {% endif %}
+                        {% if order.status == 'Order Placed' %}
+                            {% if order.fulfillment_method == 'Pick-up' %}
+                                <span class="ship-status">PROCESSING</span>
+                            {% else %}
+                                <span class="ship-status">TO SHIP</span>
+                            {% endif %}
+
+                        {% elif order.status == 'Order Being Prepared' %}
+                            {% if order.fulfillment_method == 'Pick-up' %}
+                                <span class="ship-status">AWAITING PICK-UP</span>
+                            {% else %}
+                                <span class="ship-status">TO SHIP</span>
+                            {% endif %}
+
+                        {% elif order.status == 'Order Shipped Out' %}
+                            <span class="ship-status">ON THE WAY</span>
+
+                        {% elif order.status == 'Order Delivered' %}
+                            <span class="ship-status">COMPLETED</span>
+
+                        {% elif order.status == 'Order Cancelled' %}
+                            <span class="ship-status cancelled">CANCELLED</span>
+
+                        {% endif %}
                 </span>
             </div>
 
@@ -77,7 +113,13 @@
             <!-- FOOTER -->
             <div class="order-footer">
                 <div class="left">
-                    <p class="delivery-type">FOR DELIVERY</p>
+                    <p class="fulfillment">
+                        {% if order.fulfillment_method == 'Pick-up' %}
+                            FOR PICK-UP
+                        {% else %}
+                            FOR DELIVERY
+                        {% endif %}
+                    </p>
                     <p class="payment-mode">PAYMENT METHOD: <span>{{ order.payment_method }}</span></p>
                     
                 </div>
@@ -94,13 +136,33 @@
                 <p class="date">Order created at: <span>{{ order.created_at }}</span></p>
             
                 <div class="order-actions">
-                    {% if order.status == 'Order Placed' or order.status == 'Order Paid' %}
-                    <button class="btn-cancel">Cancel Order</button>
+
+                    {% if order.status not in ['Order Shipped Out', 'Order Delivered', 'Order Cancelled'] %}
+                        <button class="btn-cancel"
+                                data-order-id="{{ order.order_id }}">
+                            Cancel Order
+                        </button>
+                    {% else %}
+                        <button class="btn-buy-again"
+                                data-order-id="{{ order.order_id }}">
+                            Buy Again
+                        </button>
                     {% endif %}
 
-                    <a href="{{ url_for('order_details', order_id=order.order_id) }}">
-                        <button class="btn-view">View Details</button>
-                    </a>
+                    {% if order.status == 'Order Cancelled' %}
+                        <a href="{{ url_for('order_details', order_id=order.order_id) }}">
+                            <button class="btn-view cancelled">
+                                View Cancellation Details
+                            </button>
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('order_details', order_id=order.order_id) }}">
+                            <button class="btn-view">
+                                View Details
+                            </button>
+                        </a>
+                    {% endif %}
+
                 </div>
             </div>
         </div>
@@ -139,6 +201,65 @@ document.addEventListener("DOMContentLoaded", function () {
 </script>
 {% set _ = session.pop('order_success', None) %}
 {% endif %}
+
+<script>
+document.addEventListener("click", function (e) {
+
+    /* =====================
+       CANCEL ORDER
+    ===================== */
+    if (e.target.classList.contains("btn-cancel")) {
+        const orderId = e.target.dataset.orderId;
+
+        Swal.fire({
+            title: "Cancel this order?",
+            text: "This action cannot be undone.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, cancel it",
+        }).then(result => {
+            if (result.isConfirmed) {
+                fetch(`/cancel-order/${orderId}`, { method: "POST" })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire("Cancelled!", "Order has been cancelled.", "success")
+                                .then(() => location.reload());
+                        } else {
+                            Swal.fire("Error", data.error || "Failed to cancel.", "error");
+                        }
+                    });
+            }
+        });
+    }
+
+    /* =====================
+       BUY AGAIN
+    ===================== */
+    if (e.target.classList.contains("btn-buy-again")) {
+        const orderId = e.target.dataset.orderId;
+
+        fetch(`/buy-again/${orderId}`, { method: "POST" })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        toast: true,
+                        position: "top-end",
+                        icon: "success",
+                        title: "Items added to cart",
+                        showConfirmButton: false,
+                        timer: 1200
+                    });
+                } else {
+                    Swal.fire("Error", data.error || "Failed to add items.", "error");
+                }
+            });
+    }
+
+});
+</script>
+
 
 
 {% endblock %}

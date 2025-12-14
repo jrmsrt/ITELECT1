@@ -282,7 +282,7 @@
 }
 
 .price-stock .stock.out {
-    color: #d9534f; /* red */
+    color: #d9534f;
     font-weight: 600;
 }
 
@@ -509,11 +509,12 @@
     overflow: hidden;
 }
 
-.modal-right h2 {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: var(--black);
-    margin-bottom: .3rem;
+.modal-title {
+    color: #000000;
+    font-weight: 600;
+    font-size: 1.2rem;
+    margin-left: 2rem;
+    margin-right: 3rem;
 }
 
 .modal-author {
@@ -523,6 +524,7 @@
 
 .modal-genre {
     font-weight: 600;
+    font-size: 0.8rem;
     color: var(--dark-color);
     margin-bottom: 0.8rem;
 }
@@ -554,10 +556,10 @@
 
 /* ------------------- PRICE & STOCK ------------------- */
 .modal-price {
-    font-size: 1.3rem;
+    font-size: 1.1rem;
     margin-top: .4rem;
     font-weight: bold;
-    color: var(--dark-color);
+    color: #f39ca0;
 }
 
 .modal-stock {

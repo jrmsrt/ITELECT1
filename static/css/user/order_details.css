@@ -1,0 +1,338 @@
+:root {
+    --gold: #e7c286;
+    --dark-color: #d4a65e;
+    --burgundy: #7b2d43;
+    --input-border: #e5e7eb;
+    --placeholder: #9ca3af;
+    --success: #06b980;
+    --danger: #e01818;
+}
+
+/* ================= BODY ================= */
+body {
+    line-height: 1.6;
+    color: #333;
+    background: url(/static/media/banner.png) no-repeat center center;
+    background-size: cover;
+    font-family: 'Outfit', sans-serif;
+}
+
+/* ================= MAIN WRAPPER ================= */
+.order-details-wrapper {
+    width: 90%;
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 2.5rem;
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    font-family: 'Inter', sans-serif;
+}
+
+/* ================= HEADER ================= */
+.order-header-inline {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.back-link {
+    font-weight: 600;
+    text-decoration: none;
+    color: #555;
+}
+
+.back-link i {
+    margin-right: 6px;
+}
+
+.back-link:hover {
+    color: var(--dark-color);
+}
+
+.order-meta {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.order-code {
+    font-weight: 600;
+}
+
+.order-status-text {
+    font-weight: 700;
+    color: var(--dark-color);
+}
+
+/* ================= TIMELINE ================= */
+
+.order-timeline-inline {
+    margin-top: 2rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.timeline-step {
+    text-align: center;
+    flex: 1;
+    position: relative;
+    color: #9ca3af;
+}
+
+.timeline-step:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    top: 22px;
+    left: 50%;
+    width: 100%;
+    height: 3px;
+    background: #e5e7eb;
+    z-index: 0;
+}
+
+.timeline-step.active {
+    color: var(--success);
+    font-weight: 600;
+}
+
+.timeline-step.active .icon {
+    background: var(--success);
+    border-color: var(--success);
+    color: #fff;
+}
+
+.timeline-step.active:not(:last-child)::after {
+    background: var(--success);
+}
+
+.timeline-step .icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 3px solid #9ca3af;
+    background: #fff;
+    color: #9ca3af;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 1.2rem;
+    margin-bottom: 6px;
+    position: relative;
+    z-index: 1
+}
+
+.timeline-step p {
+    font-size: 0.9rem;
+    margin-bottom: 2px;
+}
+
+.timeline-step small {
+    font-size: 0.75rem;
+    color: #777;
+}
+
+/* ================= STRIPE DIVIDER ================= */
+.stripe-divider {
+    height: 3px;
+    margin: 1.8rem 0;
+    background: repeating-linear-gradient(
+        -45deg,
+        #3b83f690 0 36px,     /* wider blue */
+        #ffffff 36px 44px, /* slim white gap */
+        #ef444486 44px 80px, /* wider red */
+        #ffffff 80px 88px  /* slim white gap */
+    );
+    border-radius: 3px;
+}
+
+/* ================= SECTIONS ================= */
+.order-section {
+    margin-top: 2rem;
+}
+
+.order-section h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.8rem;
+}
+
+/* ================= ADDRESS ================= */
+.order-section .name {
+    font-weight: 600;
+}
+
+.order-section .phone {
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.order-section .address {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+/* ================= STATUS HISTORY ================= */
+.status-history {
+    margin-top: 1rem;
+}
+
+.status-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 1.2rem;
+}
+
+.status-icon {
+    width: 26px;
+    text-align: center;
+    color: #c4c4c4;
+    font-size: 1.1rem;
+}
+
+.status-row.completed .status-icon {
+    color: var(--success);
+}
+
+.status-icon.muted {
+    color: #cfcfcf;
+}
+
+.status-content strong {
+    display: block;
+    font-size: 0.95rem;
+}
+
+.status-content p {
+    font-size: 0.85rem;
+    color: #555;
+    margin: 2px 0;
+}
+
+.status-content small {
+    font-size: 0.75rem;
+    color: #888;
+}
+
+/* ================= ORDER ITEMS ================= */
+.order-item-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #f4f4f4;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+.order-item-row img {
+    width: 55px;
+    height: 75px;
+    border-radius: 5px;
+    object-fit: cover;
+}
+
+.item-info {
+    flex: 1;
+    margin-left: 10px;
+}
+
+.item-info .title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+}
+
+.item-info .meta {
+    font-size: 0.85rem;
+    color: #444;
+}
+
+.item-info .meta span {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--burgundy);
+}
+
+.item-info .qty {
+    font-size: 0.8rem;
+    color: #777;
+}
+
+.item-price {
+    font-weight: 700;
+    color: var(--success);
+}
+
+/* ================= SUMMARY ================= */
+.order-section.summary {
+    margin-top: 1.5rem;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.8rem;
+    font-size: 0.95rem;
+}
+
+.summary-row strong {
+    font-size: 1.2rem;
+    color: var(--success);
+}
+
+/* ================= ACTION BUTTONS ================= */
+.details-actions {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.btn-buy-again {
+    padding: 8px 15px;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    background: linear-gradient(135deg, #d37f8c, #c89f5d, #e7c286);
+    background-size: 180% 180%;
+    transition: background-position 0.6s ease, transform 0.3s ease,
+                filter 0.3s ease, box-shadow 0.3s ease;
+}
+
+.btn-buy-again:hover {
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+    filter: brightness(1.08);
+}
+
+.btn-contact,
+.btn-view {
+    padding: 8px 15px;
+    background: #fff;
+    border: 2px solid var(--gold);
+    color: var(--gold);
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-position 0.6s ease, transform 0.3s ease,
+                filter 0.3s ease, box-shadow 0.3s ease;
+}
+
+.btn-contact:hover,
+.btn-view:hover {
+    background: var(--gold);
+    color: #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+    filter: brightness(1.08);
+}

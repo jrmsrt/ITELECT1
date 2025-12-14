@@ -132,13 +132,14 @@
 
     <div class="fulfillment">
       <h3>Fulfillment Method</h3>
+
       <label class="radio">
-        <input name="radio" type="radio" checked>
+        <input type="radio" name="fulfillment" value="Pick-up" checked>
         <span>Pick-up</span>
       </label>
 
       <label class="radio">
-        <input name="radio" type="radio">
+        <input type="radio" name="fulfillment" value="Delivery">
         <span>Delivery</span>
       </label>
     </div>
@@ -150,6 +151,7 @@
 
     <form id="checkout-form" action="{{ url_for('checkout') }}" method="POST">
         <input type="hidden" name="selected_items" id="selected-items-input">
+        <input type="hidden" name="fulfillment_method" id="fulfillment-method-input" value="pickup">
 
         <button type="submit" class="checkout-btn">
             Proceed to Checkout <i class="fa-solid fa-arrow-right"></i>

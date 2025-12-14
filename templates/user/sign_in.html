@@ -14,7 +14,8 @@
     data-login-required-page="{{ login_required_page }}"
     data-msg-type="{{ msg_type }}"
     data-msg="{{ msg }}"
-    data-redirect-url="{{ redirect_url }}">
+    data-redirect-url="{{ redirect_url }}"
+    data-login-toast="{{ login_toast or '' }}">
 
     <div class="sign-in-content">
         <h1>a safe place for<br>every story, <br>a peaceful space for every reader.</h1>
@@ -108,5 +109,9 @@
         </form>
     </div>
 </main>
+
+<script>
+  window.LOGIN_TOAST = "{{ login_toast or '' }}";
+</script>
 
 {% endblock %}

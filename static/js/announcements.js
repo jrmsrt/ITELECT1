@@ -150,3 +150,44 @@ function resetForm() {
 }
 
 
+// ===============================
+//  SWEETALERT TOASTS (ANNOUNCEMENTS)
+// ===============================
+const toastDataEl = document.getElementById("announcement-toast-data");
+
+if (toastDataEl) {
+    const TOASTS = JSON.parse(toastDataEl.textContent);
+
+    if (TOASTS.post) {
+        Swal.fire({
+            toast: true,
+            position: "top-end",
+            icon: "success",
+            title: "Announcement posted successfully!",
+            showConfirmButton: false,
+            timer: 1500
+        });
+    }
+
+    if (TOASTS.edit) {
+        Swal.fire({
+            toast: true,
+            position: "top-end",
+            icon: "success",
+            title: "Announcement updated successfully!",
+            showConfirmButton: false,
+            timer: 1500
+        });
+    }
+
+    if (TOASTS.delete) {
+        Swal.fire({
+            toast: true,
+            position: "top-end",
+            icon: "success",
+            title: "Announcement deleted successfully!",
+            showConfirmButton: false,
+            timer: 1500
+        });
+    }
+}

@@ -9,7 +9,20 @@ document.addEventListener("DOMContentLoaded", function () {
     const msg = main.getAttribute("data-msg");
     const redirectUrl = main.getAttribute("data-redirect-url");
     const loginPage = main.getAttribute("data-login-required-page");
+    const loginToast = main.getAttribute("data-login-toast"); // ✅ ADD
 
+    if (loginToast === "verified") { // ✅ ADD
+        Swal.fire({
+            toast: true,
+            icon: "success",
+            title: "Account verified! You can now sign in.",
+            position: "top-end",
+            showConfirmButton: false,
+            timer: 1500,
+            timerProgressBar: true,
+            background: "#fff"
+        });
+    }
 
     // ===============================
     //  SHOW "LOGIN REQUIRED" TOAST
@@ -24,8 +37,8 @@ document.addEventListener("DOMContentLoaded", function () {
         else if (loginPage === "cart") {
             title = "Please log in first to access your Cart.";
         }
-        else if (loginPage === "checkout") {
-            title = "Please log in first to proceed with Checkout.";
+        else if (loginPage === "orders") {
+            title = "Please log in first to see your orders.";
         }
 
         Swal.fire({
@@ -37,23 +50,6 @@ document.addEventListener("DOMContentLoaded", function () {
             timer: 3500,
             timerProgressBar: true,
             background: '#fff'
-        });
-    }
-
-
-    // ===============================
-    //  SHOW SUCCESS LOGIN MESSAGE
-    // ===============================
-    if (msgType === "success") {
-        Swal.fire({
-            icon: 'success',
-            title: "You're now logged in!",
-            text: msg,
-            confirmButtonText: "Proceed",
-            allowOutsideClick: false,
-            allowEscapeKey: false
-        }).then(() => {
-            window.location.href = redirectUrl;
         });
     }
 });
