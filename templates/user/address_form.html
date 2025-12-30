@@ -1,0 +1,92 @@
+<div class="form-grid">
+
+    <div class="form-group">
+        <input
+            type="text"
+            id="fullName"
+            name="fullName"
+            class="form-input"
+            placeholder=" "
+            required
+            value="{{ user_name or '' }}"
+        >
+        <label for="fullName">Full Name</label>
+        <p class="field-error" id="fullNameError"></p>
+    </div>
+
+    <div class="form-group">
+        <input
+            type="text"
+            id="phone"
+            name="phone"
+            class="form-input"
+            placeholder=" "
+            required
+            value="{{ user_phone or '' }}"
+        >
+        <label for="phone">Phone Number</label>
+        <p class="field-error" id="phoneError"></p>
+    </div>
+
+    <div class="form-group full address-selector-group">
+        <input
+            type="text"
+            id="address_selector"
+            class="form-input"
+            placeholder=" "
+            readonly
+            required
+        >
+        <label for="address_selector">Region, Province, City, Barangay</label>
+
+        <button type="button" id="clearAddress" class="address-clear hidden">
+            <i class="fa-solid fa-circle-xmark"></i>
+        </button>
+
+        <div class="address-dropdown hidden" id="addressDropdown">
+            <div class="address-tabs">
+                <button type="button" class="tab active" data-step="region">Region</button>
+                <button type="button" class="tab disabled" data-step="province">Province</button>
+                <button type="button" class="tab disabled" data-step="city">City</button>
+                <button type="button" class="tab disabled" data-step="barangay">Barangay</button>
+            </div>
+
+            <ul class="address-options" id="addressOptions"></ul>
+        </div>
+
+        <!-- Hidden values used by backend -->
+        <input type="hidden" id="region-text" name="region-text">
+        <input type="hidden" id="province-text" name="province-text">
+        <input type="hidden" id="city-text" name="city-text">
+        <input type="hidden" id="barangay-text" name="barangay-text">
+
+        <p class="field-error" id="address_selectorError"></p>
+    </div>
+
+    <div class="form-group full">
+        <input
+            type="text"
+            id="zip"
+            name="zip"
+            class="form-input"
+            placeholder=" "
+            required
+        >
+        <label for="zip">ZIP Code</label>
+        <p class="field-error" id="zipError"></p>
+    </div>
+
+    <div class="form-group full">
+        <input
+            type="text"
+            id="street"
+            name="street"
+            class="form-input"
+            placeholder=" "
+            required
+        >
+        <label for="street">Street Address</label>
+        <p class="field-error" id="streetError"></p>
+    </div>
+
+</div>

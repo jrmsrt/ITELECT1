@@ -40,13 +40,14 @@
                         {% elif order.status == 'Order Shipped Out' %}
                             Your order is out for delivery
 
-                        {% elif order.status == 'Order Delivered' %}
-                            {% if order.fulfillment_method == 'Pick-up' %}
-                                Order has been picked up
-                            {% else %}
-                                Order has been delivered
-                            {% endif %}
+                        {% elif order.status == 'Ready For Pickup' %}
+                            Your order is ready for pick-up
 
+                        {% elif order.status == 'Order Delivered' %}
+                            Order has been delivered
+
+                        {% elif order.status == 'Order Picked Up' %}
+                            Order has been picked up
                         {% endif %}
 
                     {% endif %}
@@ -65,21 +66,24 @@
                                 <span class="ship-status">TO SHIP</span>
                             {% endif %}
 
-                        {% elif order.status == 'Order Being Prepared' %}
-                            {% if order.fulfillment_method == 'Pick-up' %}
-                                <span class="ship-status">AWAITING PICK-UP</span>
-                            {% else %}
-                                <span class="ship-status">TO SHIP</span>
-                            {% endif %}
+                            {% elif order.status == 'Order Being Prepared' %}
+                                {% if order.fulfillment_method == 'Pick-up' %}
+                                    <span class="ship-status">PREPARING</span>
+                                {% else %}
+                                    <span class="ship-status">TO SHIP</span>
+                                {% endif %}
 
-                        {% elif order.status == 'Order Shipped Out' %}
-                            <span class="ship-status">ON THE WAY</span>
+                            {% elif order.status == 'Ready For Pickup' %}
+                                <span class="ship-status">READY FOR PICK-UP</span>
 
-                        {% elif order.status == 'Order Delivered' %}
-                            <span class="ship-status">COMPLETED</span>
+                            {% elif order.status == 'Order Shipped Out' %}
+                                <span class="ship-status">ON THE WAY</span>
 
-                        {% elif order.status == 'Order Cancelled' %}
-                            <span class="ship-status cancelled">CANCELLED</span>
+                            {% elif order.status in ['Order Delivered', 'Order Picked Up'] %}
+                                <span class="ship-status">COMPLETED</span>
+
+                            {% elif order.status == 'Order Cancelled' %}
+                                <span class="ship-status cancelled">CANCELLED</span>
 
                         {% endif %}
                 </span>
@@ -137,12 +141,14 @@
             
                 <div class="order-actions">
 
-                    {% if order.status not in ['Order Shipped Out', 'Order Delivered', 'Order Cancelled'] %}
+                    {% if order.status in ['Order Placed', 'Order Being Prepared'] %}
                         <button class="btn-cancel"
                                 data-order-id="{{ order.order_id }}">
                             Cancel Order
                         </button>
-                    {% else %}
+                    {% endif %}
+
+                    {% if order.status in ['Order Delivered', 'Order Picked Up', 'Order Cancelled'] %}
                         <button class="btn-buy-again"
                                 data-order-id="{{ order.order_id }}">
                             Buy Again
@@ -208,8 +214,9 @@ document.addEventListener("click", function (e) {
     /* =====================
        CANCEL ORDER
     ===================== */
-    if (e.target.classList.contains("btn-cancel")) {
-        const orderId = e.target.dataset.orderId;
+    const cancelBtn = e.target.closest(".btn-cancel");
+    if (cancelBtn) {
+        const orderId = cancelBtn.dataset.orderId;
 
         Swal.fire({
             title: "Cancel this order?",
@@ -228,38 +235,82 @@ document.addEventListener("click", function (e) {
                         } else {
                             Swal.fire("Error", data.error || "Failed to cancel.", "error");
                         }
+                    })
+                    .catch(() => {
+                        Swal.fire("Error", "Something went wrong.", "error");
                     });
             }
         });
+
+        return; // ⛔ stop here
     }
 
     /* =====================
        BUY AGAIN
     ===================== */
-    if (e.target.classList.contains("btn-buy-again")) {
-        const orderId = e.target.dataset.orderId;
+    const buyAgainBtn = e.target.closest(".btn-buy-again");
+    if (buyAgainBtn) {
+        const orderId = buyAgainBtn.dataset.orderId;
 
         fetch(`/buy-again/${orderId}`, { method: "POST" })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    Swal.fire({
-                        toast: true,
-                        position: "top-end",
-                        icon: "success",
-                        title: "Items added to cart",
-                        showConfirmButton: false,
-                        timer: 1200
-                    });
-                } else {
-                    Swal.fire("Error", data.error || "Failed to add items.", "error");
-                }
-            });
+        .then(res => res.json())
+        .then(data => {
+
+            if (data.status === "ok") {
+                Swal.fire({
+                    toast: true,
+                    icon: "success",
+                    position: "top-end",
+                    text: "Items added to cart",
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            }
+
+            else if (data.status === "max_reached") {
+                Swal.fire({
+                    toast: true,
+                    icon: "warning",
+                    position: "top-end",
+                    text: "Maximum of 10 per item allowed.",
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            }
+
+            else if (data.status === "max_qty_reached") {
+                Swal.fire({
+                    toast: true,
+                    icon: "warning",
+                    position: "top-end",
+                    text: "Maximum stock already in cart.",
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            }
+
+            else if (data.status === "out_of_stock") {
+                Swal.fire({
+                    toast: true,
+                    icon: "warning",
+                    position: "top-end",
+                    text: "Item is out of stock.",
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            }
+
+            else {
+                Swal.fire("Error", "Something went wrong.", "error");
+            }
+        })
+        .catch(() => {
+            Swal.fire("Error", "Something went wrong.", "error");
+        });
     }
 
 });
 </script>
-
 
 
 {% endblock %}

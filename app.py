@@ -1141,15 +1141,12 @@ def add_to_cart():
             if existing['quantity'] >= 10:
                 return jsonify({
                     "status": "max_reached",
-                    "message": "Maximum of 10 per item allowed.",
                     "quantity": existing['quantity']
                 })  
 
-
             if existing['quantity'] >= book['stock_quantity']:
                 return jsonify({
-                    "status": "max_reached",
-                    "message": "Cannot add more. Only limited stock available.",
+                    "status": "max_qty_reached",
                     "quantity": existing['quantity']
                 })
 
@@ -1642,37 +1639,64 @@ def add_address():
     phone = phone_raw[1:] if phone_raw.startswith("0") else phone_raw
 
     street = request.form.get("street")
-    barangay = request.form.get("barangay-text") or request.form.get("barangay")
-    city = request.form.get("city-text") or request.form.get("city")
-    province = request.form.get("province-text") or request.form.get("province")
-    region = request.form.get("region-text") or request.form.get("region")
+    barangay = request.form.get("barangay-text")
+    city = request.form.get("city-text")
+    province = request.form.get("province-text")
+    region = request.form.get("region-text")
     zip_code = request.form.get("zip")
 
     final_address = f"{street}, {barangay}, {city}, {province}, {region}, {zip_code}"
 
+    set_default = request.form.get("set_default") == "on"
+
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
 
-    # 1. Clear all existing defaults for this user
-    cursor.execute("""
-        UPDATE user_addresses 
-        SET is_default = 0 
-        WHERE user_id = %s
-    """, (user_id,))
+    # Check if user already has addresses
+    cursor.execute(
+        "SELECT COUNT(*) AS cnt FROM user_addresses WHERE user_id = %s",
+        (user_id,)
+    )
+    has_addresses = cursor.fetchone()["cnt"] > 0
 
-    # 2. Insert NEW address as default
+    # FIRST address → always default
+    if not has_addresses:
+        set_default = True
+
+    # Clear old default ONLY if setting new default
+    if set_default:
+        cursor.execute("""
+            UPDATE user_addresses
+            SET is_default = 0
+            WHERE user_id = %s
+        """, (user_id,))
+
     cursor.execute("""
         INSERT INTO user_addresses (user_id, full_name, phone, address, is_default)
-        VALUES (%s, %s, %s, %s, 1)
-    """, (user_id, full_name, phone, final_address))
+        VALUES (%s, %s, %s, %s, %s)
+    """, (
+        user_id,
+        full_name,
+        phone,
+        final_address,
+        1 if set_default else 0
+    ))
 
     new_id = cursor.lastrowid
-
     conn.commit()
     cursor.close()
     conn.close()
 
-    return jsonify({ "success": True, "new_address_id": new_id})
+    return jsonify({
+        "success": True,
+        "address": {
+            "id": new_id,
+            "full_name": full_name,
+            "phone": phone,
+            "address": final_address,
+            "is_default": 1 if set_default else 0
+        }
+    })
 
 
 # =========================
@@ -1682,7 +1706,9 @@ STATUS_ICONS = {
     "Order Placed": "fa-regular fa-clock",
     "Order Being Prepared": "fa-solid fa-boxes-packing",
     "Order Shipped Out": "fa-regular fa-truck",
-    "Order Delivered": "fa-solid fa-box-open"
+    "Ready For Pickup": "fa-solid fa-store",
+    "Order Delivered": "fa-solid fa-box-open",
+    "Order Picked Up": "fa-solid fa-check-circle",
 }
 
 STATUS_MESSAGES = {
@@ -1700,6 +1726,14 @@ STATUS_MESSAGES = {
     },
     "Order Delivered": {
         "Delivery": "Your order has been successfully delivered.",
+        "Pick-up": None
+    },
+    "Ready For Pickup": {
+        "Delivery": None,
+        "Pick-up": "Your order is ready for pickup at the store."
+    },
+    "Order Picked Up": {
+        "Delivery": None,
         "Pick-up": "Your order has been picked up from the store."
     },
     "Order Cancelled": {
@@ -1886,52 +1920,77 @@ def cancel_order(order_id):
 @app.route('/buy-again/<int:order_id>', methods=['POST'])
 def buy_again(order_id):
     if 'user_id' not in session:
-        return jsonify({"error": "Unauthorized"}), 403
+        return jsonify({"status": "not_logged_in"}), 403
 
     user_id = session['user_id']
+    username = session.get('user', '')
 
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
 
-    # Get items from past order
-    cursor.execute("""
-        SELECT book_id, quantity
-        FROM order_items
-        WHERE order_id = %s
-    """, (order_id,))
-    items = cursor.fetchall()
+    try:
+        cursor.execute("""
+            SELECT oi.book_id, oi.quantity, b.stock_quantity
+            FROM order_items oi
+            JOIN books b ON oi.book_id = b.id
+            WHERE oi.order_id = %s
+        """, (order_id,))
+        items = cursor.fetchall()
 
-    if not items:
+        if not items:
+            return jsonify({"status": "error"}), 404
+
+        skipped = False
+
+        for item in items:
+            book_id = item["book_id"]
+            qty = item["quantity"]
+            stock = item["stock_quantity"]
+
+            cursor.execute("""
+                SELECT id, quantity
+                FROM cart
+                WHERE user_id = %s AND book_id = %s
+            """, (user_id, book_id))
+            existing = cursor.fetchone()
+
+            if existing:
+                if existing["quantity"] >= 10:
+                    return jsonify({"status": "max_reached"})
+
+                if existing["quantity"] >= stock:
+                    return jsonify({"status": "max_qty_reached"})
+
+                new_qty = min(existing["quantity"] + qty, 10, stock)
+
+                cursor.execute("""
+                    UPDATE cart
+                    SET quantity = %s,
+                        username = %s
+                    WHERE id = %s
+                """, (new_qty, username, existing["id"]))
+
+            else:
+                qty = min(qty, 10, stock)
+                if qty <= 0:
+                    return jsonify({"status": "out_of_stock"})
+
+                cursor.execute("""
+                    INSERT INTO cart (user_id, username, book_id, quantity)
+                    VALUES (%s, %s, %s, %s)
+                """, (user_id, username, book_id, qty))
+
+        conn.commit()
+        return jsonify({"status": "ok"})
+
+    except Exception as e:
+        conn.rollback()
+        print("BUY AGAIN ERROR:", e)
+        return jsonify({"status": "error"}), 500
+
+    finally:
         cursor.close()
         conn.close()
-        return jsonify({"error": "No items found"}), 404
-
-    for item in items:
-        # Check if already in cart
-        cursor.execute("""
-            SELECT id, quantity
-            FROM cart
-            WHERE user_id = %s AND book_id = %s
-        """, (user_id, item["book_id"]))
-        existing = cursor.fetchone()
-
-        if existing:
-            cursor.execute("""
-                UPDATE cart
-                SET quantity = quantity + %s
-                WHERE id = %s
-            """, (item["quantity"], existing["id"]))
-        else:
-            cursor.execute("""
-                INSERT INTO cart (user_id, book_id, quantity)
-                VALUES (%s, %s, %s)
-            """, (user_id, item["book_id"], item["quantity"]))
-
-    conn.commit()
-    cursor.close()
-    conn.close()
-
-    return jsonify({"success": True})
 
 
 # =========================
@@ -2291,12 +2350,32 @@ def update_order_status():
         conn.close()
         flash("Pick-up orders cannot be marked as 'Shipped Out'.", "error")
         return redirect(url_for('manage_orders'))
+    
+    # ------------------------------------------------
+    # BLOCK INVALID STATUS PER FULFILLMENT (READY FOR PICKUP)
+    # ------------------------------------------------
+    if fulfillment == "Pick-up" and new_status == "Order Delivered":
+        cursor.close()
+        conn.close()
+        flash("Pick-up orders cannot be marked as 'Delivered'.", "error")
+        return redirect(url_for('manage_orders'))
+
+    if fulfillment == "Delivery" and new_status in [
+        "Ready For Pickup",
+        "Order Picked Up"
+    ]:
+        cursor.close()
+        conn.close()
+        flash("Delivery orders cannot use pickup statuses.", "error")
+        return redirect(url_for('manage_orders'))
 
     STEP = {
         "Order Placed": 1,
         "Order Being Prepared": 2,
         "Order Shipped Out": 3,
-        "Order Delivered": 4
+        "Ready For Pickup": 3,
+        "Order Delivered": 4,
+        "Order Picked Up": 4
     }
 
     current_step = STEP.get(order["status"], 1)

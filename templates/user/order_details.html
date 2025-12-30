@@ -17,19 +17,21 @@
 
         <div class="order-meta">
             <span class="order-code">ORDER ID: <strong>{{ order.order_code }}</strong></span>
-            <span class="order-status-text">
-                {% if order.status == 'Order Placed' %}
-                    ORDER PLACED
-                {% elif order.status == 'Order Being Prepared' %}
-                    PREPARING ORDER
-                {% elif order.status == 'Order Shipped Out' %}
-                    OUT FOR DELIVERY
-                {% elif order.status == 'Order Delivered' %}
-                    ORDER COMPLETED
-                {% elif order.status == 'Order Cancelled' %}
-                    ORDER CANCELLED
-                {% endif %}
-            </span>
+                <span class="order-status-text">
+                    {% if order.status == 'Order Placed' %}
+                        ORDER PLACED
+                    {% elif order.status == 'Order Being Prepared' %}
+                        PREPARING ORDER
+                    {% elif order.status == 'Ready For Pickup' %}
+                        READY FOR PICK-UP
+                    {% elif order.status == 'Order Shipped Out' %}
+                        OUT FOR DELIVERY
+                    {% elif order.status in ['Order Delivered', 'Order Picked Up'] %}
+                        ORDER COMPLETED
+                    {% elif order.status == 'Order Cancelled' %}
+                        ORDER CANCELLED
+                    {% endif %}
+                </span>
         </div>
     </div>
 
@@ -59,6 +61,17 @@
             {% endif %}
         </div>
 
+        <!-- READY FOR PICK-UP -->
+        {% if order.fulfillment_method == 'Pick-up' %}
+        <div class="timeline-step {% if status_map.get('Ready For Pickup') %}active{% endif %}">
+            <div class="icon"><i class="fa-solid fa-store"></i></div>
+            <p>Ready For Pickup</p>
+            {% if status_map.get('Ready For Pickup') %}
+                <small>{{ status_map['Ready For Pickup'].created_at.strftime("%m/%d/%Y %H:%M") }}</small>
+            {% endif %}
+        </div>
+        {% endif %}
+
         <!-- SHIPPED (DELIVERY ONLY) -->
         {% if order.fulfillment_method == 'Delivery' %}
         <div class="timeline-step {% if status_map.get('Order Shipped Out') %}active{% endif %}">
@@ -71,7 +84,10 @@
         {% endif %}
 
         <!-- FINAL STEP -->
-        <div class="timeline-step {% if status_map.get('Order Delivered') %}active{% endif %}">
+        <div class="timeline-step
+            {% if order.fulfillment_method == 'Delivery' and status_map.get('Order Delivered') %}active{% endif %}
+            {% if order.fulfillment_method == 'Pick-up' and status_map.get('Order Picked Up') %}active{% endif %}
+        ">
             <div class="icon"><i class="fa-solid fa-circle-check"></i></div>
             <p>
                 {% if order.fulfillment_method == 'Pick-up' %}
@@ -80,8 +96,13 @@
                     Order Received
                 {% endif %}
             </p>
-            {% if status_map.get('Order Delivered') %}
+
+            {% if order.fulfillment_method == 'Delivery' and status_map.get('Order Delivered') %}
                 <small>{{ status_map['Order Delivered'].created_at.strftime("%m/%d/%Y %H:%M") }}</small>
+            {% endif %}
+
+            {% if order.fulfillment_method == 'Pick-up' and status_map.get('Order Picked Up') %}
+                <small>{{ status_map['Order Picked Up'].created_at.strftime("%m/%d/%Y %H:%M") }}</small>
             {% endif %}
         </div>
 

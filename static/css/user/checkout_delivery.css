@@ -53,7 +53,6 @@ h2 {
 h3 {
   font-size: 1rem;
   color: #169f5f;
-  margin-bottom: 10px;
 }
 
 p.subtext, legend {
@@ -70,6 +69,7 @@ p.subtext, legend {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 25px;
+  margin-top: 1rem;
 }
 
 .form-group {
@@ -148,7 +148,7 @@ input::placeholder {
     box-shadow: 0 0 0 1px rgba(225, 29, 72, 0.35) !important;
 }
 
-.form-input:focus {
+.form-input:focus{
    outline: none;
     border-color: var(--gold);
     box-shadow: 0 0 6px rgba(247, 215, 74, 0.664);
@@ -446,28 +446,35 @@ input::placeholder {
 
 hr {
     border: none;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid #e8e8e8;
     margin: 10px 0;
 }
 
+.my-address-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+}
+
 .add-new-address {
-    width: 100%;
-    background: none;
+    width: 35%;
+    background: var(--dark-color);
+    color: #fff;
     border: none;
-    font-size: 16px;
-    color: var(--gold);
-    margin-top: 15px;
-    padding: 12px 0;
+    padding: 5px;
+    font-size: 15px;
+    border-radius: 4px;
     cursor: pointer;
-    font-weight: 600;
+}
+
+.add-new-address span {
+    font-size: 18px;
+    margin-right: 6px;
 }
 
 .add-new-address:hover {
-  color: var(--dark-color);
-}
-.add-new-address span {
-    font-size: 20px;
-    margin-right: 6px;
+    background: var(--gold);
 }
 
 .hidden { display: none; }
@@ -568,4 +575,167 @@ hr {
     30%  { transform: scale(1.4) rotate(15deg); opacity: 1; }
     60%  { transform: scale(0.9) rotate(0deg); opacity: 0.8; }
     100% { transform: scale(0.2) rotate(-10deg); opacity: 0; }
+}
+
+/* =========================
+   ADDRESS DROPDOWN PANEL
+========================= */
+
+.address-selector-group {
+    position: relative;
+}
+
+.address-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    width: 100%;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+    z-index: 1000;
+    height: 300px;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    transform: translateY(-8px);
+    pointer-events: none;
+
+    transition:
+        opacity 0.25s ease,
+        transform 0.25s ease;
+}
+
+.address-dropdown.open {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.address-dropdown.hidden {
+    display: none;
+}
+
+/* Tabs */
+.address-tabs {
+    display: flex;
+    border-bottom: 1px solid #eee;
+}
+
+.address-tabs .tab {
+    flex: 1;
+    padding: 12px;
+    font-size: 0.9rem;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: #444;
+    border-bottom: 2px solid transparent;
+}
+
+.address-tabs .tab.active {
+    color: #ef4444;
+    border-bottom-color: #ef4444;
+    font-weight: 600;
+}
+
+.address-tabs .tab.disabled {
+    color: #bbb;
+    cursor: not-allowed;
+}
+
+.address-options {
+    flex: 1;
+    max-height: none;
+    overflow-y: auto;
+    overflow-x: hidden;
+    list-style: none;
+    scrollbar-width: thin;
+    scroll-behavior: smooth;
+    margin: 0;
+    padding: 0;
+}
+
+.address-options li {
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.address-options li:hover {
+    background: #f5f5f5;
+}
+
+.address-options li.selected {
+    color: #ef4444;
+    font-weight: 600;
+}
+
+/* =========================
+   ADDRESS INPUT ICONS
+========================= */
+
+.address-input-wrapper {
+    position: relative;
+}
+
+.address-clear {
+    position: absolute;
+    right: 14px;
+    top: 55%;
+    border: none;
+    background: none;
+    font-size: 16px;
+    cursor: pointer;
+    color: #999;
+}
+
+.address-clear:hover {
+    color: #e11d48;
+}
+
+.address-clear.hidden {
+    display: none;
+}
+
+/* =========================
+   TAB SLIDE ANIMATION
+========================= */
+
+.address-tabs {
+    position: relative;
+    overflow: hidden;
+}
+
+.address-tabs .tab {
+    position: relative;
+    transition: color 0.25s ease;
+}
+
+/* underline animation bar */
+.address-tabs::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 25%;
+    height: 2px;
+    background: #ef4444;
+    transform: translateX(var(--tab-x, 0%));
+    transition: transform 0.25s ease;
+}
+
+.stripe-divider {
+    height: 3px;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    background: repeating-linear-gradient(
+        -45deg,
+        #3b83f690 0 36px,
+        #ffffff 36px 44px,
+        #ef444486 44px 80px,
+        #ffffff 80px 88px
+    );
+    border-radius: 3px;
 }

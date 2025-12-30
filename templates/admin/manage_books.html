@@ -48,7 +48,7 @@
     </div>
 
     <div class="results-count" id="resultCount">
-        Showing {{ books|length }} results
+        Showing {{ books|length }} result{{ 's' if books|length != 1 else '' }}
     </div>
 
     <!-- BOOK GRID -->

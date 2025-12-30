@@ -163,7 +163,7 @@ if (toastDataEl) {
             toast: true,
             position: "top-end",
             icon: "success",
-            title: "Announcement posted successfully!",
+            title: "Announcement successfully posted!",
             showConfirmButton: false,
             timer: 1500
         });
@@ -174,7 +174,7 @@ if (toastDataEl) {
             toast: true,
             position: "top-end",
             icon: "success",
-            title: "Announcement updated successfully!",
+            title: "Announcement successfully updated!",
             showConfirmButton: false,
             timer: 1500
         });
@@ -185,7 +185,7 @@ if (toastDataEl) {
             toast: true,
             position: "top-end",
             icon: "success",
-            title: "Announcement deleted successfully!",
+            title: "Announcement successfully deleted!",
             showConfirmButton: false,
             timer: 1500
         });

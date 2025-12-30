@@ -40,12 +40,14 @@
                             <p>Status:</p>
 
                             <select name="status" class="status-dropdown"
-                                    {% if order.status == 'Order Delivered' %}disabled{% endif %}>
+                                    {% if order.status in ['Order Delivered', 'Order Picked Up'] %}disabled{% endif %}>
                                 {% set step = {
-                                'Order Placed': 1,
-                                'Order Being Prepared': 2,
-                                'Order Shipped Out': 3,
-                                'Order Delivered': 4
+                                    'Order Placed': 1,
+                                    'Order Being Prepared': 2,
+                                    'Order Shipped Out': 3,
+                                    'Ready For Pickup': 3,
+                                    'Order Delivered': 4,
+                                    'Order Picked Up': 4
                                 } %}
 
                                 {% set current = step.get(order.status, 1) %}
@@ -70,15 +72,29 @@
                                 </option>
                                 {% endif %}
 
+                                {% if order.fulfillment_method == 'Pick-up' %}
+                                <option value="Ready For Pickup"
+                                    {% if order.status == 'Ready For Pickup' %}selected{% endif %}
+                                    {% if current >= step['Ready For Pickup'] %}disabled{% endif %}>
+                                    Ready For Pickup
+                                </option>
+                                {% endif %}
+
+                                {% if order.fulfillment_method == 'Delivery' %}
                                 <option value="Order Delivered"
                                     {% if order.status == 'Order Delivered' %}selected{% endif %}
                                     {% if current >= step['Order Delivered'] %}disabled{% endif %}>
-                                    {% if order.fulfillment_method == 'Pick-up' %}
-                                        Order Picked Up
-                                    {% else %}
-                                        Order Delivered
-                                    {% endif %}
+                                    Order Delivered
                                 </option>
+                                {% endif %}
+
+                                {% if order.fulfillment_method == 'Pick-up' %}
+                                <option value="Order Picked Up"
+                                    {% if order.status == 'Order Picked Up' %}selected{% endif %}
+                                    {% if current >= step['Order Picked Up'] %}disabled{% endif %}>
+                                    Order Picked Up
+                                </option>
+                                {% endif %}
                             </select>
                         </form>
 

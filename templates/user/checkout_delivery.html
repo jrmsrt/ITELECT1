@@ -2,20 +2,20 @@
 
 {% block content %}
 
-<title>Checkout - BookHaven</title>
+<title>Checkout | BookHaven</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/user/checkout_delivery.css') }}">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="{{ url_for('static', filename='js/checkout_delivery.js') }}" defer></script>
 
 
-{% macro address_form(is_new=false, user_name='', user_email='') %}
+{% macro address_form(is_new=false, user_name='') %}
 
 {% set prefix = 'new_' if is_new else '' %}
 
     <div id="addressFormContainer" class="{% if saved_addresses|length > 0 %}hidden{% endif %}">
 
-        <h3><i class="fa-solid fa-location-dot"></i> {{ 'Add New Address' if is_new else 'Shipping Address' }}</h3>
+        <h3><i class="fa-solid fa-location-dot"></i> Add New Address</h3>
 
         {% if not is_new %}
         <p class="subtext">Please enter your information to complete the order.</p>
@@ -27,16 +27,9 @@
                     <label>Full Name</label>
                     <input type="text" id="fullName"
                     name="fullName" class="form-input"
-                    value="{{ user_name }}" placeholder="Enter your full name">
+                    value="{% if not is_new %}{{ user_name }}{% endif %}"
+                    placeholder="Enter your full name">
                     <p class="field-error" id="fullNameError"></p>
-                </div>
-
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" id="emailCheckout"
-                    name="emailCheckout" class="form-input"
-                    value="{{ user_email }}" placeholder="Enter a valid email">
-                    <p class="field-error" id="emailCheckoutError"></p>
                 </div>
 
                 <div class="form-group">
@@ -47,48 +40,48 @@
                         name="phone"
                         class="form-input"
                         placeholder="09XX XXX XXXX"
-                        value="{{ user_phone or '' }}"
+                        value="{% if not is_new %}{{ user_phone or '' }}{% endif %}"
                         >
                     <p class="field-error" id="phoneError"></p>
                 </div>
 
-                <div class="form-group">
-                    <label>Region</label>
-                        <select id="region" name="region" class="form-input">
-                            <option value="">Choose Region</option>
-                        </select>
+                <div class="form-group full address-selector-group">
+                    <label for="address_selector">Region, Province, City, Barangay</label>
+                    <input
+                        type="text"
+                        id="address_selector"
+                        class="form-input"
+                        placeholder="Select address information"
+                        readonly
+                        required
+                    >
+                    <p class="field-error" id="selectorError"></p>
+
+                    <button type="button" id="clearAddress" class="address-clear hidden">
+                        <i class="fa-solid fa-circle-xmark"></i>
+                    </button>
+
+                    <div class="address-dropdown hidden" id="addressDropdown">
+                        <div class="address-tabs">
+                            <button type="button" class="tab active" data-step="region">Region</button>
+                            <button type="button" class="tab disabled" data-step="province">Province</button>
+                            <button type="button" class="tab disabled" data-step="city">City</button>
+                            <button type="button" class="tab disabled" data-step="barangay">Barangay</button>
+                        </div>
+
+                        <ul class="address-options" id="addressOptions"></ul>
+                    </div>
+
+                    <!-- Hidden values used by backend -->
                     <input type="hidden" id="region-text" name="region-text">
-                    <p class="field-error" id="regionError"></p>
+                    <input type="hidden" id="province-text" name="province-text">
+                    <input type="hidden" id="city-text" name="city-text">
+                    <input type="hidden" id="barangay-text" name="barangay-text">
+
+                    <p class="field-error" id="address_selectorError"></p>
                 </div>
 
-                <div class="form-group">
-                    <label>Province</label>
-                        <select id="{{ prefix }}province" name="province" class="form-input">
-                            <option value="">Select Province</option>
-                        </select>
-                    <input type="hidden" id="{{ prefix }}province-text" name="province-text">
-                    <p class="field-error" id="{{ prefix }}provinceError"></p>
-                </div>
-
-                <div class="form-group">
-                    <label>City/Municipality</label>
-                        <select id="{{ prefix }}city" name="city" class="form-input">
-                            <option value="">Select City/Municipality</option>
-                        </select>
-                    <input type="hidden" id="{{ prefix }}city-text" name="city-text">
-                    <p class="field-error" id="{{ prefix }}cityError"></p>
-                </div>
-
-                <div class="form-group">
-                    <label>Barangay</label>
-                        <select id="{{ prefix }}barangay" name="barangay" class="form-input">
-                            <option value="">Select Barangay</option>
-                        </select>
-                    <input type="hidden" id="{{ prefix }}barangay-text" name="barangay-text">
-                    <p class="field-error" id="{{ prefix }}barangayError"></p>
-                </div>
-
-                <div class="form-group">
+                <div class="form-group full">
                     <label>ZIP Code</label>
                         <input type="text" id="zip" name="zip" class="form-input" placeholder="NNNN">
                     <p class="field-error" id="zipError"></p>
@@ -126,7 +119,7 @@
             <!-- ============================== -->
             {% if saved_addresses|length == 0 %}
 
-                {{ address_form(false, user_name, user_email) }}
+                {{ address_form(false, user_name) }}
 
             {% else %}
 
@@ -135,7 +128,13 @@
             <!-- ============================== -->
             <div id="addressListContainer">
 
-            <p class="subtext">Select a saved address or add a new one.</p>
+            <p class="subtext">Select a saved address or add a new one.</p><hr>
+            <div class="my-address-header">
+                <h3><i class="fa-solid fa-location-dot"></i> Shipping Address</h3>
+                <button class="add-new-address" type="button" id="addAddressBtn">
+                    <span>+</span> Add New Address
+                </button>
+            </div>
 
             {% for addr in saved_addresses %}
             <label class="address-card">
@@ -169,14 +168,10 @@
             {% endif %}
             {% endfor %}
 
-            <button class="add-new-address" type="button" id="addAddressBtn">
-                <span>+</span> Add a new address
-            </button>
-
             </div>
 
             <!-- HIDDEN NEW ADDRESS FORM -->
-            {{ address_form(true, user_name, user_email) }}
+            {{ address_form(true, user_name) }}
 
             {% endif %}
 

@@ -161,6 +161,40 @@ const savedAddressAnim = `
 let isAddingNewAddress = false;
 
 // =========================
+// SAVE UNSAVED NEW ADDRESS STATE
+// =========================
+function saveNewAddressState() {
+    if (sessionStorage.getItem("addingNewAddress") !== "true") return;
+
+    const state = {
+        inputs: {},
+        errors: {}
+    };
+
+    document
+        .querySelectorAll("#addressFormContainer input.form-input")
+        .forEach(input => {
+            state.inputs[input.id] = input.value;
+        });
+
+    const selectorInput = document.getElementById("address_selector");
+    if (selectorInput) {
+        state.inputs.address_selector = selectorInput.value;
+    }
+
+    ["region", "province", "city", "barangay"].forEach(k => {
+        const el = document.getElementById(`${k}-text`);
+        if (el) state.inputs[el.id] = el.value;
+    });
+
+    document.querySelectorAll(".field-error.visible").forEach(err => {
+        state.errors[err.id] = err.textContent;
+    });
+
+    sessionStorage.setItem("newAddressFormState", JSON.stringify(state));
+}
+
+// =========================
 // FORMAT PH PHONE NUMBER
 // =========================
 function formatPHPhone(raw) {
@@ -188,10 +222,75 @@ function formatPHPhone(raw) {
     );
 }
 
+// Helper: error rendering
+function setFieldError(inputEl, message) {
+    if (!inputEl) return;
+
+    const errorEl = document.getElementById(inputEl.id + "Error");
+    if (!errorEl) return;
+
+    if (message) {
+        errorEl.textContent = message;
+        errorEl.classList.add("visible");
+        inputEl.classList.add("has-error");
+    } else {
+        errorEl.textContent = "";
+        errorEl.classList.remove("visible");
+        inputEl.classList.remove("has-error");
+    }
+}
+
 // ============================================================
 // MAIN SETUP
 // ============================================================
 document.addEventListener("DOMContentLoaded", () => {
+
+    // =========================
+    // RESTORE "ADD NEW ADDRESS" STATE
+    // =========================
+    if (sessionStorage.getItem("addingNewAddress") === "true") {
+        isAddingNewAddress = true;
+
+        $("#addressListContainer").hide();
+        $("#addressFormContainer").removeClass("hidden");
+    }
+
+    // =========================
+    // RESTORE UNSAVED INPUTS + ERRORS
+    // =========================
+    const savedState = sessionStorage.getItem("newAddressFormState");
+
+    if (
+        sessionStorage.getItem("addingNewAddress") === "true" &&
+        savedState
+    ) {
+        const { inputs, errors } = JSON.parse(savedState);
+
+        // Restore input values
+        Object.entries(inputs).forEach(([id, value]) => {
+            const el = document.getElementById(id);
+            if (el) el.value = value;
+        });
+
+        // Restore visible selector text
+        if (inputs.address_selector) {
+            document.getElementById("address_selector").value =
+                inputs.address_selector;
+        }
+
+        // Restore errors + error styles
+        Object.entries(errors).forEach(([id, message]) => {
+            const errEl = document.getElementById(id);
+            if (!errEl) return;
+
+            errEl.textContent = message;
+            errEl.classList.add("visible");
+
+            const inputEl = document.getElementById(id.replace("Error", ""));
+            if (inputEl) inputEl.classList.add("has-error");
+        });
+    }
+
     // --------------------------
     // REGION DROPDOWN INITIALIZE
     // --------------------------
@@ -234,7 +333,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // INPUT FIELDS VALIDATION
     // =========================
     const fullName = document.getElementById("fullName");
-    const email = document.getElementById("emailCheckout");
     const phone = document.getElementById("phone");
 
     // =========================
@@ -283,24 +381,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const barangay =
         document.getElementById("barangay") || document.getElementById("new_barangay");
 
-    // Helper: error rendering
-    function setFieldError(inputEl, message) {
-        if (!inputEl) return;
-
-        const errorEl = document.getElementById(inputEl.id + "Error");
-        if (!errorEl) return;
-
-        if (message) {
-            errorEl.textContent = message;
-            errorEl.classList.add("visible");
-            inputEl.classList.add("has-error");
-        } else {
-            errorEl.textContent = "";
-            errorEl.classList.remove("visible");
-            inputEl.classList.remove("has-error");
-        }
-    }
-
     // Individual validators
     function validateFullName() {
         if (!fullName) return true;
@@ -319,23 +399,6 @@ document.addEventListener("DOMContentLoaded", () => {
             return false;
         }
         setFieldError(fullName, "");
-        return true;
-    }
-
-    function validateEmail() {
-        if (!email) return true;
-        const value = email.value.trim();
-        const pattern = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
-
-        if (!value) {
-            setFieldError(email, "This field is required.");
-            return false;
-        }
-        if (!pattern.test(value)) {
-            setFieldError(email, "Email must be a valid @gmail.com address.");
-            return false;
-        }
-        setFieldError(email, "");
         return true;
     }
 
@@ -359,47 +422,29 @@ document.addEventListener("DOMContentLoaded", () => {
         return true;
     }
 
-    function validateRegion() {
-        if (!region) return true;
-        const value = region.value;
-        if (!value) {
-            setFieldError(region, "Please select your region.");
-            return false;
-        }
-        setFieldError(region, "");
-        return true;
-    }
+    function validateAddressSelector() {
+        const barangayText = document.getElementById("barangay-text");
+        const selectorInput = document.getElementById("address_selector");
 
-    function validateProvince() {
-        if (!province) return true;
-        const value = province.value;
-        if (!value) {
-            setFieldError(province, "Please select your province.");
-            return false;
-        }
-        setFieldError(province, "");
-        return true;
-    }
+        if (!barangayText || !selectorInput) return true;
 
-    function validateCity() {
-        if (!city) return true;
-        const value = city.value;
-        if (!value) {
-            setFieldError(city, "Please select your city.");
-            return false;
-        }
-        setFieldError(city, "");
-        return true;
-    }
+        if (!barangayText.value.trim()) {
+            setFieldError(
+                selectorInput,
+                "This field is required. Complete all selections."
+            );
 
-    function validateBarangay() {
-        if (!barangay) return true;
-        const value = barangay.value;
-        if (!value) {
-            setFieldError(barangay, "Please select your barangay.");
+            // 🔥 FORCE SAVE ERROR STATE
+            saveNewAddressState();
+
             return false;
         }
-        setFieldError(barangay, "");
+
+        setFieldError(selectorInput, "");
+
+        // 🔥 SAVE CLEARED STATE
+        saveNewAddressState();
+
         return true;
     }
 
@@ -444,14 +489,10 @@ document.addEventListener("DOMContentLoaded", () => {
         let isValid = true;
 
         if (!validateFullName()) isValid = false;
-        if (!validateEmail()) isValid = false;
         if (!validatePhone()) isValid = false;
+        if (!validateAddressSelector()) isValid = false;
         if (!validateZip()) isValid = false;
         if (!validateStreet()) isValid = false;
-        if (!validateRegion()) isValid = false;
-        if (!validateProvince()) isValid = false;
-        if (!validateCity()) isValid = false;
-        if (!validateBarangay()) isValid = false;
 
         return isValid;
     }
@@ -476,13 +517,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Attach real-time validation
     if (fullName) fullName.addEventListener("input", validateFullName);
-    if (email) email.addEventListener("input", validateEmail);
     if (phone) phone.addEventListener("input", validatePhone);
     if (zip) zip.addEventListener("input", validateZip);
-    if (region) region.addEventListener("change", validateRegion);
-    if (province) province.addEventListener("change", validateProvince);
-    if (city) city.addEventListener("change", validateCity);
-    if (barangay) barangay.addEventListener("change", validateBarangay);
 
     if (street) {
         street.addEventListener("input", () => {
@@ -492,12 +528,26 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // =========================
+    // AUTO-SAVE UNSAVED INPUTS
+    // =========================
+    document
+        .querySelectorAll("#addressFormContainer input.form-input")
+        .forEach(input => {
+            input.addEventListener("input", saveNewAddressState);
+            input.addEventListener("change", saveNewAddressState);
+        });
+
+    // =========================
     // ADD NEW ADDRESS SECTION
     // =========================
 
     // Show new address form
     $("#addAddressBtn").on("click", function () {
         isAddingNewAddress = true;
+
+        // 🔥 persist state
+        sessionStorage.setItem("addingNewAddress", "true");
+
         $("#addressListContainer").hide();
         $("#addressFormContainer").removeClass("hidden");
     });
@@ -505,7 +555,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Reset address form
     $("#resetAddressForm").on("click", function () {
         // Clear inputs
-        $("#addressFormContainer input[type='text'], #addressFormContainer input[type='email']").val("");
+        $("#addressFormContainer input[type='text']").val("");
         $("#zip").val("");
 
         // Clear hidden text fields
@@ -533,7 +583,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Cancel → back to address list
     $("#cancelNewAddress").on("click", function () {
+        sessionStorage.removeItem("addingNewAddress");
+        sessionStorage.removeItem("newAddressFormState");
+
         isAddingNewAddress = false;
+
+        // 🔥 clear persisted state
+        sessionStorage.removeItem("addingNewAddress");
+
         $("#addressFormContainer").addClass("hidden");
         $("#addressListContainer").show();
     });
@@ -566,6 +623,12 @@ document.addEventListener("DOMContentLoaded", () => {
         .then((data) => {
             if (data.success) {
                 showCuteToast(savedAddressAnim, "Address Saved!");
+
+                sessionStorage.removeItem("addingNewAddress");
+                sessionStorage.removeItem("newAddressFormState");
+
+                sessionStorage.removeItem("addingNewAddress");
+                
                 setTimeout(() => location.reload(), 900);
             } else {
                 Swal.fire("Error", "Unable to save address.", "error");
@@ -640,6 +703,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (data.success) {
                         showCuteToast(savedAddressAnim, "Address Saved!");
 
+                        sessionStorage.removeItem("addingNewAddress");
+                        sessionStorage.removeItem("newAddressFormState");
+
                         setTimeout(() => {
                             // Assign the new address ID to the hidden field
                             document.getElementById("selected_address_hidden")
@@ -677,4 +743,298 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+});
+
+// =========================
+// INLINE  CASCADE
+// =========================
+
+const selector = document.getElementById("address_selector");
+const dropdown = document.getElementById("addressDropdown");
+const optionsEl = document.getElementById("addressOptions");
+const tabs = document.querySelectorAll(".address-tabs .tab");
+const clearBtn = document.getElementById("clearAddress");
+
+let step = "region";
+let selected = {};
+let lastStepIndex = 0;
+
+
+// Open / close
+selector.addEventListener("click", (e) => {
+    e.stopPropagation();
+    dropdown.classList.remove("hidden");
+    requestAnimationFrame(() => {
+    dropdown.classList.add("open");
+});
+clearBtn.classList.remove("hidden");
+
+    loadOptions("region");
+});
+
+dropdown.addEventListener("click", (e) => {
+    e.stopPropagation();
+});
+
+// Close when clicking outside
+document.addEventListener("click", () => {
+    if (!dropdown.classList.contains("open")) return;
+
+    dropdown.classList.remove("open");
+
+    setTimeout(() => {
+        dropdown.classList.add("hidden");
+    }, 250);
+
+    clearBtn.classList.add("hidden");
+});
+
+// Load options
+function loadOptions(stepKey, parentCode = null) {
+    const files = {
+        region: "/static/ph-json/region.json",
+        province: "/static/ph-json/province.json",
+        city: "/static/ph-json/city.json",
+        barangay: "/static/ph-json/barangay.json"
+    };
+
+    const order = ["region", "province", "city", "barangay"];
+    const currentIndex = order.indexOf(stepKey);
+
+    // Animate tabs
+    animateTab(stepKey);
+
+    $.getJSON(files[stepKey], data => {
+        let filtered = data;
+
+        if (parentCode) {
+            const map = {
+                province: "region_code",
+                city: "province_code",
+                barangay: "city_code"
+            };
+            filtered = data.filter(i => i[map[stepKey]] == parentCode);
+        }
+
+        // Build OFF-DOM
+        const fragment = document.createDocumentFragment();
+
+        filtered.forEach(item => {
+            const li = document.createElement("li");
+            li.textContent =
+                item.region_name ||
+                item.province_name ||
+                item.city_name ||
+                item.brgy_name;
+
+            li.addEventListener("click", (e) => {
+                e.stopPropagation();
+                selectOption(stepKey, item);
+            });
+
+            fragment.appendChild(li);
+        });
+
+        // Clear + inject ONCE
+        optionsEl.innerHTML = "";
+        optionsEl.appendChild(fragment);
+
+        // Apply animation AFTER content is ready
+        optionsEl.classList.remove("slide-forward", "slide-backward");
+
+        const order = ["region", "province", "city", "barangay"];
+        const currentIndex = order.indexOf(stepKey);
+
+        if (currentIndex > lastStepIndex) {
+            optionsEl.classList.add("slide-forward");
+        } else if (currentIndex < lastStepIndex) {
+            optionsEl.classList.add("slide-backward");
+        }
+
+        lastStepIndex = currentIndex;
+    });
+}
+
+// Select option
+function selectOption(stepKey, item) {
+    const nameMap = {
+        region: "region_name",
+        province: "province_name",
+        city: "city_name",
+        barangay: "brgy_name"
+    };
+
+    selected[stepKey] = item;
+    document.getElementById(`${stepKey}-text`).value = item[nameMap[stepKey]];
+
+    // 🔥 Build incremental address text (Shopee-style)
+    const order = ["region", "province", "city", "barangay"];
+    const parts = [];
+
+    for (const key of order) {
+        if (selected[key]) {
+            parts.push(selected[key][nameMap[key]]);
+        } else {
+            break;
+        }
+    }
+
+    selector.value = parts.join(", ");
+
+    saveNewAddressState();
+
+    // Clear dependent steps
+    const index = order.indexOf(stepKey);
+    for (let i = index + 1; i < order.length; i++) {
+        selected[order[i]] = null;
+        document.getElementById(`${order[i]}-text`).value = "";
+        disableTab(order[i]);
+    }
+
+    order.forEach((k, i) => {
+        const tab = document.querySelector(`.tab[data-step="${k}"]`);
+        if (!tab) return;
+
+        if (selected[k]) {
+            tab.classList.remove("disabled");
+        } else if (i > index) {
+            tab.classList.add("disabled");
+        }
+    });
+
+    const updatedParts = [];
+    for (const key of order) {
+        if (selected[key]) {
+            updatedParts.push(selected[key][nameMap[key]]);
+        } else {
+            break;
+        }
+    }
+    selector.value = updatedParts.join(", ");
+
+    // Final step → close after animation
+    if (stepKey === "barangay") {
+        setFieldError(document.getElementById("address_selector"), "");
+
+        dropdown.classList.remove("open");
+        clearBtn.classList.add("hidden");
+
+        setTimeout(() => {
+            dropdown.classList.add("hidden");
+        }, 250);
+
+        finalize();
+        return;
+    }
+
+    // Move to next step
+    const next = order[index + 1];
+    enableTab(next);
+    loadOptions(next, item[`${stepKey}_code`]);
+}
+
+// Tabs control
+function activateTab(stepKey) {
+    tabs.forEach(t => {
+        t.classList.toggle("active", t.dataset.step === stepKey);
+    });
+}
+
+function enableTab(stepKey) {
+    document.querySelector(`.tab[data-step="${stepKey}"]`)
+        .classList.remove("disabled");
+}
+
+function disableTab(stepKey) {
+    document.querySelector(`.tab[data-step="${stepKey}"]`)
+        .classList.add("disabled");
+}
+
+// Final output
+function finalize() {
+    selector.value =
+        `${selected.region.region_name}, ` +
+        `${selected.province.province_name}, ` +
+        `${selected.city.city_name}, ` +
+        `${selected.barangay.brgy_name}`;
+
+    // Close dropdown smoothly after final selection
+    setTimeout(() => {
+        dropdown.classList.remove("open");
+
+        setTimeout(() => {
+            dropdown.classList.add("hidden");
+        }, 250);
+    }, 180);
+}
+
+tabs.forEach(tab => {
+    tab.addEventListener("click", () => {
+        if (tab.classList.contains("disabled")) return;
+
+        const stepKey = tab.dataset.step;
+
+        animateTab(stepKey);
+
+        if (stepKey === "region") loadOptions("region");
+        if (stepKey === "province" && selected.region)
+            loadOptions("province", selected.region.region_code);
+        if (stepKey === "city" && selected.province)
+            loadOptions("city", selected.province.province_code);
+        if (stepKey === "barangay" && selected.city)
+            loadOptions("barangay", selected.city.city_code);
+    });
+});
+
+function animateTab(stepKey) {
+    const order = ["region", "province", "city", "barangay"];
+    const index = order.indexOf(stepKey);
+
+    // Move underline
+    document.querySelector(".address-tabs")
+        .style.setProperty("--tab-x", `${index * 100}%`);
+
+    // Activate tab
+    tabs.forEach(tab => {
+        tab.classList.toggle("active", tab.dataset.step === stepKey);
+    });
+}
+
+clearBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+
+    // Clear visible input
+    selector.value = "";
+
+    // Clear selections
+    selected = {};
+    lastStepIndex = 0;
+
+    // Clear hidden fields
+    ["region", "province", "city", "barangay"].forEach(k => {
+        const el = document.getElementById(`${k}-text`);
+        if (el) el.value = "";
+    });
+
+    // Reset tabs
+    tabs.forEach(tab => {
+        tab.classList.remove("active");
+        if (tab.dataset.step !== "region") {
+            tab.classList.add("disabled");
+        }
+    });
+
+    document.querySelector('.tab[data-step="region"]').classList.add("active");
+
+    // Reset underline
+    document.querySelector(".address-tabs")
+        .style.setProperty("--tab-x", "0%");
+
+    // Reload region options
+    loadOptions("region");
+
+    // Keep dropdown open
+    dropdown.classList.remove("hidden");
+
+    saveNewAddressState();
 });

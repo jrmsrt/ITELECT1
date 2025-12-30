@@ -327,7 +327,18 @@ function addToCart(bookId, quantity = 1) {
                 toast: true,
                 icon: "warning",
                 position: "top-end",
-                text: "Maximum stock already in cart",
+                text: "Maximum of 10 per item allowed.",
+                timer: 1500,
+                showConfirmButton: false
+            });
+        }
+
+        else if (data.status === "max_qty_reached") {
+            Swal.fire({
+                toast: true,
+                icon: "warning",
+                position: "top-end",
+                text: "Maximum stock already in cart.",
                 timer: 1500,
                 showConfirmButton: false
             });

@@ -9,7 +9,7 @@
 body {
     line-height: 1.6;
     color: #333;
-    background: url(/static/media/banner.png) no-repeat center center;
+    background: #d4a75e24;
     background-size: cover;
     background-position: center;
     font-family: 'Outfit', sans-serif;
@@ -102,7 +102,6 @@ body {
     background: #fff;
     box-shadow: -1px -1px 1px rgba(0,0,0,0.08);
 }
-
 
 .section-title {
     margin-top: 1rem;
