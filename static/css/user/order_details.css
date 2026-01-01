@@ -20,11 +20,11 @@ body {
 /* ================= MAIN WRAPPER ================= */
 .order-details-wrapper {
     width: 90%;
-    max-width: 900px;
+    max-width: 950px;
     margin: 2rem auto;
     padding: 2.5rem;
     background: #fff;
-    border-radius: 14px;
+    border-radius: 1px;
     box-shadow: 0 2px 12px rgba(0,0,0,0.08);
     font-family: 'Inter', sans-serif;
 }
@@ -156,6 +156,20 @@ body {
 }
 
 .order-section h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.8rem;
+}
+
+.order-section h2 {
+    color: #06b980;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.8rem;
+}
+
+.order-section h2 span {
+    color: #333;
     font-size: 1.1rem;
     font-weight: 700;
     margin-bottom: 0.8rem;
@@ -294,7 +308,7 @@ body {
     gap: 10px;
 }
 
-.btn-buy-again {
+.btn-buy-again, .btn-cancel {
     padding: 8px 15px;
     color: white;
     border: none;
@@ -308,14 +322,14 @@ body {
                 filter 0.3s ease, box-shadow 0.3s ease;
 }
 
-.btn-buy-again:hover {
+.btn-buy-again:hover,
+.btn-cancel:hover {
     box-shadow: 0 2px 5px rgba(0,0,0,0.15);
     transform: translateY(-2px);
     filter: brightness(1.08);
 }
 
-.btn-contact,
-.btn-view {
+.btn-contact {
     padding: 8px 15px;
     background: #fff;
     border: 2px solid var(--gold);
@@ -328,11 +342,58 @@ body {
                 filter 0.3s ease, box-shadow 0.3s ease;
 }
 
-.btn-contact:hover,
-.btn-view:hover {
+.btn-contact:hover {
     background: var(--gold);
     color: #fff;
     box-shadow: 0 2px 5px rgba(0,0,0,0.15);
     transform: translateY(-2px);
     filter: brightness(1.08);
+}
+
+.btn-view {
+    padding: 8px 15px;
+    background: #333;
+    border: 1px solid #e5e7eb;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-position 0.6s ease, transform 0.3s ease, filter 0.3s ease, box-shadow 0.3s ease;
+}
+
+.btn-view:hover {
+    color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+    background: #000000;
+}
+
+.cancellation-section {
+    text-align: left;
+    padding: 1rem;
+    border: 1px solid #bbbdc3;
+}
+
+.cancel-title {
+    color: #b91c1c;
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.cancel-title i {
+    margin-right: 0.5rem;
+}
+
+.cancel-date {
+    color: #6b7280;
+    font-size: 0.95rem;
+}
+
+.order-status-text.status-cancelled {
+    background-color: #fdecea;
+    color: #e01818;
+    font-weight: 600;
+    padding: 3px;
+    border-radius: 5px;
 }

@@ -6,189 +6,234 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/user/orders_page.css') }}">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+
 <div class="orders-wrapper">
+
+    {% set counts = {
+        'placed': orders | selectattr('status', 'equalto', 'Order Placed') | list | length,
+        'to_ship': orders | selectattr('status', 'in', ['Order Being Prepared', 'Ready For Pickup']) | list | length,
+        'to_receive': orders | selectattr('status', 'equalto', 'Order Shipped Out') | list | length
+    } %}
+
+    <div class="order-tabs">
+        <button class="tab active" data-filter="all" data-index="0">All</button>
+
+        <button class="tab" data-filter="placed" data-index="1">
+            Placed
+            {% if counts.placed > 0 %}
+                <span class="badge">{{ counts.placed }}</span>
+            {% endif %}
+        </button>
+
+        <button class="tab" data-filter="to_ship" data-index="2">
+            To Ship / Pickup
+            {% if counts.to_ship > 0 %}
+                <span class="badge">{{ counts.to_ship }}</span>
+            {% endif %}
+        </button>
+
+        <button class="tab" data-filter="to_receive" data-index="3">
+            To Receive
+            {% if counts.to_receive > 0 %}
+                <span class="badge">{{ counts.to_receive }}</span>
+            {% endif %}
+        </button>
+
+        <button class="tab" data-filter="completed" data-index="4">Completed</button>
+        <button class="tab" data-filter="cancelled" data-index="5">Cancelled</button>
+    </div>
 
     {% if orders %}
         {% for order in orders %}
 
-        <div class="order-box">
+    <div class="order-box" 
+    data-status="{% if order.status == 'Order Placed' %}placed
+    {% elif order.status in ['Order Being Prepared', 'Ready For Pickup'] %}to_ship
+    {% elif order.status == 'Order Shipped Out' %}to_receive
+    {% elif order.status in ['Order Delivered', 'Order Picked Up'] %}completed
+    {% elif order.status == 'Order Cancelled' %}cancelled{% endif %}">
 
-            <!-- HEADER -->
-            <div class="order-header">
-                <span class="order-id">
-                    ORDER ID: <strong>{{ order.order_code }}</strong>
-                </span>
-                <span class="order-status">
-                    <i class="{{ order.status_icon }}"></i>  
-
-                    {% if order.status != 'Order Cancelled' %}
-
-                        {% if order.status == 'Order Placed' %}
-                            {% if order.fulfillment_method == 'Pick-up' %}
-                                Order is being processed
-                            {% else %}
-                                Order is placed
-                            {% endif %}
-
-                        {% elif order.status == 'Order Being Prepared' %}
-                            {% if order.fulfillment_method == 'Pick-up' %}
-                                Your order is being prepared for pick-up
-                            {% else %}
-                                Preparing to ship your items
-                            {% endif %}
-
-                        {% elif order.status == 'Order Shipped Out' %}
-                            Your order is out for delivery
-
-                        {% elif order.status == 'Ready For Pickup' %}
-                            Your order is ready for pick-up
-
-                        {% elif order.status == 'Order Delivered' %}
-                            Order has been delivered
-
-                        {% elif order.status == 'Order Picked Up' %}
-                            Order has been picked up
-                        {% endif %}
-
-                    {% endif %}
-                    <span class="info-icon">
-                        <i class="fa-regular fa-circle-question"></i>
-                        <span class="tooltip-box">
-                            Last Update Time<br>
-                            {{ order.updated_at if order.updated_at else order.created_at }}
-                        </span>
+                <!-- HEADER -->
+                <div class="order-header">
+                    <span class="order-id">
+                        ORDER ID: <strong>{{ order.order_code }}</strong>
                     </span>
-                    <span class="divider"> | </span> 
-                        {% if order.status == 'Order Placed' %}
-                            {% if order.fulfillment_method == 'Pick-up' %}
-                                <span class="ship-status">PROCESSING</span>
-                            {% else %}
-                                <span class="ship-status">TO SHIP</span>
-                            {% endif %}
+                    <span class="order-status">
+                        <i class="{{ order.status_icon }}"></i>  
+
+                        {% if order.status != 'Order Cancelled' %}
+
+                            {% if order.status == 'Order Placed' %}
+                                {% if order.fulfillment_method == 'Pick-up' %}
+                                    Order is being processed
+                                {% else %}
+                                    Order is placed
+                                {% endif %}
 
                             {% elif order.status == 'Order Being Prepared' %}
                                 {% if order.fulfillment_method == 'Pick-up' %}
-                                    <span class="ship-status">PREPARING</span>
+                                    Your order is being prepared for pick-up
+                                {% else %}
+                                    Preparing to ship your items
+                                {% endif %}
+
+                            {% elif order.status == 'Order Shipped Out' %}
+                                Your order is out for delivery
+
+                            {% elif order.status == 'Ready For Pickup' %}
+                                Your order is ready for pick-up
+
+                            {% elif order.status == 'Order Delivered' %}
+                                Order has been delivered
+
+                            {% elif order.status == 'Order Picked Up' %}
+                                Order has been picked up
+                            {% endif %}
+
+                            <span class="info-icon">
+                                <i class="fa-regular fa-circle-question"></i>
+                                <span class="tooltip-box">
+                                    Last Update Time<br>
+                                    {{ order.updated_at if order.updated_at else order.created_at }}
+                                </span>
+                            </span>
+                            
+                            <span class="divider"> | </span> 
+
+                        {% endif %}
+                        
+                            {% if order.status == 'Order Placed' %}
+                                {% if order.fulfillment_method == 'Pick-up' %}
+                                    <span class="ship-status">PROCESSING</span>
                                 {% else %}
                                     <span class="ship-status">TO SHIP</span>
                                 {% endif %}
 
-                            {% elif order.status == 'Ready For Pickup' %}
-                                <span class="ship-status">READY FOR PICK-UP</span>
+                                {% elif order.status == 'Order Being Prepared' %}
+                                    {% if order.fulfillment_method == 'Pick-up' %}
+                                        <span class="ship-status">PREPARING</span>
+                                    {% else %}
+                                        <span class="ship-status">TO SHIP</span>
+                                    {% endif %}
 
-                            {% elif order.status == 'Order Shipped Out' %}
-                                <span class="ship-status">ON THE WAY</span>
+                                {% elif order.status == 'Ready For Pickup' %}
+                                    <span class="ship-status">READY FOR PICK-UP</span>
 
-                            {% elif order.status in ['Order Delivered', 'Order Picked Up'] %}
-                                <span class="ship-status">COMPLETED</span>
+                                {% elif order.status == 'Order Shipped Out' %}
+                                    <span class="ship-status">ON THE WAY</span>
 
-                            {% elif order.status == 'Order Cancelled' %}
-                                <span class="ship-status cancelled">CANCELLED</span>
+                                {% elif order.status in ['Order Delivered', 'Order Picked Up'] %}
+                                    <span class="ship-status">COMPLETED</span>
 
-                        {% endif %}
-                </span>
-            </div>
+                                {% elif order.status == 'Order Cancelled' %}
+                                    <span class="ship-status cancelled">CANCELLED</span>
 
-            <hr>
+                            {% endif %}
+                    </span>
+                </div>
 
-            <!-- ITEMS SECTION -->
-            <div class="order-items-section">
-                <p class="section-title">Ordered Items</p>
+                <hr>
 
-                {% for item in order.order_items %}
-                <div class="order-item">
-                    <img src="{{ url_for('static', filename='uploads/books/' ~ item.cover) if item.cover else url_for('static', filename='images/no-cover.png') }}"
-                        alt="{{ item.title }}">
+                <!-- ITEMS SECTION -->
+                <div class="order-items-section">
+                    <p class="section-title">Ordered Items</p>
 
-                    <div class="item-details">
-                        <h4>{{ item.title }}</h4>
-                        <p class="author">by {{ item.author }}</p>
-                        <p class="genre">{{ item.genre }}</p>
+                    {% for item in order.order_items %}
+                    <div class="order-item">
+                        <img src="{{ url_for('static', filename='uploads/books/' ~ item.cover) if item.cover else url_for('static', filename='images/no-cover.png') }}"
+                            alt="{{ item.title }}">
+
+                        <div class="item-details">
+                            <h4>{{ item.title }}</h4>
+                            <p class="author">by {{ item.author }}</p>
+                            <p class="genre">{{ item.genre }}</p>
+                        </div>
+
+                        <div class="item-price">
+                            <strong>₱{{ "{:,.2f}".format(item.price) }}</strong>
+                            <p>Qty: {{ item.quantity }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- FOOTER -->
+                <div class="order-footer">
+                    <div class="left">
+                        <p class="fulfillment">
+                            {% if order.fulfillment_method == 'Pick-up' %}
+                                FOR PICK-UP
+                            {% else %}
+                                FOR DELIVERY
+                            {% endif %}
+                        </p>
+                        <p class="payment-mode">PAYMENT METHOD: <span>{{ order.payment_method }}</span></p>
+                        
                     </div>
 
-                    <div class="item-price">
-                        <strong>₱{{ "{:,.2f}".format(item.price) }}</strong>
-                        <p>Qty: {{ item.quantity }}</p>
+                    <div class="right">
+                        <p class="total-label">ORDER TOTAL:
+                            <span class="total-amount">₱{{ "{:,.2f}".format(order.total) }}</span>
+                        </p>
                     </div>
                 </div>
-                {% endfor %}
-            </div>
 
-            <!-- FOOTER -->
-            <div class="order-footer">
-                <div class="left">
-                    <p class="fulfillment">
-                        {% if order.fulfillment_method == 'Pick-up' %}
-                            FOR PICK-UP
+                <!-- BUTTONS -->
+                <div class="order-bottom">
+                    <p class="date">Order created at: <span>{{ order.created_at.strftime("%m/%d/%Y %H:%M") }}
+                    </span></p>
+                
+                    <div class="order-actions">
+
+                        {% if order.status in ['Order Placed', 'Order Being Prepared'] %}
+                            <button class="btn-cancel"
+                                    data-order-id="{{ order.order_id }}">
+                                Cancel Order
+                            </button>
+                        {% endif %}
+
+                        {% if order.status in ['Order Delivered', 'Order Picked Up', 'Order Cancelled'] %}
+                            <button class="btn-buy-again"
+                                    data-order-id="{{ order.order_id }}">
+                                Buy Again
+                            </button>
+                        {% endif %}
+
+                        {% if order.status == 'Order Cancelled' %}
+                            <a href="{{ url_for('order_details', order_id=order.order_id) }}">
+                                <button class="btn-view cancelled">
+                                    View Cancellation Details
+                                </button>
+                            </a>
                         {% else %}
-                            FOR DELIVERY
+                            <a href="{{ url_for('order_details', order_id=order.order_id) }}">
+                                <button class="btn-view">
+                                    View Details
+                                </button>
+                            </a>
                         {% endif %}
-                    </p>
-                    <p class="payment-mode">PAYMENT METHOD: <span>{{ order.payment_method }}</span></p>
-                    
-                </div>
 
-                <div class="right">
-                    <p class="total-label">ORDER TOTAL:
-                        <span class="total-amount">₱{{ "{:,.2f}".format(order.total) }}</span>
-                    </p>
+                    </div>
                 </div>
             </div>
+            {% endfor %}
+            {% else %}
+            <div class="order-box empty-order-box">
+                <div class="empty-order">
+                    <img src="{{ url_for('static', filename='media/empty-order.webp') }}"
+                        alt="Empty Order" class="empty-order-img">
 
-            <!-- BUTTONS -->
-            <div class="order-bottom">
-                <p class="date">Order created at: <span>{{ order.created_at }}</span></p>
-            
-                <div class="order-actions">
+                    <h3>Your don't have any orders yet.</h3>
+                    <p>Every adventure starts with a single page. <br>
+                        Browse our collection and discover your next great read!</p>
 
-                    {% if order.status in ['Order Placed', 'Order Being Prepared'] %}
-                        <button class="btn-cancel"
-                                data-order-id="{{ order.order_id }}">
-                            Cancel Order
-                        </button>
-                    {% endif %}
-
-                    {% if order.status in ['Order Delivered', 'Order Picked Up', 'Order Cancelled'] %}
-                        <button class="btn-buy-again"
-                                data-order-id="{{ order.order_id }}">
-                            Buy Again
-                        </button>
-                    {% endif %}
-
-                    {% if order.status == 'Order Cancelled' %}
-                        <a href="{{ url_for('order_details', order_id=order.order_id) }}">
-                            <button class="btn-view cancelled">
-                                View Cancellation Details
-                            </button>
-                        </a>
-                    {% else %}
-                        <a href="{{ url_for('order_details', order_id=order.order_id) }}">
-                            <button class="btn-view">
-                                View Details
-                            </button>
-                        </a>
-                    {% endif %}
-
+                    <a href="{{ url_for('shop_books') }}" class="empty-order-btn">
+                        Browse Books
+                    </a>
                 </div>
             </div>
-        </div>
-        {% endfor %}
-        {% else %}
-        <div class="order-box empty-order-box">
-            <div class="empty-order">
-                <img src="{{ url_for('static', filename='media/empty-order.webp') }}"
-                    alt="Empty Order" class="empty-order-img">
-
-                <h3>Your don't have any orders yet.</h3>
-                <p>Every adventure starts with a single page. <br>
-                    Browse our collection and discover your next great read!</p>
-
-                <a href="{{ url_for('shop_books') }}" class="empty-order-btn">
-                    Browse Books
-                </a>
-            </div>
-        </div>
-    {% endif %}
+        {% endif %}
+    </div>
 </div>
 
 {% if session.get('order_success') %}
@@ -207,6 +252,82 @@ document.addEventListener("DOMContentLoaded", function () {
 </script>
 {% set _ = session.pop('order_success', None) %}
 {% endif %}
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    const tabs = document.querySelectorAll(".tab");
+    const orders = document.querySelectorAll(".order-box");
+    const STORAGE_KEY = "activeOrderTab";
+
+    function showOrders(filter) {
+
+        orders.forEach(order => {
+            order.classList.remove("show");
+        });
+
+        orders.forEach(order => {
+            const status = order.dataset.status.trim();
+
+            if (!(filter === "all" || status === filter)) {
+                order.classList.add("hide");
+
+                setTimeout(() => {
+                    order.style.display = "none";
+                }, 350);
+            }
+        });
+
+        setTimeout(() => {
+            let visibleIndex = 0;
+
+            orders.forEach(order => {
+                const status = order.dataset.status.trim();
+
+                if (filter === "all" || status === filter) {
+
+                    order.style.display = "";
+                    order.classList.remove("hide");
+
+                    order.offsetHeight;
+
+                    const delay = visibleIndex * 80;
+                    visibleIndex++;
+
+                    setTimeout(() => {
+                        order.classList.add("show");
+                    }, delay);
+                }
+            });
+        }, 350);
+    }
+
+    function activateTab(tab) {
+        tabs.forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
+
+        const filter = tab.dataset.filter;
+        localStorage.setItem(STORAGE_KEY, filter);
+        showOrders(filter);
+    }
+
+    // Restore tab on refresh
+    const savedFilter = localStorage.getItem(STORAGE_KEY) || "all";
+    const savedTab = document.querySelector(`.tab[data-filter="${savedFilter}"]`);
+
+    if (savedTab) {
+        activateTab(savedTab);
+    } else {
+        showOrders("all");
+    }
+
+    // Tab click handler
+    tabs.forEach(tab => {
+        tab.addEventListener("click", () => activateTab(tab));
+    });
+
+});
+</script>
 
 <script>
 document.addEventListener("click", function (e) {
@@ -242,7 +363,7 @@ document.addEventListener("click", function (e) {
             }
         });
 
-        return; // ⛔ stop here
+        return;
     }
 
     /* =====================

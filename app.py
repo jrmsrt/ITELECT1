@@ -1,22 +1,14 @@
 from flask import (
     Flask, render_template, request, redirect,
-    url_for, session, flash
+    url_for, session, jsonify, flash
 )
+import mysql.connector, re, string, secrets, os, json, random, string
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 from flask_mail import Mail, Message
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import mysql.connector
 from flask_mysqldb import MySQL
-from flask import jsonify
-import mysql.connector
-import re
-import string
-import secrets
-import os
-import json
-import random
-import string
 from datetime import date, datetime, timedelta
 
 app = Flask(__name__)
@@ -1932,15 +1924,14 @@ def buy_again(order_id):
         cursor.execute("""
             SELECT oi.book_id, oi.quantity, b.stock_quantity
             FROM order_items oi
+            JOIN orders o ON oi.order_id = o.id
             JOIN books b ON oi.book_id = b.id
-            WHERE oi.order_id = %s
-        """, (order_id,))
+            WHERE oi.order_id = %s AND o.user_id = %s
+        """, (order_id, user_id))
         items = cursor.fetchall()
 
         if not items:
-            return jsonify({"status": "error"}), 404
-
-        skipped = False
+            return jsonify({"status": "no_items"}), 404
 
         for item in items:
             book_id = item["book_id"]
@@ -1965,11 +1956,9 @@ def buy_again(order_id):
 
                 cursor.execute("""
                     UPDATE cart
-                    SET quantity = %s,
-                        username = %s
+                    SET quantity = %s, username = %s
                     WHERE id = %s
                 """, (new_qty, username, existing["id"]))
-
             else:
                 qty = min(qty, 10, stock)
                 if qty <= 0:

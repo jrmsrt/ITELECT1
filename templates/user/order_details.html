@@ -6,6 +6,7 @@
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/user/order_details.css') }}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <div class="order-details-wrapper">
 
@@ -17,7 +18,8 @@
 
         <div class="order-meta">
             <span class="order-code">ORDER ID: <strong>{{ order.order_code }}</strong></span>
-                <span class="order-status-text">
+                <span class="order-status-text
+                        {% if order.status == 'Order Cancelled' %}status-cancelled{% endif %}">
                     {% if order.status == 'Order Placed' %}
                         ORDER PLACED
                     {% elif order.status == 'Order Being Prepared' %}
@@ -34,6 +36,19 @@
                 </span>
         </div>
     </div>
+
+    {% if order.status == 'Order Cancelled' %}
+    <section class="order-section cancellation-section">
+        <h2 class="cancel-title">
+            <i class="fa-solid fa-circle-xmark"></i>
+            Cancellation Completed
+        </h2>
+
+        <p class="cancel-date">
+            on {{ (order.updated_at or order.created_at).strftime("%m/%d/%Y %I:%M %p") }}
+        </p>
+    </section>
+    {% else %}
 
     <!-- ================= TIMELINE ================= -->
     {% set status_map = {} %}
@@ -114,16 +129,18 @@
 
     <!-- ================= DELIVERY / PICKUP INFO ================= -->
     <section class="order-section">
-        <h3>
+        <h2>
             {% if order.fulfillment_method == 'Pick-up' %}
                 Pick-up Information
             {% else %}
-                Delivery Address
+                <i class="fa-solid fa-location-dot"></i> <span>Delivery Address</span>
             {% endif %}
-        </h3>
+        </h2>
 
-        <p class="name">{{ order.full_name }}</p>
-        <p class="phone">(+63) {{ order.phone }}</p>
+        <div>
+            <span class="name">{{ order.full_name }}</span>
+            <span class="phone"> (+63) {{ order.phone }}</span>
+        </div>
 
         <p class="address">
             {% if order.fulfillment_method == 'Pick-up' %}
@@ -155,6 +172,7 @@
         </div>
 
     </section>
+    {% endif %}
 
     <!-- ================= ORDERED ITEMS ================= -->
     <section class="order-section">
@@ -197,15 +215,148 @@
 
     <!-- ================= ACTION BUTTONS ================= -->
     <div class="details-actions">
+
         <a href="{{ url_for('contact') }}">
             <button class="btn-contact">Contact Seller</button>
         </a>
-        <button class="btn-view">View E-Invoice</button>
-        <a href="{{ url_for('shop_books') }}">
-            <button class="btn-buy-again">Buy Again</button>
-        </a>
+
+        {% if order.status in ['Order Placed', 'Order Being Prepared'] %}
+            <button class="btn-cancel"
+                    data-order-id="{{ order.id }}">
+                Cancel Order
+            </button>
+        {% endif %}
+
+        {% if order.status in ['Order Delivered', 'Order Picked Up', 'Order Cancelled'] %}
+            <button class="btn-view">View E-Invoice</button>
+        
+            <button class="btn-buy-again"
+                    data-url="{{ url_for('buy_again', order_id=order.id) }}">
+                Buy Again
+            </button>
+        {% endif %}
+
     </div>
 
 </div>
+
+<script>
+document.addEventListener("click", function (e) {
+
+    /* =====================
+       CANCEL ORDER
+    ===================== */
+    const cancelBtn = e.target.closest(".btn-cancel");
+    if (cancelBtn) {
+        const orderId = cancelBtn.dataset.orderId;
+
+        Swal.fire({
+            title: "Cancel this order?",
+            text: "This action cannot be undone.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, cancel it",
+        }).then(result => {
+            if (result.isConfirmed) {
+                fetch(`/cancel-order/${orderId}`, { method: "POST" })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire("Cancelled!", "Order has been cancelled.", "success")
+                                .then(() => location.reload());
+                        } else {
+                            Swal.fire("Error", data.error || "Failed to cancel.", "error");
+                        }
+                    })
+                    .catch(() => {
+                        Swal.fire("Error", "Something went wrong.", "error");
+                    });
+            }
+        });
+
+        return;
+    }
+
+    /* =====================
+       BUY AGAIN
+    ===================== */
+    const buyAgainBtn = e.target.closest(".btn-buy-again");
+    if (buyAgainBtn) {
+        const url = buyAgainBtn.dataset.url;
+
+        fetch(url, { method: "POST" })
+        .then(res => {
+            console.log("HTTP STATUS:", res.status);
+            return res.json();
+        })
+        .then(data => {
+            if (data.status === "ok") {
+                Swal.fire({
+                    toast: true,
+                    icon: "success",
+                    position: "top-end",
+                    text: "Items added to cart",
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            }
+
+            else if (data.status === "max_reached") {
+                Swal.fire({
+                    toast: true,
+                    icon: "warning",
+                    position: "top-end",
+                    text: "Maximum of 10 per item allowed.",
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            }
+
+            else if (data.status === "max_qty_reached") {
+                Swal.fire({
+                    toast: true,
+                    icon: "warning",
+                    position: "top-end",
+                    text: "Maximum stock already in cart.",
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            }
+
+            else if (data.status === "out_of_stock") {
+                Swal.fire({
+                    toast: true,
+                    icon: "warning",
+                    position: "top-end",
+                    text: "Item is out of stock.",
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            }
+
+            else if (data.status === "no_items") {
+                Swal.fire(
+                    "Nothing to Reorder",
+                    "This order has no items available to buy again.",
+                    "info"
+                );
+            }
+
+            else if (data.status === "not_logged_in") {
+                window.location.href = "{{ url_for('user_login') }}";
+            }
+
+            else {
+                Swal.fire("Error", "Unexpected response.", "error");
+            }
+        })
+        .catch(() => {
+            Swal.fire("Error", "Something went wrong.", "error");
+        });
+    }
+
+});
+</script>
+
 
 {% endblock %}
