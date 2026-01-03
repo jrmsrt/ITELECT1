@@ -1,0 +1,35 @@
+{% extends 'admin/sidebar.html' %}
+{% block content %}
+
+<title>Admin Dashboard | BookHaven</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/dashboard.css') }}">
+
+<div class="dashboard">
+
+    <h2>Dashboard Overview</h2>
+    <p class="subtitle">Quick insights into your bookstore system</p>
+
+    <!-- Stat Cards -->
+    <div class="stats-grid">
+
+        <div class="stat-card users">
+            <i class="fas fa-users"></i>
+            <h3>{{ total_users }}</h3>
+            <p>Total Users</p>
+        </div>
+
+        <div class="stat-card orders">
+            <i class="fas fa-box"></i>
+            <h3>{{ total_orders }}</h3>
+            <p>Total Orders</p>
+        </div>
+
+        <div class="stat-card sales">
+            <i class="fas fa-book"></i>
+            <h3>₱{{ "%.2f"|format(total_sales) }}</h3>
+            <p>Total Sales</p>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

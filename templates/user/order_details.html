@@ -59,13 +59,36 @@
     <div class="order-timeline-inline">
 
         <!-- ORDER PLACED -->
-        <div class="timeline-step {% if status_map.get('Order Placed') %}active{% endif %}">
+        <div class="timeline-step
+            {% if status_map.get('Order Placed') or status_map.get('Payment Pending') %}
+                active
+            {% endif %}
+        ">
             <div class="icon"><i class="fa-solid fa-receipt"></i></div>
             <p>Order Placed</p>
             {% if status_map.get('Order Placed') %}
                 <small>{{ status_map['Order Placed'].created_at.strftime("%m/%d/%Y %H:%M") }}</small>
             {% endif %}
         </div>
+
+        <!-- PAYMENT RECEIVED -->
+        {% if order.payment_method == 'Online Payment'
+        %}
+        <div class="timeline-step
+            {% if status_map.get('Payment Received') %}active{% endif %}
+        ">
+            <div class="icon">
+                <i class="fa-solid fa-credit-card"></i>
+            </div>
+            <p>Payment Confirmed</p>
+
+            {% if status_map.get('Payment Received') %}
+                <small>
+                    {{ status_map['Payment Received'].created_at.strftime("%m/%d/%Y %H:%M") }}
+                </small>
+            {% endif %}
+        </div>
+        {% endif %}
 
         <!-- ORDER PREPARING] -->
         <div class="timeline-step {% if status_map.get('Order Being Prepared') %}active{% endif %}">
@@ -157,13 +180,19 @@
         <h3>Order Status History</h3>
 
         <div class="status-history">
-            {% for s in status_history %}
+            {% for s in status_history|reverse %}
             <div class="status-row {% if loop.first %}completed{% endif %}">
                 <div class="status-icon">
                     <i class="fa-solid fa-circle-check"></i>
                 </div>
                 <div class="status-content">
-                    <strong>{{ s.status }}</strong>
+                    <strong>
+                        {% if s.status == 'Payment Received' %}
+                            Payment Confirmed
+                        {% else %}
+                            {{ s.status }}
+                        {% endif %}
+                    </strong>
                     <p>{{ s.message }}</p>
                     <small>{{ s.created_at.strftime("%m/%d/%Y %H:%M") }}</small>
                 </div>
@@ -199,7 +228,13 @@
     <section class="order-section summary">
         <div class="summary-row">
             <span>Fulfillment Method</span>
-            <span>{{ order.fulfillment_method }}</span>
+            <span>
+                {% if order.payment_method == 'Online Payment' %}
+                    Online Payment ({{ order.payment_channel|upper }})
+                {% else %}
+                    {{ order.payment_method }}
+                {% endif %}
+            </span>
         </div>
 
         <div class="summary-row">
@@ -217,20 +252,36 @@
     <div class="details-actions">
 
         <a href="{{ url_for('contact') }}">
-            <button class="btn-contact">Contact Seller</button>
+            <button class="btn-secondary">Contact Seller</button>
         </a>
 
-        {% if order.status in ['Order Placed', 'Order Being Prepared'] %}
-            <button class="btn-cancel"
-                    data-order-id="{{ order.id }}">
-                Cancel Order
+        {% if
+            order.status in ['Order Placed', 'Order Being Prepared']
+            and not (
+                order.payment_method == 'Online Payment'
+                and order.payment_status == 'Paid'
+            )
+        %}
+        <button class="btn-secondary"
+                data-order-id="{{ order.order_id }}">
+            Cancel Order
+        </button>
+        {% endif %}
+
+        {% if
+            order.payment_method == 'Online Payment'
+            and order.payment_status == 'Pending'
+            and order.status != 'Order Cancelled'
+        %}
+        <form method="POST" action="{{ url_for('retry_paymongo_payment', order_id=order.id) }}">
+            <button class="btn-primary">
+                Pay Now
             </button>
+        </form>
         {% endif %}
 
         {% if order.status in ['Order Delivered', 'Order Picked Up', 'Order Cancelled'] %}
-            <button class="btn-view">View E-Invoice</button>
-        
-            <button class="btn-buy-again"
+            <button class="btn-primary"
                     data-url="{{ url_for('buy_again', order_id=order.id) }}">
                 Buy Again
             </button>

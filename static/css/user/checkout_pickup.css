@@ -442,3 +442,148 @@ input::placeholder {
     padding: 10px 12px;
     border-radius: 6px;
 }
+
+/* =========================
+   ONLINE PAYMENT MODAL
+========================= */
+
+.online-modal-overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.25s ease, visibility 0s linear 0.25s;
+}
+
+/* overlay visible */
+.online-modal-overlay.show{
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition: opacity 0.25s ease, visibility 0s;
+}
+
+.online-modal{
+  width: 420px;
+  max-width: calc(100% - 24px);
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 18px 50px rgba(0,0,0,0.25);
+  overflow: hidden;
+
+  opacity: 0;
+  transform: translateY(18px) scale(0.96);
+  transition: transform 0.25s cubic-bezier(.22,.61,.36,1), opacity 0.25s ease;
+}
+
+/* modal enter */
+.online-modal-overlay.show .online-modal{
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* modal exit animation */
+.online-modal-overlay.closing .online-modal{
+  opacity: 0;
+  transform: translateY(18px) scale(0.96);
+}
+
+
+.online-modal-header{
+  padding: 16px 18px;
+  border-bottom: 1px solid #eee;
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+}
+
+.online-modal-header h3{
+  margin: 0;
+  font-size: 1rem;
+  color: #169f5f;
+}
+
+.online-modal-close{
+  border: none;
+  background: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: #777;
+}
+
+.online-modal-body{
+  padding: 16px 18px 18px;
+}
+
+.channel-grid{
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.channel-btn{
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background: #fafafa;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 600;
+}
+
+/* LEFT SIDE (icon + name) */
+.channel-left{
+  display:flex;
+  align-items:center;
+  gap: 12px;
+}
+
+.channel-icon{
+  width: 35px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.channel-name{
+  font-size: 1rem;
+}
+
+/* RIGHT PILL */
+.channel-pill{
+  font-size: 0.85rem;
+  color:#666;
+  font-weight: 500;
+}
+
+/* HOVER */
+.channel-btn:hover{
+  transform: translateY(-2px);
+  border-color: #22c55e;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.10);
+}
+
+.channel-hint{
+  color:#666;
+  font-size: 0.9rem;
+  margin: 6px 0 0;
+}
+
+.channel-loading{
+  margin-top: 10px;
+  font-size: 0.9rem;
+  color:#666;
+  display:none;
+}
+.channel-loading.show{ display:block; }

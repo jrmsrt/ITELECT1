@@ -22,6 +22,7 @@ body {
     background: url(/static/media/banner.png) no-repeat;
     background-size: cover;
     background-position: center;
+    overflow-y: scroll;
 }
 
 .catalog {
@@ -114,6 +115,7 @@ body {
 }
 
 .reset-btn {
+  margin-right: 0.5rem;
     padding: 12px;
     border: none;
     border-radius: 8px;
@@ -128,6 +130,34 @@ body {
 .reset-btn:hover {
     background: #c9c9c9;
     transform: translateY(-2px);
+}
+
+.export-btn {
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    color: white;
+    transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.export-btn:hover {
+    transform: translateY(-2px);
+}
+
+.export-btn a {
+  color: white;
+  text-decoration: none;
+}
+
+.export-btn.pdf {
+  background-color: #ff382d;
+}
+
+.export-btn.excel {
+  background-color: #1D6F42;
 }
 
 .results-count {
@@ -215,3 +245,80 @@ body {
     padding: 1px 4px;
     border-radius: 5px;
 }
+
+/* =========================
+   PAGINATION
+========================= */
+
+.pagination {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 3rem;
+    gap: 0.5rem;
+    position: absolute;
+    right: -7rem;
+    top: 50%;
+    transform: translateY(-50%);
+    margin-top: 0;
+}
+
+.page-btn {
+    border: none;
+    color: black;
+}
+
+.page-number {
+    border: none;
+}
+
+.page-btn,
+.page-number {
+    padding: 0.45rem 0.8rem;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.page-number.active {
+    background: #f39ca0;
+    color: white;
+    border: none;
+}
+
+.page-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.page-btn:hover:not(:disabled),
+.page-number:hover {
+    background: #f39ca0;
+    color: white;
+}
+
+.filtered-out {
+    display: none !important;
+}
+
+.results-pagination-row {
+    position: relative;
+    width: 80%;
+    max-width: 1200px;
+    margin: 0 auto 1.5rem auto;
+    min-height: 40px;
+}
+
+.results-count {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    font-size: 0.95rem;
+    color: #5a4a4a;
+    margin: 0;
+    white-space: nowrap;
+}
+

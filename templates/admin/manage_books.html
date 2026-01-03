@@ -17,13 +17,6 @@
     <div class="filter-bar">
         <input type="text" id="searchBar" placeholder="Search by title, author, or genre..." class="search-input">
 
-        <select class="filter-select" id="titleFilter">
-            <option value="">Filter by Title</option>
-            {% for book in books %}
-                <option value="{{ book.title }}">{{ book.title }}</option>
-            {% endfor %}
-        </select>
-
         <select class="filter-select" id="authorFilter">
             <option value="">Filter by Author</option>
             {% for book in books %}
@@ -47,8 +40,15 @@
         </button>
     </div>
 
-    <div class="results-count" id="resultCount">
-        Showing {{ books|length }} result{{ 's' if books|length != 1 else '' }}
+    <!-- PAGINATION AND RESULT COUNT -->
+    <div class="results-pagination-row">
+        <div class="results-count" id="resultCount"></div>
+        
+        <div class="pagination" id="pagination">
+            <button class="page-btn" id="prevPage">&lt;</button>
+            <div class="page-numbers" id="pageNumbers"></div>
+            <button class="page-btn" id="nextPage">&gt;</button>
+        </div>
     </div>
 
     <!-- BOOK GRID -->

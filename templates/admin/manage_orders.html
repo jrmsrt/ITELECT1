@@ -155,7 +155,21 @@
                             FOR DELIVERY
                         {% endif %}
                     </p>
-                    <p class="payment-mode">PAYMENT METHOD: <span>{{ order.payment_method }}</span></p>
+                    <p class="payment-mode">
+                        PAYMENT METHOD:
+                        <span>
+                            {% if order.payment_method == 'Online Payment' %}
+                                Online Payment ({{ order.payment_channel|upper }})
+                            {% else %}
+                                {{ order.payment_method }}
+                            {% endif %}
+                        </span>
+                    </p>
+                    <p class="payment-status">
+                        {% if order.payment_method == 'Online Payment' and order.status != 'Order Cancelled' %}
+                            STATUS: <span>{{ order.payment_status|upper }}</span>
+                        {% endif %}
+                    </p>
                     
                 </div>
 

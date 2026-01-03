@@ -2,6 +2,10 @@
     SEARCH & FILTER
 ========================= */
 
+/* =========================
+    SEARCH & FILTER (USER + ADMIN)
+========================= */
+
 const searchInput = document.getElementById("searchBar");
 if (searchInput) {
     searchInput.addEventListener("keyup", filterBooks);
@@ -13,12 +17,10 @@ function applyFilters() {
 
 function resetFilters() {
     const searchBar = document.getElementById("searchBar");
-    const titleFilter = document.getElementById("titleFilter");
     const authorFilter = document.getElementById("authorFilter");
     const genreFilter = document.getElementById("genreFilter");
 
     if (searchBar) searchBar.value = "";
-    if (titleFilter) titleFilter.value = "";
     if (authorFilter) authorFilter.value = "";
     if (genreFilter) genreFilter.value = "";
 
@@ -27,26 +29,16 @@ function resetFilters() {
 
 function filterBooks() {
     const searchBar = document.getElementById("searchBar");
-    const titleFilter = document.getElementById("titleFilter");
     const authorFilter = document.getElementById("authorFilter");
     const genreFilter = document.getElementById("genreFilter");
 
-    if (!searchBar || !titleFilter || !authorFilter || !genreFilter) return;
+    if (!searchBar || !authorFilter || !genreFilter) return;
 
     const search = searchBar.value.toLowerCase();
-    const title = titleFilter.value.toLowerCase();
     const author = authorFilter.value.toLowerCase();
     const genre = genreFilter.value.toLowerCase();
 
     const cards = document.querySelectorAll(".book-card, .item");
-    let visibleCount = 0;
-
-    cards.forEach(card => {
-        if (!card.dataset.originalDisplay) {
-            card.dataset.originalDisplay = getComputedStyle(card).display;
-        }
-    });
-
 
     cards.forEach(card => {
         const matchesSearch =
@@ -55,28 +47,38 @@ function filterBooks() {
             card.dataset.genre.includes(search) ||
             card.dataset.description.includes(search);
 
-        const matchesTitle = !title || card.dataset.title === title;
         const matchesAuthor = !author || card.dataset.author === author;
+
         const matchesGenre =
-        !genre ||
-        card.dataset.genre
-            .split(",")
-            .map(g => g.trim())
-            .includes(genre);
+            !genre ||
+            card.dataset.genre
+                .split(",")
+                .map(g => g.trim())
+                .includes(genre);
 
-
-        const show = matchesSearch && matchesTitle && matchesAuthor && matchesGenre;
-
-        card.style.display = show ? card.dataset.originalDisplay : "none";
-
-        if (show) visibleCount++;
+        const show = matchesSearch && matchesAuthor && matchesGenre;
+        card.classList.toggle("filtered-out", !show);
     });
 
-    const resultCount = document.getElementById("resultCount");
-    if (resultCount) {
-        resultCount.innerText = `Showing ${visibleCount} results`;
+    if (document.querySelector(".book-list")) {
+        adminCurrentPage = 1;
+        sessionStorage.setItem(ADMIN_PAGE_KEY, 1);
+        paginateAdminItems();
+    } else {
+        currentPage = 1;
+        sessionStorage.setItem(USER_PAGE_KEY, 1);
+        paginateBooks();
+    }
+
+    if (document.querySelector(".book-list")) {
+        adminCurrentPage = 1;
+        paginateAdminItems();
+    } else {
+        currentPage = 1;
+        paginateBooks();
     }
 }
+
 
 /* =========================
     CLEARING FIELDS FOR ADD AND EDIT BOOKS
@@ -542,3 +544,224 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 });
+
+// =========================
+// PAGINATION (4 ROWS MAX)
+// =========================
+
+const USER_PAGE_KEY = "shopBooksCurrentPage";
+const ADMIN_PAGE_KEY = "adminBooksCurrentPage";
+const ITEMS_PER_PAGE = 12;
+let currentPage = parseInt(sessionStorage.getItem(USER_PAGE_KEY)) || 1;
+
+function getFilteredBooks() {
+    return Array.from(document.querySelectorAll(".book-card"))
+        .filter(card => !card.classList.contains("filtered-out"));
+}
+
+function renderPagination() {
+    const books = getFilteredBooks();
+    const totalPages = Math.ceil(books.length / ITEMS_PER_PAGE);
+
+    const pageNumbers = document.getElementById("pageNumbers");
+    pageNumbers.innerHTML = "";
+
+    if (totalPages <= 1) {
+        document.getElementById("pagination").style.display = "none";
+        return;
+    }
+
+    document.getElementById("pagination").style.display = "flex";
+
+    for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement("button");
+        btn.className = "page-number" + (i === currentPage ? " active" : "");
+        btn.textContent = i;
+
+        btn.addEventListener("click", () => {
+            currentPage = i;
+            paginateBooks();
+        });
+
+        pageNumbers.appendChild(btn);
+    }
+
+    document.getElementById("prevPage").disabled = currentPage === 1;
+    document.getElementById("nextPage").disabled = currentPage === totalPages;
+}
+
+function paginateBooks() {
+    sessionStorage.setItem(USER_PAGE_KEY, currentPage);
+
+    const books = getFilteredBooks();
+
+    books.forEach(book => {
+        book.style.display = "none";
+    });
+
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    const end = start + ITEMS_PER_PAGE;
+
+    books.slice(start, end).forEach(book => {
+        book.style.display = "";
+    });
+
+    renderPagination();
+    updateResultCount();
+}
+
+function updateResultCount() {
+    const allFiltered = getFilteredBooks();
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    const end = start + ITEMS_PER_PAGE;
+
+    const visibleOnPage = allFiltered.slice(start, end).length;
+    const totalFiltered = allFiltered.length;
+
+    const resultCount = document.getElementById("resultCount");
+    if (resultCount) {
+        resultCount.innerText =
+            `Showing ${visibleOnPage} of ${totalFiltered} result${totalFiltered !== 1 ? "s" : ""}`;
+    }
+}
+
+// =========================
+// RE-RUN PAGINATION AFTER FILTERS
+// =========================
+function resetPagination() {
+    currentPage = 1;
+    paginateBooks();
+}
+
+// Initial load
+document.addEventListener("DOMContentLoaded", paginateBooks);
+
+// =========================
+// ADMIN PAGINATION (10 ITEMS)
+// =========================
+
+const ADMIN_ITEMS_PER_PAGE = 10;
+let adminCurrentPage = parseInt(sessionStorage.getItem(ADMIN_PAGE_KEY)) || 1;
+
+function getAdminFilteredItems() {
+    return Array.from(document.querySelectorAll(".book-list .item"))
+        .filter(item => !item.classList.contains("filtered-out"));
+}
+
+function renderAdminPagination() {
+    const items = getAdminFilteredItems();
+    const totalPages = Math.ceil(items.length / ADMIN_ITEMS_PER_PAGE);
+
+    const pagination = document.getElementById("pagination");
+    const pageNumbers = document.getElementById("pageNumbers");
+
+    if (!pagination || !pageNumbers) return;
+
+    pageNumbers.innerHTML = "";
+
+    if (totalPages <= 1) {
+        pagination.style.display = "none";
+        return;
+    }
+
+    pagination.style.display = "flex";
+
+    for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement("button");
+        btn.className = "page-number" + (i === adminCurrentPage ? " active" : "");
+        btn.textContent = i;
+
+        btn.addEventListener("click", () => {
+            adminCurrentPage = i;
+            paginateAdminItems();
+        });
+
+        pageNumbers.appendChild(btn);
+    }
+
+    document.getElementById("prevPage").disabled = adminCurrentPage === 1;
+    document.getElementById("nextPage").disabled = adminCurrentPage === totalPages;
+}
+
+function paginateAdminItems() {
+    sessionStorage.setItem(ADMIN_PAGE_KEY, adminCurrentPage);
+
+    const items = getAdminFilteredItems();
+
+    items.forEach(item => {
+        item.style.display = "none";
+    });
+
+    const start = (adminCurrentPage - 1) * ADMIN_ITEMS_PER_PAGE;
+    const end = start + ADMIN_ITEMS_PER_PAGE;
+
+    items.slice(start, end).forEach(item => {
+        item.style.display = "";
+    });
+
+    renderAdminPagination();
+    updateAdminResultCount();
+}
+
+function updateAdminResultCount() {
+    const allFiltered = getAdminFilteredItems();
+    const start = (adminCurrentPage - 1) * ADMIN_ITEMS_PER_PAGE;
+    const end = start + ADMIN_ITEMS_PER_PAGE;
+
+    const visibleOnPage = allFiltered.slice(start, end).length;
+    const totalFiltered = allFiltered.length;
+
+    const resultCount = document.getElementById("resultCount");
+    if (resultCount) {
+        resultCount.innerText =
+            `Showing ${visibleOnPage} of ${totalFiltered} result${totalFiltered !== 1 ? "s" : ""}`;
+    }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    if (document.querySelector(".book-list")) {
+        paginateAdminItems();
+    }
+});
+
+function setupPaginationArrows() {
+    const prevBtn = document.getElementById("prevPage");
+    const nextBtn = document.getElementById("nextPage");
+
+    if (!prevBtn || !nextBtn) return;
+
+    prevBtn.addEventListener("click", () => {
+        if (document.querySelector(".book-list")) {
+            // ADMIN
+            if (adminCurrentPage > 1) {
+                adminCurrentPage--;
+                paginateAdminItems();
+            }
+        } else {
+            // USER
+            if (currentPage > 1) {
+                currentPage--;
+                paginateBooks();
+            }
+        }
+    });
+
+    nextBtn.addEventListener("click", () => {
+        if (document.querySelector(".book-list")) {
+            // ADMIN
+            adminCurrentPage++;
+            paginateAdminItems();
+        } else {
+            // USER
+            currentPage++;
+            paginateBooks();
+        }
+    });
+}
+
+document.addEventListener("DOMContentLoaded", setupPaginationArrows);
+
+
+// =========================
+//  EXPORT TO PDF/EXCEL
+// =========================

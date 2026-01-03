@@ -24,15 +24,18 @@
                 Book Haven is your cozy corner for all things literary.
                 <br>Browse. Discover. Escape.</p>
                 <div class="user-avatars">
-                    <div class="avatar avatar-1">
-                        <img src="" alt="img"/>
-                    </div>
-                    <div class="avatar avatar-2">
-                        <img src="" alt="img"/>
-                    </div>
-                    <div class="avatar avatar-3">
-                        <img src="" alt="img"/>
-                    </div>
+                    {% for u in user_avatars %}
+                        <div class="avatar avatar-{{ loop.index }}">
+                            <img src="{{ url_for('static', filename=u.profile_image) }}" alt="User avatar">
+                        </div>
+                    {% endfor %}
+
+                    {% if user_avatars|length == 0 %}
+                        <div class="avatar avatar-1">
+                            <img src="/static/media/default-avatar.png" alt="Default avatar">
+                        </div>
+                    {% endif %}
+
                     <span class="user-count">Join our growing community.</span>
                 </div>
                 <a href="{{ url_for('shop_books') }}" class="btn">SHOP NOW!</a>

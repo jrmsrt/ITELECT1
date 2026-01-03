@@ -209,7 +209,7 @@ hr {
     font-weight: 600;
 }
 
-.payment-mode {
+.payment-mode, .payment-status {
     font-size: 0.9rem;
     color: #555;
 }
@@ -221,6 +221,11 @@ hr {
 .payment-mode span {
     font-weight: 800;
     color: #06b980;
+}
+
+.payment-status span {
+    font-weight: 800;
+    color: var(--burgundy);
 }
 
 .order-bottom {

@@ -20,9 +20,10 @@
             </div>
 
             <!-- Center Navigation -->
-            {% macro navlink(endpoint, label) %}
+            {% macro navlink(endpoint, label, active_on=[]) %}
             <a href="{{ url_for(endpoint) }}"
-                class="nav-link underline-anim {% if request.endpoint == endpoint %}active{% endif %}">
+            class="nav-link underline-anim
+            {% if request.endpoint == endpoint or request.endpoint in active_on %}active{% endif %}">
                 {{ label }}
             </a>
             {% endmacro %}
@@ -32,7 +33,7 @@
                 {{ navlink('about', 'About') }}
                 {{ navlink('contact', 'Contact') }}
                 {{ navlink('shop_books', 'Books') }}
-                {{ navlink('orders', 'My Orders') }}
+                {{ navlink('orders', 'My Orders', ['order_details', 'order_cancel_details', 'order_invoice']) }}
             </nav>
 
             <!-- Right Icons -->

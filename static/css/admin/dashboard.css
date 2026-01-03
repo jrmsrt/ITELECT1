@@ -1,0 +1,83 @@
+:root {
+    --gold: #e7c286;
+    --dark-color: #d4a65e;
+    --burgundy: #7b2d43;
+    --input-border: #e5e7eb;
+    --placeholder: #9ca3af;
+}
+
+body {
+  overflow-y: scroll;
+}
+
+.dashboard {
+  padding: 4rem;
+  min-height: 100vh;
+}
+
+.dashboard h2 {
+  background: linear-gradient(90deg, #b68b2d, var(--burgundy), #4b2e83);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 0.3rem;
+}
+
+.subtitle {
+    color: #777;
+    margin-bottom: 2rem;
+}
+
+/* Stats */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.stat-card {
+    background: #fff;
+    padding: 1.8rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.stat-card.users {
+    background: #d4a65e;
+}
+
+.stat-card.orders {
+    background: #e7c286;
+}
+
+.stat-card.sales {
+    background: #ffdda7;
+}
+
+.stat-card i {
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+}
+
+.stat-card h3 {
+    font-size: 2rem;
+    margin: 0.3rem 0;
+}
+
+/* Status */
+.status-grid {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.status-card {
+    background: #f8f8f8;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+}

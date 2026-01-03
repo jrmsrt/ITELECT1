@@ -12,15 +12,18 @@
     --dark-color: #d4a65e;
     --burgundy: #7b2d43;
     --input-border: #e5e7eb;
-    --placeholder: #9ca3af;
+    --placeholder: #9197a1;
 }
+
+/* ===== PAGE LAYOUT ===== */
 
 .main-container {
     color: black;
     display: flex;
     gap: 20px;
-    padding: 3rem;
-    align-items: flex-start;
+    padding: 2rem;
+    align-items: stretch;
+    height: 100vh;
 }
 
 .content {
@@ -34,13 +37,15 @@
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    font-size: 2rem;
+    font-size: 1.5rem;
     font-weight: 600;
     margin-bottom: 20px;
 }
 
+/* ===== LEFT SIDE ===== */
+
 .left-container {
-    flex: 0 0 32%;
+    flex: 0 0 40%;
     background-color: #fdfdfd;
     padding: 30px;
     padding-left: 3rem;
@@ -49,6 +54,7 @@
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
+/* Image Preview Wrapper */
 .image-preview-wrapper {
     display: flex;
     justify-content: center;
@@ -85,6 +91,7 @@
     left: 0;
 }
 
+/* File Upload */
 .file-upload-wrapper {
     display: flex;
     justify-content: center;
@@ -118,6 +125,8 @@ input[type="file"]::file-selector-button:hover {
     background-color: #ffe6c9;
 }
 
+/* ===== RIGHT SIDE ===== */
+
 .right-container {
     flex: 1;
     background-color: #ffffff;
@@ -126,12 +135,27 @@ input[type="file"]::file-selector-button:hover {
     padding-right: 3rem;
     border-radius: 8px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    overflow: auto;
+}
+
+.right-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.right-container::-webkit-scrollbar-thumb {
+    background: #e9e9e9;
+    border-radius: 4px;
+}
+
+.right-container::-webkit-scrollbar-track {
+    background: #f3f4f6;
 }
 
 form {
     margin: 1rem;
 }
 
+/* Form Styling */
 form label {
     display: block;
     margin-bottom: 8px;
@@ -185,7 +209,7 @@ img {
     justify-content: center;
     width: 100%;
     gap: 12px;
-    margin-top: 20px;
+    margin-top: 10px;
 }
 
 .button-group button,

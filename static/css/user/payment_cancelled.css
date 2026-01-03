@@ -1,0 +1,103 @@
+/* =========================
+   PAYMENT CANCELLED PAGE
+========================= */
+
+html {
+    background: url(/static/media/banner.png) no-repeat;
+    background-size: cover;
+    background-position: center;
+}
+
+.payment-cancelled-wrapper {
+    max-width: 520px;
+    margin: 4rem auto;
+    padding: 2.5rem 2.8rem;
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    text-align: center;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Title */
+.payment-cancelled-wrapper h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #7b2d43; /* burgundy */
+    margin-bottom: 1rem;
+}
+
+/* Description text */
+.payment-cancelled-wrapper p {
+    font-size: 15px;
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+/* Order info box */
+.order-info {
+    background: #faf6ef;
+    border: 1px dashed #e7c286;
+    border-radius: 8px;
+    padding: 1.2rem;
+    margin-bottom: 2rem;
+}
+
+.order-info p {
+    margin: 0.4rem 0;
+    font-size: 14px;
+    color: #333;
+}
+
+/* =========================
+   BUTTONS
+========================= */
+
+/* Pay Now */
+.btn-pay-now {
+    width: 100%;
+    padding: 14px;
+    background: #e7c286;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #2d1b12;
+    cursor: pointer;
+    transition: background 0.25s ease, transform 0.15s ease;
+}
+
+.btn-pay-now:hover {
+    background: #d4a65e;
+    transform: translateY(-1px);
+}
+
+/* Secondary link */
+.btn-secondary {
+    display: inline-block;
+    margin-top: 1.2rem;
+    font-size: 14px;
+    color: #7b2d43;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.btn-secondary:hover {
+    color: #5a2032;
+    text-decoration: underline;
+}
+
+/* =========================
+   MOBILE
+========================= */
+@media (max-width: 480px) {
+    .payment-cancelled-wrapper {
+        margin: 2rem 1rem;
+        padding: 2rem 1.5rem;
+    }
+
+    .payment-cancelled-wrapper h2 {
+        font-size: 20px;
+    }
+}

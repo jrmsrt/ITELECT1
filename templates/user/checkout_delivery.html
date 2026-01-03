@@ -268,5 +268,51 @@
     </div>
 </div>
 
+<!-- ONLINE PAYMENT MODAL -->
+<div class="online-modal-overlay" id="onlineModalOverlay">
+    <div class="online-modal">
+        <div class="online-modal-header">
+            <h3>Choose Payment Channel</h3>
+            <button type="button" class="online-modal-close" id="onlineModalClose">&times;</button>
+        </div>
+
+        <div class="online-modal-body">
+            <p class="channel-hint">
+                You’ll be redirected to PayMongo’s secure test checkout page.
+            </p>
+
+            <div class="channel-grid">
+                <button type="button" class="channel-btn" data-channel="gcash">
+                    <div class="channel-left">
+                        <img src="/static/media/gcash.png" class="channel-icon">
+                        <span class="channel-name">GCash</span>
+                    </div>
+                    <span class="channel-pill">Redirect</span>
+                </button>
+
+                <button type="button" class="channel-btn" data-channel="paymaya">
+                    <div class="channel-left">
+                        <img src="/static/media/maya.png" class="channel-icon">
+                        <span class="channel-name">Maya</span>
+                    </div>
+                    <span class="channel-pill">Redirect</span>
+                </button>
+
+                <button type="button" class="channel-btn" data-channel="card">
+                    <div class="channel-left">
+                        <img src="/static/media/card.jpg" class="channel-icon">
+                        <span class="channel-name">Card</span>
+                    </div>
+                    <span class="channel-pill">Card Form</span>
+                </button>
+            </div>
+
+            <div class="channel-loading" id="channelLoading">
+                Creating checkout session…
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 

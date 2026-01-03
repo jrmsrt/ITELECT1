@@ -2,7 +2,7 @@ from flask import (
     Flask, render_template, request, redirect,
     url_for, session, jsonify, flash
 )
-import mysql.connector, re, string, secrets, os, json, random, string
+import mysql.connector, re, string, secrets, os, json, random, string, base64, hmac, hashlib, requests
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 from flask_mail import Mail, Message
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -10,9 +10,13 @@ from werkzeug.utils import secure_filename
 import mysql.connector
 from flask_mysqldb import MySQL
 from datetime import date, datetime, timedelta
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = 'JRM0218@'
+app.secret_key = os.getenv("FLASK_SECRET_KEY")
+app.config["SECRET_KEY"] = app.secret_key
 
 # =========================
 # UPLOAD FOLDER
@@ -32,12 +36,12 @@ os.makedirs(app.config['BOOKS_FOLDER'], exist_ok=True)
 # =========================
 # MAIL CONFIG
 # =========================
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'thebookhaven.online@gmail.com'
-app.config['MAIL_PASSWORD'] = 'omhqtujoigtbrhji'
-app.config['MAIL_DEFAULT_SENDER'] = 'thebookhaven.online@gmail.com'
+app.config['MAIL_SERVER'] = os.getenv("MAIL_SERVER")
+app.config['MAIL_PORT'] = int(os.getenv("MAIL_PORT"))
+app.config['MAIL_USE_TLS'] = os.getenv("MAIL_USE_TLS").lower() == "true"
+app.config['MAIL_USERNAME'] = os.getenv("MAIL_USERNAME")
+app.config['MAIL_PASSWORD'] = os.getenv("MAIL_PASSWORD")
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv("MAIL_DEFAULT_SENDER")
 
 mail = Mail(app)
 
@@ -46,10 +50,10 @@ mail = Mail(app)
 # =========================
 def get_connection():
     return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="VA2L8RDQ!",
-        database="bhbookstore_db"
+        host=os.getenv("DB_HOST"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        database=os.getenv("DB_NAME")
     )
 
 # =========================
@@ -77,10 +81,22 @@ def home():
     cursor.execute("SELECT * FROM announcements ORDER BY created_at DESC LIMIT 10")
     announcements = cursor.fetchall()
 
+    cursor.execute("""
+        SELECT profile_image
+        FROM users
+        WHERE profile_image IS NOT NULL
+        ORDER BY id DESC
+        LIMIT 3
+    """)
+    user_avatars = cursor.fetchall()
+
     cursor.close()
     conn.close()
 
-    return render_template('user/index.html', featured_books=featured_books, announcements=announcements)
+    return render_template('user/index.html',
+                           featured_books=featured_books,
+                           announcements=announcements,
+                           user_avatars=user_avatars)
 
 # =========================
 #  USER LOGIN (USER + ADMIN)
@@ -1757,7 +1773,9 @@ def orders():
             status,
             total,
             created_at,
-            updated_at
+            updated_at,
+            payment_status,
+            payment_channel
         FROM orders 
         WHERE user_id = %s
         ORDER BY created_at DESC
@@ -1842,7 +1860,19 @@ def order_details(order_id):
         SELECT status, message, created_at
         FROM order_status_history
         WHERE order_id = %s
-        ORDER BY created_at DESC
+        ORDER BY
+        CASE status
+            WHEN 'Order Placed' THEN 1
+            WHEN 'Payment Pending' THEN 2
+            WHEN 'Payment Received' THEN 3
+            WHEN 'Order Being Prepared' THEN 4
+            WHEN 'Order Shipped Out' THEN 5
+            WHEN 'Ready For Pickup' THEN 5
+            WHEN 'Order Delivered' THEN 6
+            WHEN 'Order Picked Up' THEN 6
+            ELSE 99
+        END,
+        created_at ASC
     """, (order_id,))
 
     status_history = cursor.fetchall()
@@ -1885,11 +1915,19 @@ def cancel_order(order_id):
         conn.close()
         return jsonify({"error": "Order not found"}), 404
 
-    # ❌ Block invalid cancellations
-    if order["status"] in ["Order Shipped Out", "Order Delivered"]:
-        cursor.close()
-        conn.close()
-        return jsonify({"error": "Order cannot be cancelled"}), 400
+    # Block invalid cancellations
+    cursor.execute("""
+        SELECT status, payment_status, payment_method
+        FROM orders
+        WHERE id=%s AND user_id=%s
+    """, (order_id, user_id))
+    order = cursor.fetchone()
+
+    if (
+        order["payment_method"] == "Online Payment"
+        and order["payment_status"] == "Paid"
+    ):
+        return jsonify({"error": "Paid orders cannot be cancelled"}), 400
 
     # Update status
     cursor.execute("""
@@ -1983,14 +2021,673 @@ def buy_again(order_id):
 
 
 # =========================
+#  PAYMONGO
+# =========================
+PAYMONGO_SECRET_KEY = os.getenv("PAYMONGO_SECRET_KEY")
+PAYMONGO_PUBLIC_KEY = os.getenv("PAYMONGO_PUBLIC_KEY")
+PAYMONGO_WEBHOOK_SECRET = os.getenv("PAYMONGO_WEBHOOK_SECRET")
+
+def paymongo_headers():
+    token = base64.b64encode(f"{PAYMONGO_SECRET_KEY}:".encode()).decode()
+    return {
+        "Authorization": f"Basic {token}",
+        "Content-Type": "application/json"
+    }
+
+def compute_paymongo_signature(timestamp: str, raw_body: bytes, secret: str) -> str:
+    signed_payload = f"{timestamp}.".encode() + raw_body
+    return hmac.new(secret.encode(), signed_payload, hashlib.sha256).hexdigest()
+
+def verify_paymongo_webhook(req) -> bool:
+    sig = req.headers.get("Paymongo-Signature", "")
+    if not sig:
+        return False
+
+    parts = dict(item.split("=") for item in sig.split(","))
+    timestamp = parts.get("t")
+    signature = parts.get("te") or parts.get("li")
+
+    if not timestamp or not signature:
+        return False
+
+    expected = compute_paymongo_signature(timestamp, req.get_data(), PAYMONGO_WEBHOOK_SECRET)
+    return hmac.compare_digest(signature, expected)
+
+@app.route("/api/paymongo/start-checkout", methods=["POST"])
+def paymongo_start_checkout():
+    if "user_id" not in session:
+        return jsonify({"ok": False}), 401
+
+    user_id = session["user_id"]
+    selected_items = session.get("checkout_selected") or []
+    fulfillment = session.get("fulfillment_method")
+
+    if not selected_items:
+        return jsonify({"ok": False, "error": "No selected items"}), 400
+
+    if fulfillment not in ("Delivery", "Pick-up"):
+        return jsonify({"ok": False, "error": "Invalid fulfillment"}), 400
+
+    channel = request.form.get("channel")  # gcash | paymaya | card
+    if channel not in ("gcash", "paymaya", "card"):
+        return jsonify({"ok": False, "error": "Invalid channel"}), 400
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        # -----------------------------
+        # FETCH CART ITEMS
+        # -----------------------------
+        placeholders = ",".join(["%s"] * len(selected_items))
+        cursor.execute(f"""
+            SELECT c.id AS cart_id, c.quantity,
+                   b.id AS book_id, b.title, b.price, b.stock_quantity
+            FROM cart c
+            JOIN books b ON c.book_id = b.id
+            WHERE c.user_id=%s AND c.id IN ({placeholders})
+        """, [user_id] + selected_items)
+
+        items = cursor.fetchall()
+        total = sum(float(i["price"]) * i["quantity"] for i in items)
+
+        # -----------------------------
+        # RESOLVE ADDRESS (DELIVERY vs PICKUP)
+        # -----------------------------
+        address_text = ""
+        full_name = ""
+        phone = ""
+
+        if fulfillment == "Delivery":
+            selected_address_id = request.form.get("selected_address")
+
+            if not selected_address_id:
+                return jsonify({"ok": False, "error": "Address is required"}), 400
+
+            cursor.execute("""
+                SELECT full_name, phone, address
+                FROM user_addresses
+                WHERE id=%s AND user_id=%s
+            """, (selected_address_id, user_id))
+
+            row = cursor.fetchone()
+            if not row:
+                return jsonify({"ok": False, "error": "Invalid address"}), 400
+
+            full_name = row["full_name"]
+            phone = row["phone"]
+            address_text = row["address"]
+
+        else:
+            cursor.execute("""
+                SELECT name, phone
+                FROM users
+                WHERE id=%s
+            """, (user_id,))
+            user = cursor.fetchone()
+
+            full_name = user["name"]
+            phone = user["phone"]
+            address_text = "PICKUP"
+
+        # -----------------------------
+        # CREATE ORDER (PENDING)
+        # -----------------------------
+        order_code = generate_order_code()
+
+        cursor.execute("""
+            INSERT INTO orders (
+                user_id,
+                full_name,
+                phone,
+                address,
+                payment_method,
+                payment_channel,
+                fulfillment_method,
+                total,
+                status,
+                payment_status,
+                order_code
+            ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+        """, (
+            user_id,
+            full_name,
+            phone,
+            address_text,
+            "Online Payment",
+            channel,
+            fulfillment,
+            total,
+            "Order Placed",
+            "Pending",
+            order_code
+        ))
+
+        conn.commit()
+        order_id = cursor.lastrowid
+
+        # INSERT FULL ORDER ITEMS SNAPSHOT (ONLINE PAYMENT)
+        for item in items:
+            line_total = float(item["price"]) * item["quantity"]
+
+            cursor.execute("""
+                INSERT INTO order_items (
+                    order_id,
+                    book_id,
+                    quantity,
+                    price,
+                    line_total,
+                    title,
+                    cover,
+                    author,
+                    genre
+                )
+                SELECT
+                    %s,
+                    b.id,
+                    %s,
+                    b.price,
+                    %s,
+                    b.title,
+                    b.cover,
+                    b.author,
+                    b.genre
+                FROM books b
+                WHERE b.id = %s
+            """, (
+                order_id,
+                item["quantity"],
+                line_total,
+                item["book_id"]
+            ))
+
+        conn.commit()
+
+        # Status timeline
+        cursor.execute("""
+            INSERT INTO order_status_history (order_id, status, message)
+            VALUES (%s,%s,%s)
+        """, (
+            order_id,
+            "Order Placed",
+            STATUS_MESSAGES["Order Placed"][fulfillment]
+        ))
+
+        cursor.execute("""
+            INSERT INTO order_status_history (order_id, status, message)
+            VALUES (%s,%s,%s)
+        """, (
+            order_id,
+            "Payment Pending",
+            "Waiting for payment confirmation."
+        ))
+
+        conn.commit()
+
+        # -----------------------------
+        # PAYMONGO CHECKOUT SESSION
+        # -----------------------------
+        payload = {
+            "data": {
+                "attributes": {
+                    "payment_method_types": [channel],
+                    "line_items": [
+                        {
+                            "name": i["title"],
+                            "amount": int(i["price"] * 100),
+                            "currency": "PHP",
+                            "quantity": i["quantity"]
+                        } for i in items
+                    ],
+                    "success_url": url_for("paymongo_success", order_code=order_code, _external=True),
+                    "cancel_url": url_for("paymongo_cancel", order_code=order_code, _external=True),
+                    "description": f"Order {order_code}"
+                }
+            }
+        }
+
+        res = requests.post(
+            "https://api.paymongo.com/v1/checkout_sessions",
+            headers=paymongo_headers(),
+            data=json.dumps(payload)
+        ).json()
+
+        checkout = res["data"]
+        checkout_id = checkout["id"]
+        checkout_url = checkout["attributes"]["checkout_url"]
+
+        cursor.execute("""
+            UPDATE orders
+            SET paymongo_checkout_session_id=%s
+            WHERE id=%s
+        """, (checkout_id, order_id))
+        conn.commit()
+
+        return jsonify({"ok": True, "checkout_url": checkout_url})
+
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/paymongo/success/<order_code>")
+def paymongo_success(order_code):
+    # update payment state
+    refresh_payment_status(order_code)
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT id FROM orders WHERE order_code=%s LIMIT 1", (order_code,))
+        row = cursor.fetchone()
+        if not row:
+            return redirect(url_for("orders"))
+        return redirect(url_for("order_details", order_id=row["id"]))
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/payment-cancelled/<int:order_id>")
+def payment_cancelled(order_id):
+    if "user_id" not in session:
+        return redirect(url_for("user_login"))
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT *
+        FROM orders
+        WHERE id=%s AND user_id=%s
+    """, (order_id, session["user_id"]))
+    order = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    if not order:
+        return redirect(url_for("orders"))
+
+    # Paid orders should never land here
+    if order["payment_status"] == "Paid":
+        return redirect(url_for("order_details", order_id=order_id))
+
+    return render_template(
+        "user/payment_cancelled.html",
+        order=order
+    )
+
+
+@app.route("/paymongo/retry/<int:order_id>", methods=["POST"])
+def retry_paymongo_payment(order_id):
+    if "user_id" not in session:
+        return redirect(url_for("user_login"))
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    # Fetch order
+    cursor.execute("""
+        SELECT *
+        FROM orders
+        WHERE id=%s AND user_id=%s
+    """, (order_id, session["user_id"]))
+    order = cursor.fetchone()
+
+    if not order:
+        cursor.close()
+        conn.close()
+        return redirect(url_for("orders"))
+
+    # SAFETY: cannot retry paid orders
+    if order["payment_status"] == "Paid":
+        cursor.close()
+        conn.close()
+        return redirect(url_for("order_details", order_id=order_id))
+
+    # Fetch snapshot items
+    cursor.execute("""
+        SELECT title, quantity, price
+        FROM order_items
+        WHERE order_id=%s
+    """, (order_id,))
+    items = cursor.fetchall()
+
+    if not items:
+        cursor.close()
+        conn.close()
+        return redirect(url_for("orders"))
+
+    # Create NEW checkout session
+    payload = {
+        "data": {
+            "attributes": {
+                "payment_method_types": [order["payment_channel"]],
+                "line_items": [
+                    {
+                        "name": i["title"],
+                        "amount": int(float(i["price"]) * 100),
+                        "currency": "PHP",
+                        "quantity": i["quantity"]
+                    } for i in items
+                ],
+                "success_url": url_for(
+                    "paymongo_success",
+                    order_code=order["order_code"],
+                    _external=True
+                ),
+                "cancel_url": url_for(
+                    "paymongo_cancel",
+                    order_code=order["order_code"],
+                    _external=True
+                ),
+                "description": f"Retry payment for {order['order_code']}"
+            }
+        }
+    }
+
+    res = requests.post(
+        "https://api.paymongo.com/v1/checkout_sessions",
+        headers=paymongo_headers(),
+        data=json.dumps(payload)
+    ).json()
+
+    checkout = res["data"]
+
+    # Save NEW checkout session ID
+    cursor.execute("""
+        UPDATE orders
+        SET paymongo_checkout_session_id=%s
+        WHERE id=%s
+    """, (checkout["id"], order_id))
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+    return redirect(checkout["attributes"]["checkout_url"])
+
+
+@app.route("/paymongo/cancel/<order_code>")
+def paymongo_cancel(order_code):
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT id, payment_status
+        FROM orders
+        WHERE order_code=%s
+        LIMIT 1
+    """, (order_code,))
+    order = cursor.fetchone()
+
+    if not order:
+        cursor.close()
+        conn.close()
+        return redirect(url_for("orders"))
+
+    # Do NOT mark as cancelled — just keep pending
+    if order["payment_status"] != "Paid":
+        cursor.execute("""
+            UPDATE orders
+            SET payment_status='Pending'
+            WHERE id=%s
+        """, (order["id"],))
+        conn.commit()
+
+    cursor.close()
+    conn.close()
+
+    return redirect(url_for("payment_cancelled", order_id=order["id"]))
+
+
+def refresh_payment_status(order_code):
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT
+            id,
+            user_id,
+            payment_status,
+            paymongo_checkout_session_id,
+            fulfillment_method
+        FROM orders
+        WHERE order_code=%s
+    """, (order_code,))
+    order = cursor.fetchone()
+
+    fulfillment = order["fulfillment_method"]
+
+    if not order or order["payment_status"] == "Paid":
+        cursor.close()
+        conn.close()
+        return
+
+    res = requests.get(
+        f"https://api.paymongo.com/v1/checkout_sessions/{order['paymongo_checkout_session_id']}",
+        headers=paymongo_headers()
+    ).json()
+
+    payments = res["data"]["attributes"].get("payments")
+    if not payments:
+        cursor.close()
+        conn.close()
+        return
+
+    # -------------------------
+    # MARK ORDER AS PAID
+    # -------------------------
+    cursor.execute("""
+        UPDATE orders
+        SET payment_status='Paid',
+            paid_at=NOW()
+        WHERE id=%s
+    """, (order["id"],))
+
+    # -------------------------
+    # UPDATE STOCK FROM SNAPSHOT (order_items)
+    # -------------------------
+    cursor.execute("""
+        SELECT book_id, quantity
+        FROM order_items
+        WHERE order_id = %s
+    """, (order["id"],))
+
+    order_items = cursor.fetchall()
+
+    for oi in order_items:
+        cursor.execute("""
+            UPDATE books
+            SET stock_quantity = stock_quantity - %s
+            WHERE id = %s
+        """, (oi["quantity"], oi["book_id"]))
+
+    # -------------------------
+    # CLEAR ONLY CHECKED-OUT CART ITEMS
+    # -------------------------
+    cursor.execute("""
+        DELETE c
+        FROM cart c
+        JOIN order_items oi ON c.book_id = oi.book_id
+        WHERE c.user_id = %s
+        AND oi.order_id = %s
+    """, (order["user_id"], order["id"]))
+
+    # -------------------------
+    # TIMELINE (DE-DUP SAFE)
+    # -------------------------
+
+    # Payment Received (insert only once)
+    cursor.execute("""
+        SELECT 1
+        FROM order_status_history
+        WHERE order_id=%s AND status='Payment Received'
+        LIMIT 1
+    """, (order["id"],))
+
+    if not cursor.fetchone():
+        cursor.execute("""
+            INSERT INTO order_status_history (order_id, status, message)
+            VALUES (%s,%s,%s)
+        """, (
+            order["id"],
+            "Payment Received",
+            "Payment confirmed."
+        ))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+@app.route("/paymongo/webhook", methods=["POST"])
+def paymongo_webhook():
+    if not verify_paymongo_webhook(request):
+        return "invalid", 400
+
+    payload = request.json
+    event = payload["data"]["attributes"]["type"]
+    resource = payload["data"]["attributes"]["data"]
+
+    if event == "checkout_session.payment.paid":
+        session_id = resource["id"]
+
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        # Fetch order
+        cursor.execute("""
+            SELECT id, user_id, payment_status, fulfillment_method
+            FROM orders
+            WHERE paymongo_checkout_session_id=%s
+            LIMIT 1
+        """, (session_id,))
+        order = cursor.fetchone()
+
+        # Safety: webhook retries are normal
+        if not order or order["payment_status"] == "Paid":
+            cursor.close()
+            conn.close()
+            return "ok", 200
+
+        # Mark paid + advance order status
+        cursor.execute("""
+            UPDATE orders
+            SET payment_status='Paid',
+                paid_at=NOW()
+            WHERE id=%s
+        """, (order["id"],))
+
+        # Deduct stock from snapshot
+        cursor.execute("""
+            SELECT book_id, quantity
+            FROM order_items
+            WHERE order_id=%s
+        """, (order["id"],))
+
+        for oi in cursor.fetchall():
+            cursor.execute("""
+                UPDATE books
+                SET stock_quantity = stock_quantity - %s
+                WHERE id = %s
+            """, (oi["quantity"], oi["book_id"]))
+
+        # Clear ONLY cart items included in this order
+        cursor.execute("""
+            DELETE c
+            FROM cart c
+            JOIN order_items oi ON c.book_id = oi.book_id
+            WHERE c.user_id = %s
+            AND oi.order_id = %s
+        """, (order["user_id"], order["id"]))
+
+        # -------------------------
+        # TIMELINE (DE-DUP SAFE)
+        # -------------------------
+
+        # Payment Received
+        cursor.execute("""
+            SELECT 1
+            FROM order_status_history
+            WHERE order_id=%s AND status='Payment Received'
+            LIMIT 1
+        """, (order["id"],))
+
+        if not cursor.fetchone():
+            cursor.execute("""
+                INSERT INTO order_status_history (order_id, status, message)
+                VALUES (%s,%s,%s)
+            """, (
+                order["id"],
+                "Payment Received",
+                "Payment confirmed via webhook."
+            ))
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+    return "ok", 200
+
+
+# =========================
 #  ADMIN PANEL
 # =========================
 @app.route('/admin/dashboard')
 def admin_dashboard():
     if 'admin' not in session:
         return redirect('/user-login')
-    return render_template('admin/sidebar.html')
 
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    # -------------------------
+    # TOTAL USERS
+    # -------------------------
+    cursor.execute("SELECT COUNT(*) AS total_users FROM users")
+    total_users = cursor.fetchone()["total_users"]
+
+    # -------------------------
+    # TOTAL ORDERS (EXCLUDE CANCELLED)
+    # -------------------------
+    cursor.execute("""
+        SELECT COUNT(*) AS total_orders
+        FROM orders
+        WHERE status != 'Order Cancelled'
+    """)
+    total_orders = cursor.fetchone()["total_orders"]
+
+    # -------------------------
+    # TOTAL SALES (PAID ORDERS ONLY)
+    # -------------------------
+    cursor.execute("""
+        SELECT COALESCE(SUM(total), 0) AS total_sales
+        FROM orders
+        WHERE payment_status = 'Paid'
+    """)
+    total_sales = cursor.fetchone()["total_sales"]
+
+    # -------------------------
+    # PAID ONLINE ORDERS COUNT
+    # -------------------------
+    cursor.execute("""
+        SELECT COUNT(*) AS paid_orders
+        FROM orders
+        WHERE payment_status = 'Paid'
+    """)
+    paid_orders = cursor.fetchone()["paid_orders"]
+
+    cursor.close()
+    conn.close()
+
+    return render_template(
+        'admin/dashboard.html',
+        total_users=total_users,
+        total_orders=total_orders,
+        total_sales=total_sales,
+        paid_orders=paid_orders,
+        active_page='admin_dashboard'
+    )
 
 # =========================
 #  ADD BOOK ROUTE
@@ -2233,6 +2930,259 @@ def books_list():
 
 
 # =========================
+#  EXPORT TO PDF/EXCEL
+# =========================
+from flask import send_file
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Image, Paragraph
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.styles import ParagraphStyle
+from reportlab.lib.enums import TA_CENTER
+import io
+import os
+
+@app.route("/admin/export/books/pdf")
+def export_pdf():
+    if 'admin' not in session:
+        return redirect('/user-login')
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT id, title, author, genre, isbn, price, stock_quantity
+        FROM books
+        ORDER BY id ASC
+    """)
+    books = cursor.fetchall()
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        leftMargin=24,
+        rightMargin=24,
+        topMargin=24,
+        bottomMargin=24
+    )
+    styles = getSampleStyleSheet()
+    elements = []
+
+    center_style = ParagraphStyle(
+        "CenterHeader",
+        parent=styles["Normal"],
+        alignment=TA_CENTER
+    )
+
+    # Logo
+    logo_path = os.path.join("static", "media", "bookhaven-logo.png")
+    elements.append(Image(logo_path, width=40, height=40))
+
+    elements.append(Paragraph("<b>BOOKHAVEN</b>", center_style))
+    elements.append(Paragraph("ONLINE BOOKSTORE", center_style))
+    elements.append(Paragraph("<b>FULL CATALOG</b>", styles["Title"]))
+
+    header_style = ParagraphStyle(
+        "TableHeader",
+        parent=styles["Normal"],
+        alignment=TA_CENTER,
+        fontSize=9,
+        leading=11,
+        textColor=colors.white
+    )
+
+    # Table Data
+    table_data = [[
+        Paragraph("ID", header_style),
+        Paragraph("TITLE", header_style),
+        Paragraph("AUTHOR", header_style),
+        Paragraph("GENRE", header_style),
+        Paragraph("ISBN", header_style),
+        Paragraph("PRICE", header_style),
+        Paragraph("STOCK", header_style),
+    ]]
+
+    cell_style = styles["Normal"]
+    cell_style.fontSize = 9
+    cell_style.leading = 11
+
+    for book in books:
+        table_data.append([
+            Paragraph(str(book["id"]), cell_style),
+            Paragraph(book["title"], cell_style),
+            Paragraph(book["author"], cell_style),
+            Paragraph(book["genre"], cell_style),
+            Paragraph(book["isbn"], cell_style),
+            Paragraph(f"PHP {book['price']:,.2f}", cell_style),
+            format_stock(book["stock_quantity"], cell_style),
+        ])
+
+    page_width = A4[0] - doc.leftMargin - doc.rightMargin
+
+    colWidths = [
+        page_width * 0.05,  # ID
+        page_width * 0.26,  # TITLE
+        page_width * 0.15,  # Author
+        page_width * 0.20,  # Genre
+        page_width * 0.12,  # ISBN
+        page_width * 0.14,  # Price
+        page_width * 0.08,  # Stock
+    ]
+
+    table = Table(table_data, colWidths=colWidths, repeatRows=1)
+
+    table.setStyle(TableStyle([
+        ("BACKGROUND", (0,0), (-1,0), colors.grey),
+        ("TEXTCOLOR", (0,0), (-1,0), colors.white),
+        ("GRID", (0,0), (-1,-1), 1, colors.black),
+        ("FONT", (0,0), (-1,0), "Helvetica-Bold"),
+        ("ALIGN", (0,0), (-1,-1), "LEFT"),
+        ("VALIGN", (0,0), (-1,-1), "TOP"),
+        ("TOPPADDING", (0,0), (-1,-1), 6),
+        ("BOTTOMPADDING", (0,0), (-1,-1), 6),
+    ]))
+
+    elements.append(table)
+    doc.build(elements)
+
+    buffer.seek(0)
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name="BOOKHAVEN - Books Catalog.pdf",
+        mimetype="application/pdf"
+    )
+
+
+def format_stock(stock, style):
+    if stock == 0:
+        return Paragraph(
+            '<font color="red"><b>Out of Stock</b></font>',
+            style
+        )
+    return Paragraph(f"{stock:,}", style)
+
+
+from flask import send_file
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
+import io
+
+@app.route("/admin/export/books/excel")
+def export_excel():
+    if 'admin' not in session:
+        return redirect('/user-login')
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT id, title, author, genre, isbn, price, stock_quantity
+        FROM books
+        ORDER BY id ASC
+    """)
+    books = cursor.fetchall()
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "FULL CATALOG"
+
+    # ===== TITLE =====
+    ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=7)
+    title_cell = ws.cell(row=1, column=1)
+    title_cell.value = "BOOKHAVEN ONLINE BOOKSTORE FULL CATALOG"
+    title_cell.font = Font(bold=True, size=14)
+    title_cell.alignment = Alignment(horizontal="center", vertical="center")
+    ws.row_dimensions[1].height = 30
+    ws.row_dimensions[2].height = 30
+
+    # ===== HEADERS =====
+    gold_fill = PatternFill(
+        start_color="E7C286",
+        end_color="E7C286",
+        fill_type="solid"
+    )
+
+    headers = ["ID", "TITLE", "Author", "Genre", "ISBN", "Price", "Stock"]
+    ws.append(headers)
+
+    for cell in ws[2]:
+        cell.font = Font(bold=True)
+        cell.fill = gold_fill
+        cell.alignment = Alignment(
+            horizontal="center",
+            vertical="center",
+            wrap_text=True,
+            indent=1
+        )
+
+    # ===== COLUMN WIDTHS =====
+    ws.column_dimensions["A"].width = 6
+    ws.column_dimensions["B"].width = 35
+    ws.column_dimensions["C"].width = 20
+    ws.column_dimensions["D"].width = 30
+    ws.column_dimensions["E"].width = 18
+    ws.column_dimensions["F"].width = 14
+    ws.column_dimensions["G"].width = 14
+
+    # ===== DATA ROWS =====
+    for book in books:
+        if book["stock_quantity"] == 0:
+            stock_text = "Out of Stock"
+            stock_font = Font(color="FF0000", bold=True)
+        else:
+            stock_text = f"{book['stock_quantity']:,}"
+            stock_font = None
+
+        ws.append([
+            book["id"],
+            book["title"],
+            book["author"],
+            book["genre"],
+            book["isbn"],
+            f"₱{book['price']:,.2f}",
+            stock_text
+        ])
+
+        row = ws.max_row
+
+        for col in range(1, 8):
+            ws.cell(row=row, column=col).alignment = Alignment(
+                vertical="center",
+                wrap_text=True,
+                indent=1
+            )
+
+        ws.row_dimensions[row].height = 32
+
+        if stock_font:
+            ws.cell(row=row, column=7).font = stock_font
+
+    # ===== BORDERS =====
+    thin_border = Border(
+        left=Side(style="thin"),
+        right=Side(style="thin"),
+        top=Side(style="thin"),
+        bottom=Side(style="thin"),
+    )
+
+    for row in ws.iter_rows(min_row=1, max_row=ws.max_row, min_col=1, max_col=7):
+        for cell in row:
+            cell.border = thin_border
+
+    # ===== SEND FILE =====
+    file_stream = io.BytesIO()
+    wb.save(file_stream)
+    file_stream.seek(0)
+
+    return send_file(
+        file_stream,
+        as_attachment=True,
+        download_name="BOOKHAVEN - Books Catalog.xlsx",
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+
+# =========================
 #  ADMIN MANAGE ORDERS
 # =========================
 @app.route('/admin/manage-orders')
@@ -2251,6 +3201,8 @@ def manage_orders():
             o.status,
             o.payment_method,
             o.fulfillment_method,
+            o.payment_status,
+            o.payment_channel,
             o.total,
             o.created_at,
             o.address,

@@ -243,7 +243,26 @@ body {
     gap: 10px;
 }
 
-.btn-cancel {
+.btn-primary {
+    padding: 8px 15px;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    background: linear-gradient(135deg, #d37f8c, #c89f5d, #e7c286);
+    background-size: 180% 180%;
+    transition: background-position 0.6s ease, transform 0.3s ease, filter 0.3s ease, box-shadow 0.3s ease;
+}
+
+.btn-primary:hover {
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+    filter: brightness(1.08);
+}
+
+.btn-secondary {
     padding: 8px 15px;
     background: #333;
     border: 1px solid #e5e7eb;
@@ -255,18 +274,18 @@ body {
     transition: background-position 0.6s ease, transform 0.3s ease, filter 0.3s ease, box-shadow 0.3s ease;
 }
 
-.btn-cancel:hover {
+.btn-secondary:hover {
     color: white;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
     transform: translateY(-2px);
     background: #000000;
 }
 
-.btn-buy-again {
+.btn-tertiary {
     padding: 8px 15px;
-    background: #333;
-    border: 1px solid #e5e7eb;
-    color: #fff;
+    background: #fff;
+    border: 2px solid var(--gold);
+    color: var(--gold);
     font-size: 13px;
     font-weight: 600;
     border-radius: 6px;
@@ -274,11 +293,12 @@ body {
     transition: background-position 0.6s ease, transform 0.3s ease, filter 0.3s ease, box-shadow 0.3s ease;
 }
 
-.btn-buy-again:hover {
+.btn-tertiary:hover {
+    background: var(--gold);
     color: white;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
     transform: translateY(-2px);
-    background: #000000;
+    filter: brightness(1.08);
 }
 
 .btn-view {
@@ -298,64 +318,6 @@ body {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
     transform: translateY(-2px);
     filter: brightness(1.08);
-}
-
-.empty-order-box {
-    padding: 0.1rem 0;
-    text-align: center;
-}
-
-.empty-order-box .empty-order {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-
-.empty-order {
-    padding: 2rem 0.2rem;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
-}
-
-.empty-order-img {
-    width: 200px;
-    opacity: 0.9;
-    margin-bottom: 20px;
-}
-
-.empty-order h3 {
-    font-size: 1.7rem;
-    margin-bottom: 10px;
-    color: #333;
-}
-
-.empty-order p {
-    font-size: 1rem;
-    margin-bottom: 20px;
-}
-
-.empty-order-btn {
-  text-align: center;
-  margin-top: 20px;
-  font-size: 14px;
-  color: #555;
-}
-
-.empty-order-btn {
-  color: #666;
-  font-weight: 600;
-  text-decoration: none;
-  position: relative;
-  transition: color 0.3s ease;
-}
-
-.empty-order-btn:hover {
-  color: var(--dark-color);
 }
 
 .ship-status.cancelled {
@@ -415,7 +377,8 @@ body {
 .tab.active .badge,
 .tab:hover .badge {
     background: #fff;
-    color: #111827;
+    color: #dc2626;
+    font-weight: 600;
 }
 
 .tab.active {

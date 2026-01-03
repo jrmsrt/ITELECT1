@@ -434,7 +434,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 "This field is required. Complete all selections."
             );
 
-            // 🔥 FORCE SAVE ERROR STATE
+            // FORCE SAVE ERROR STATE
             saveNewAddressState();
 
             return false;
@@ -442,7 +442,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         setFieldError(selectorInput, "");
 
-        // 🔥 SAVE CLEARED STATE
+        // SAVE CLEARED STATE
         saveNewAddressState();
 
         return true;
@@ -660,32 +660,40 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (placeOrderBtn) {
         placeOrderBtn.addEventListener("click", (e) => {
-            const allValid = validateAddressForm();
 
+            // 1️⃣ Validate address first
+            const allValid = validateAddressForm();
             if (!allValid) {
                 e.preventDefault();
-                Swal.fire({ 
-                toast: true, 
-                position: "top-end", 
-                icon: "error", 
-                title: "Please complete all required fields correctly.", 
-                showConfirmButton: false, 
-                timer: 1500, 
-                timerProgressBar: true, 
-            }); 
-            return
-        }
+                Swal.fire({
+                    toast: true,
+                    position: "top-end",
+                    icon: "error",
+                    title: "Please complete all required fields correctly.",
+                    showConfirmButton: false,
+                    timer: 1500,
+                    timerProgressBar: true,
+                });
+                return;
+            }
 
-        // PRE-CAPTURE payment method (avoid race condition)
-        const activeOption = document.querySelector(".payment-option.active");
-        let paymentValue = "";
-        if (activeOption) {
+            // 2️⃣ Detect selected payment method
+            const activeOption = document.querySelector(".payment-option.active");
             const paymentMap = {
                 cod: "Cash on Delivery",
                 online: "Online Payment",
             };
-            paymentValue = paymentMap[activeOption.id];
-        }
+            const paymentValue = activeOption ? paymentMap[activeOption.id] : "";
+
+            // Always set hidden field
+            document.getElementById("payment_method").value = paymentValue;
+
+            // 3️⃣ ONLINE PAYMENT → STOP submit + open modal
+            if (paymentValue === "Online Payment") {
+                e.preventDefault();
+                openOnlineModal();
+                return;
+            }
 
         // CASE 1 — NEW ADDRESS: SAVE FIRST THEN PLACE ORDER
         if (isAddingNewAddress) {
@@ -1037,4 +1045,73 @@ clearBtn.addEventListener("click", (e) => {
     dropdown.classList.remove("hidden");
 
     saveNewAddressState();
+});
+
+document.querySelectorAll(".channel-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+
+        // FORCE CAPTURE SELECTED ADDRESS
+        const chosenAddress = document.querySelector(
+            "input[name='selected_address']:checked"
+        );
+
+        if (chosenAddress) {
+            document.getElementById("selected_address_hidden").value =
+                chosenAddress.value;
+        }
+
+        const hiddenAddress = document.getElementById("selected_address_hidden").value;
+        if (!hiddenAddress) {
+            Swal.fire("Error", "Please select or save an address first.", "error");
+            return;
+        }
+
+        const form = document.querySelector("#placeOrderForm");
+        const data = new FormData(form);
+        data.append("channel", btn.dataset.channel);
+
+        const res = await fetch("/api/paymongo/start-checkout", {
+            method: "POST",
+            body: data
+        });
+
+        const json = await res.json();
+
+        if (!json.ok) {
+            Swal.fire("Error", json.error || "Unable to start payment.", "error");
+            return;
+        }
+
+        window.location.href = json.checkout_url;
+    });
+});
+
+
+// =========================
+// ONLINE PAYMENT MODAL
+// =========================
+const onlineOverlay = document.getElementById("onlineModalOverlay");
+const onlineClose = document.getElementById("onlineModalClose");
+const channelLoading = document.getElementById("channelLoading");
+const channelButtons = document.querySelectorAll(".channel-btn");
+
+function openOnlineModal() {
+    onlineOverlay.classList.add("show");
+    onlineOverlay.classList.remove("closing");
+}
+
+function closeOnlineModal() {
+    onlineOverlay.classList.add("closing");
+    onlineOverlay.classList.remove("show");
+    setTimeout(() => {
+        onlineOverlay.classList.remove("closing");
+    }, 260);
+}
+
+// close button
+onlineClose.addEventListener("click", closeOnlineModal);
+
+// click outside modal
+onlineOverlay.addEventListener("click", (e) => {
+    if (e.target === onlineOverlay) closeOnlineModal();
 });
