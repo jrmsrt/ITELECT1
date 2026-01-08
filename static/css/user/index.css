@@ -253,8 +253,16 @@ body {
 }
 
 .book-slider {
-  width: 70%;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
   padding-bottom: 50px;
+}
+
+.book-slider .swiper-slide {
+  display: flex;
+  justify-content: center;
+  height: auto;
 }
 
 .swiper-slide {
@@ -265,7 +273,7 @@ body {
 }
 
 .book-card {
-  width: 220px;
+  width: 100%;
   text-align: left;
 }
 
@@ -1046,4 +1054,245 @@ body {
     30%  { transform: scale(1.4) rotate(15deg); opacity: 1; }
     60%  { transform: scale(0.9) rotate(0deg); opacity: 0.8; }
     100% { transform: scale(0.2) rotate(-10deg); opacity: 0; }
+}
+
+/* ===========================
+   MOBILE & TABLET RESPONSIVE
+   =========================== */
+
+/* ---------- Tablets (≤ 1024px) ---------- */
+@media (max-width: 1024px) {
+
+  .index {
+    padding: 3rem 1.5rem;
+  }
+
+  .index-content {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+    text-align: center;
+  }
+
+  .index-text h1 {
+    font-size: 2.1rem;
+  }
+
+  .index-text p {
+    font-size: 1.05rem;
+  }
+
+  .user-avatars {
+    justify-content: center;
+  }
+
+  .index-slider {
+    max-width: 480px;
+  }
+
+  .books-slider .swiper-slide img {
+    height: 220px;
+  }
+
+  .featured-books {
+    padding: 3rem 1.5rem;
+  }
+
+  .book-slider {
+    width: 90%;
+  }
+
+  .announcements {
+    padding: 3rem 1.5rem;
+  }
+}
+
+
+/* ---------- Mobile (≤ 768px) ---------- */
+@media (max-width: 768px) {
+
+  .container {
+    padding: 0 16px;
+  }
+
+  /* HERO SECTION */
+  .index {
+    padding: 3rem 1rem;
+  }
+
+  .index-text h1 {
+    font-size: 1.9rem;
+  }
+
+  .index-text p {
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+
+  .btn {
+    font-size: 0.95rem;
+    padding: 0.7rem 1.6rem;
+  }
+
+  /* AVATARS */
+  .avatar {
+    width: 34px;
+    height: 34px;
+  }
+
+  .user-count {
+    font-size: 0.8rem;
+  }
+
+  /* SLIDER */
+  .index-slider {
+    max-width: 420px;
+  }
+
+  .books-slider .swiper-slide img {
+    height: 200px;
+  }
+
+  .stand {
+    margin-top: -25px;
+  }
+
+  /* FEATURED BOOKS */
+  .featured-books h2 {
+    font-size: 1.6rem;
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .book-card {
+    width: 100%;
+  }
+
+  .book-cover {
+    height: 280px;
+    padding: 1.5rem;
+  }
+
+  .book-card .book-title {
+    font-size: 0.95rem;
+  }
+
+  .book-card .desc {
+    font-size: 0.85rem;
+  }
+
+  .book-bottom-actions .action-btn {
+    font-size: 0.8rem;
+    padding: 8px 10px;
+    height: 36px;
+  }
+
+  /* MODAL */
+  .modal-content {
+    width: 92%;
+    height: auto;
+    max-height: 90vh;
+  }
+
+  .modal-body {
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .modal-left {
+    width: 100%;
+    text-align: center;
+  }
+
+  .modal-left img {
+    max-width: 220px;
+    margin: 0 auto;
+  }
+
+  .modal-title {
+    font-size: 1.1rem;
+    margin: 1rem 0;
+  }
+
+  .modal-description {
+    font-size: 0.9rem;
+    padding: 10px;
+  }
+
+  /* ANNOUNCEMENTS */
+  .announcement-card {
+    height: 420px;
+  }
+
+  .announcement-title {
+    font-size: 1.05rem;
+  }
+
+  .announcement-content .desc {
+    font-size: 0.9rem;
+  }
+}
+
+
+/* ---------- Small Phones (≤ 480px) ---------- */
+@media (max-width: 480px) {
+
+  .index {
+    padding: 2.5rem 0.8rem;
+  }
+
+  .index-text h1 {
+    font-size: 1.7rem;
+  }
+
+  .index-text p {
+    font-size: 0.9rem;
+  }
+
+  .btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .index-slider {
+    max-width: 100%;
+  }
+
+  .books-slider .swiper-slide img {
+    height: 180px;
+  }
+
+  .featured-books h2 {
+    font-size: 1.45rem;
+  }
+
+  .book-card {
+    width: 100%;
+  }
+
+  .book-cover {
+    height: 250px;
+  }
+
+  .book-bottom-actions {
+    flex-direction: column;
+  }
+
+  .book-bottom-actions .action-btn {
+    width: 100%;
+  }
+
+  .announcement-card {
+    height: 390px;
+  }
+
+  .empty-post h3 {
+    font-size: 1.4rem;
+  }
+
+  .empty-post p {
+    font-size: 0.95rem;
+  }
 }

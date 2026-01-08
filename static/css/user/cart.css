@@ -528,3 +528,108 @@ p.subtext {
   height: 18px;
   cursor: pointer;
 }
+
+/* =========================================================
+   CART PAGE — MOBILE RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 992px) {
+
+  .my-cart {
+    flex-direction: column;
+    gap: 1.5rem;
+    margin: 2rem auto;
+  }
+
+  .cart-details,
+  .order-summary {
+    width: 100%;
+    flex: unset;
+  }
+
+  .order-summary {
+    height: auto;
+  }
+
+  .cart-items-content {
+    overflow-x: auto;
+  }
+
+  .cart-item {
+    min-width: 760px;
+  }
+
+  .cart-header {
+    position: static;
+  }
+
+  .cart-items-content::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  .cart-details,
+  .order-summary {
+    padding: 22px;
+    border-radius: 14px;
+  }
+
+  /* Smaller fonts */
+  h2 {
+    font-size: 1.35rem;
+  }
+
+  p.subtext {
+    font-size: 0.85rem;
+  }
+
+  .cart-item-info h3 {
+    font-size: 0.95rem;
+  }
+
+  .cart-item-info .author {
+    font-size: 0.85rem;
+  }
+
+  .cart-item-info .genre {
+    font-size: 0.8rem;
+  }
+
+  .item-price,
+  .item-total {
+    font-size: 0.9rem;
+  }
+
+  .summary-item {
+    font-size: 0.9rem;
+  }
+
+  .summary-total {
+    font-size: 1rem;
+  }
+
+  .checkout-btn {
+    font-size: 0.95rem;
+    padding: 12px;
+  }
+
+  .continue-btn {
+    font-size: 0.85rem;
+  }
+
+  .cart-details::-webkit-scrollbar {
+    height: 5px;
+  }
+
+  .cart-details::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 8px;
+  }
+
+  .cart-details::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+  }
+
+  html, body {
+    overflow-x: hidden;
+  }
+}

@@ -1,31 +1,56 @@
-const toggleButton = document.getElementById('toggle-btn')
-const sidebar = document.getElementById('sidebar')
+const toggleButton = document.getElementById('toggle-btn');
+const sidebar = document.getElementById('sidebar');
 
-function toggleSidebar(){
-  sidebar.classList.toggle('close')
-  toggleButton.classList.toggle('rotate')
+/* ===============================
+   RESTORE STATE
+   =============================== */
+document.addEventListener('DOMContentLoaded', () => {
+  const state = localStorage.getItem('sidebar');
+  if (state === 'closed') {
+    sidebar.classList.add('close');
+    toggleButton?.classList.add('rotate');
+  }
+});
 
-  closeAllSubMenus()
+/* ===============================
+   TOGGLE SIDEBAR
+   =============================== */
+function toggleSidebar() {
+  const isClosed = sidebar.classList.toggle('close');
+  toggleButton.classList.toggle('rotate');
+
+  if (isClosed) {
+    document.documentElement.setAttribute('data-sidebar', 'closed');
+    localStorage.setItem('sidebar', 'closed');
+  } else {
+    document.documentElement.removeAttribute('data-sidebar');
+    localStorage.setItem('sidebar', 'open');
+  }
 }
 
-function toggleSubMenu(button){
+/* ===============================
+   DISABLE SUBMENUS WHEN CLOSED
+   =============================== */
+function toggleSubMenu(button) {
+  if (sidebar.classList.contains('close')) return;
 
-  if(!button.nextElementSibling.classList.contains('show')){
-    closeAllSubMenus()
-  }
+  const submenu = button.nextElementSibling;
+  const isOpen = submenu.classList.contains('show');
 
-  button.nextElementSibling.classList.toggle('show')
-  button.classList.toggle('rotate')
+  closeAllSubMenus();
 
-  if(sidebar.classList.contains('close')){
-    sidebar.classList.toggle('close')
-    toggleButton.classList.toggle('rotate')
+  if (!isOpen) {
+    submenu.classList.add('show');
+    button.classList.add('rotate');
   }
 }
 
-function closeAllSubMenus(){
-  Array.from(sidebar.getElementsByClassName('show')).forEach(ul => {
-    ul.classList.remove('show')
-    ul.previousElementSibling.classList.remove('rotate')
-  })
+/* ===============================
+   CLOSE ALL SUBMENUS
+   =============================== */
+function closeAllSubMenus() {
+  sidebar.querySelectorAll('.show').forEach(menu => {
+    menu.classList.remove('show');
+    menu.previousElementSibling?.classList.remove('rotate');
+  });
 }

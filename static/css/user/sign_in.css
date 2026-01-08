@@ -465,3 +465,124 @@ body {
     from { opacity: 1; transform: translateY(0) scale(1); }
     to   { opacity: 0; transform: translateY(-16px) scale(0.98); height: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 }
+
+/* ============================================================
+   SIGN IN — MOBILE RESPONSIVE
+============================================================ */
+
+/* Tablets & below */
+@media (max-width: 900px) {
+  .sign-in {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    padding: 50px 24px;
+    min-height: auto;
+  }
+
+  .sign-in-content {
+    order: 1;
+  }
+
+  .signin-form {
+    order: 2;
+    justify-self: stretch;
+    max-width: 100%;
+  }
+
+  .sign-in-content h1 {
+    font-size: 2.2rem;
+    line-height: 1.2;
+    margin-bottom: 1rem;
+  }
+
+  .sign-in-content p {
+    font-size: 0.95rem;
+    max-width: 100%;
+    margin-bottom: 0;
+  }
+}
+
+/* Phones */
+@media (max-width: 600px) {
+  body {
+    background-attachment: scroll;
+  }
+
+  .sign-in {
+    padding: 70px 38px;
+    gap: 22px;
+  }
+
+  .signin-form {
+    padding: 22px;
+    border-radius: 12px;
+  }
+
+  .signin-form h2 {
+    font-size: 1.25rem;
+  }
+
+  .form-group label {
+    font-size: 0.92rem;
+  }
+
+  .form-input {
+    font-size: 0.95rem;
+    padding: 12px 14px;
+  }
+
+  .btn-signin {
+    font-size: 0.95rem;
+    padding: 12px;
+  }
+
+  .back-home {
+    font-size: 0.9rem;
+  }
+
+  .register-link {
+    font-size: 0.9rem;
+  }
+
+  .terms {
+    font-size: 0.75rem;
+    line-height: 1.4;
+  }
+
+  .segment {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 380px) {
+  .sign-in {
+    padding: 52px 14px;
+  }
+
+  .sign-in-content h1 {
+    font-size: 1.9rem;
+  }
+
+  .signin-form {
+    padding: 18px;
+  }
+
+  .seg-btn {
+    font-size: 0.9rem;
+    padding: 8px 14px;
+  }
+}
+
+@media (max-width: 900px) {
+  html, body {
+    overflow-x: hidden;
+  }
+
+  .signin-form,
+  .sign-in-content,
+  .segment-wrapper,
+  .segment,
+  .form-input {
+    min-width: 0;
+  }
+}

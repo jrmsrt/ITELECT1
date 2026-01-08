@@ -170,3 +170,104 @@
     font-size: 1.2rem;
     opacity: 0.95;
 }
+
+/* ==================== */
+/* MOBILE  ADJUSTMENTS */
+/* ==================== */
+
+@media (max-width: 768px) {
+
+  /* Page containers */
+  .container {
+    padding: 0 3rem;
+  }
+
+  /* Top banner */
+  .about-banner {
+    padding: 2.2rem 1.4rem;
+    margin: 1.5rem 2.5rem;
+    font-size: 1.4rem;
+    border-radius: 22px;
+  }
+
+  .about-banner h2 {
+    font-size: 1.8rem;
+  }
+
+  .about-banner p {
+    font-size: 0.9rem;
+  }
+
+  /* White cards */
+  .white-card {
+    padding: 1.8rem 1.4rem;
+    margin: 3rem 0;
+    border-radius: 20px;
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+  }
+
+  .white-card p {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin: 1.2rem 0;
+    text-align: left;
+  }
+
+  .white-card ul li {
+    margin-left: 1.2rem;
+    font-size: 0.9rem;
+  }
+
+  /* Features section */
+  .features {
+    padding: 2.5rem 1rem;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .feature-box {
+    padding: 1.3rem;
+    gap: 14px;
+  }
+
+  .feature-box h3 {
+    font-size: 1rem;
+  }
+
+  .feature-box p {
+    font-size: 0.85rem;
+  }
+
+  .feature-box-icon {
+    font-size: 1.3rem;
+    padding: 12px;
+  }
+
+  /* Small banner */
+  .small-banner {
+    padding: 1.4rem;
+    font-size: 0.95rem;
+    border-left-width: 5px;
+  }
+
+  /* Mission section */
+  .mission-section {
+    padding: 2.5rem 1.5rem;
+    margin: 3rem 2.5rem;
+    border-radius: 22px;
+  }
+
+  .mission-section h1 {
+    font-size: 1.7rem;
+  }
+
+  .mission-section p {
+    font-size: 0.95rem;
+  }
+}

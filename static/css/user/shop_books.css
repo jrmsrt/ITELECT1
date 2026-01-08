@@ -158,8 +158,9 @@ body {
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 2rem;
   justify-items: start;
-  width: 80%;
+  width: 100%;
   margin: 0 auto;
+  padding: 0 7rem;
 }
 
 /* Book Card */
@@ -795,3 +796,158 @@ body {
     white-space: nowrap;
 }
 
+/* =====================================================
+   MOBILE 
+===================================================== */
+
+/* =========================================================
+   SHOP BOOKS — MOBILE RESPONSIVE (SAFE OVERRIDES)
+   ========================================================= */
+
+/* Tablets & below */
+@media (max-width: 992px) {
+
+  .shop-books {
+    padding: 3rem 1rem;
+  }
+
+  .book-grid {
+    padding: 0 2rem; /* reduce huge side padding */
+  }
+
+  .results-pagination-row {
+    width: 100%;
+  }
+
+  .pagination {
+    position: static;
+    transform: none;
+    justify-content: center;
+    margin-top: 1rem;
+  }
+
+  .results-count {
+    position: static;
+    transform: none;
+    margin-bottom: 0.75rem;
+  }
+}
+
+/* Phones */
+@media (max-width: 768px) {
+
+  /* Stack filters */
+  .filter-bar {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .search-input {
+    flex: 1 1 100%;
+    font-size: 0.9rem;
+  }
+
+  .filter-select {
+    flex: 1 1 48%;
+    font-size: 0.85rem;
+  }
+
+  .filter-btn,
+  .reset-btn {
+    flex: 1 1 48%;
+    font-size: 0.9rem;
+    padding: 10px;
+  }
+
+  /* Typography */
+  .shop-books h2 {
+    font-size: 1.6rem;
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
+  }
+
+  /* Grid & cards */
+  .book-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    padding: 0 1rem;
+    gap: 1.25rem;
+  }
+
+  .book-card {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .book-cover {
+    height: 260px;
+    padding: 1.5rem;
+  }
+
+  .book-cover img {
+    height: 200px;
+  }
+
+  .book-card .book-title {
+    font-size: 0.95rem;
+  }
+
+  .book-card .desc {
+    font-size: 0.85rem;
+  }
+
+  .price-stock .price {
+    font-size: 0.9rem;
+  }
+
+  .price-stock .stock {
+    font-size: 0.8rem;
+  }
+
+  .book-bottom-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .book-bottom-actions .action-btn {
+    width: 100%;
+    font-size: 0.85rem;
+  }
+}
+
+/* Very small phones */
+@media (max-width: 420px) {
+
+  .shop-books {
+    padding: 2.5rem 0.75rem;
+  }
+
+  .shop-books h2 {
+    font-size: 1.45rem;
+  }
+
+  .book-cover {
+    height: 230px;
+  }
+
+  .book-cover img {
+    height: 180px;
+  }
+
+  .modal-content {
+    width: 95%;
+    height: auto;
+  }
+
+  .modal-body {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .modal-left {
+    width: 100%;
+  }
+}

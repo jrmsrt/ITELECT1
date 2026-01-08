@@ -449,3 +449,123 @@ img {
     50%  { transform: translateY(-10px); }
     100% { transform: translateY(0px); }
 }
+
+/* =====================================================
+   MOBILE RESPONSIVE — SAFE STACKING & SPACING
+===================================================== */
+
+@media (max-width: 1024px) {
+    .main-container {
+        padding: 1.5rem;
+        margin: 1rem;
+        height: auto;
+    }
+
+    form {
+        margin: 0;
+    }
+
+    .left-container,
+    .right-container {
+        padding: 2rem;
+    }
+}
+
+/* ===== TABLET & MOBILE STACK ===== */
+@media (max-width: 900px) {
+
+    .content,
+    form {
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .left-container,
+    .right-container {
+        width: 100%;
+        flex: unset;
+        height: auto;
+    }
+
+    .right-container {
+        overflow-y: visible;
+    }
+
+    .content h2 {
+        font-size: 1.35rem;
+        margin-bottom: 16px;
+        text-align: center;
+    }
+
+    .image-preview {
+        width: 100%;
+        max-width: 320px;
+        height: 200px;
+    }
+
+    .button-group {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .button-group button {
+        flex: 1 1 100%;
+        height: 44px;
+    }
+
+    .announcement-content {
+        padding: 1.4rem;
+        font-size: 0.9rem;
+    }
+
+    .announcements-header {
+        padding: 12px 14px;
+        font-size: 0.95rem;
+    }
+}
+
+/* ===== SMALL PHONES ===== */
+@media (max-width: 480px) {
+
+    .main-container {
+        padding: 1rem;
+        margin: 1rem;
+    }
+
+    .left-container,
+    .right-container {
+        padding: 1.25rem;
+        border-radius: 8px;
+    }
+
+    form label {
+        font-size: 0.9rem;
+    }
+
+    form input[type="text"],
+    form textarea {
+        font-size: 0.9rem;
+        padding: 9px 10px;
+    }
+
+    .content h2 {
+        font-size: 1.2rem;
+    }
+
+    .announcement-content {
+        font-size: 0.88rem;
+        line-height: 1.5;
+    }
+
+    .empty-post h3 {
+        font-size: 1.3rem;
+    }
+
+    .empty-post p {
+        font-size: 0.9rem;
+    }
+
+    .announcement-photo-wrapper img {
+        height: 200px;
+    }
+}

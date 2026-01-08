@@ -419,3 +419,177 @@ body {
 .order-box[style*="display: none"] {
     transform: none !important;
 }
+
+/* =====================================================
+   MOBILE OPTIMIZATION — ORDERS PAGE
+===================================================== */
+
+@media (max-width: 900px) {
+
+  html, body {
+    overflow-x: hidden;
+  }
+
+  /* Wrapper */
+  .orders-wrapper {
+    padding: 0 2.5rem;
+  }
+
+  /* ===================== TABS ===================== */
+
+  .order-tabs {
+    gap: 0.5rem;
+    justify-content: flex-start;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 0.5rem;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .order-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tab {
+    flex-shrink: 0;
+    padding: 0.55rem 1.1rem;
+    font-size: 0.8rem;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  .badge {
+    font-size: 0.65rem;
+  }
+
+  /* ===================== ORDER BOX ===================== */
+
+  .order-box {
+    padding: 1.2rem;
+    border-radius: 10px;
+  }
+
+  /* ===================== HEADER ===================== */
+
+  .order-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+  }
+
+  .order-id {
+    font-size: 0.85rem;
+  }
+
+  .order-status {
+    font-size: 0.75rem;
+    line-height: 1.4;
+    flex-wrap: wrap;
+  }
+
+  .ship-status {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 6px;
+    white-space: nowrap;
+  }
+
+  /* ===================== ORDER ITEMS ===================== */
+
+  .order-item {
+    flex-direction: row;
+    gap: 0.6rem;
+    padding: 0.7rem;
+  }
+
+  .order-item img {
+    width: 45px;
+    height: 62px;
+    flex-shrink: 0;
+  }
+
+  .item-details {
+    margin-left: 0;
+    min-width: 0;
+  }
+
+  .item-details h4 {
+    font-size: 0.85rem;
+    line-height: 1.2;
+  }
+
+  .item-details .author,
+  .item-details .genre {
+    font-size: 0.7rem;
+  }
+
+  .item-price {
+    min-width: auto;
+    font-size: 0.75rem;
+  }
+
+  .item-price strong {
+    font-size: 0.8rem;
+  }
+
+  /* ===================== FOOTER ===================== */
+
+  .order-footer {
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .fulfillment {
+    font-size: 0.8rem;
+  }
+
+  .payment-mode {
+    font-size: 0.75rem;
+  }
+
+  .total-amount {
+    font-size: 1.2rem;
+  }
+
+  /* ===================== BOTTOM ROW ===================== */
+
+  .order-bottom {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+  }
+
+  .order-bottom .date {
+    margin-bottom: 0;
+    font-size: 0.7rem;
+  }
+
+  /* ===================== ACTION BUTTONS ===================== */
+
+  .order-actions {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 0.5rem;
+  }
+
+  .order-actions button {
+    flex: 1 1 calc(50% - 0.25rem);
+    font-size: 0.75rem;
+    padding: 0.5rem;
+  }
+
+  .btn-view {
+    flex-basis: 100%;
+  }
+}
+
+/* ===================== EXTRA SMALL DEVICES ===================== */
+
+@media (max-width: 480px) {
+
+  .order-actions button {
+    flex-basis: 100%;
+  }
+
+}

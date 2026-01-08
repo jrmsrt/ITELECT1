@@ -305,3 +305,110 @@ img {
 .tagify__tag {
     margin: 4px;
 }
+
+/* ===== MOBILE & SMALL SCREENS ===== */
+@media (max-width: 768px) {
+
+    .main-container {
+        padding: 1.25rem;
+        margin: 1rem;
+        height: auto;
+    }
+
+    .content {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    form {
+        margin: 0;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .left-container,
+    .right-container {
+        width: 100%;
+        flex: none;
+        padding: 20px;
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+
+    .content h2 {
+        font-size: 1.25rem;
+        margin-bottom: 16px;
+    }
+
+    .image-preview {
+        width: 200px;
+        height: 280px;
+    }
+
+    .image-preview span {
+        font-size: 14px;
+    }
+
+    form input[type="text"],
+    form input[type="number"],
+    form textarea {
+        font-size: 0.9rem;
+        padding: 12px;
+        margin-bottom: 14px;
+    }
+
+    form label {
+        font-size: 0.9rem;
+        margin-bottom: 6px;
+    }
+
+    textarea {
+        min-height: 140px;
+    }
+
+    .flex-row {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .button-group {
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 16px;
+    }
+
+    .button-group button,
+    .button-group a {
+        width: 100%;
+        font-size: 0.9rem;
+        height: 44px;
+    }
+
+    .tagify {
+        font-size: 0.9rem;
+        padding: 6px 10px;
+    }
+}
+
+/* ===== VERY SMALL PHONES ===== */
+@media (max-width: 480px) {
+
+    .main-container {
+        padding: 1rem;
+        margin: 1rem;
+    }
+
+    .left-container,
+    .right-container {
+        padding: 16px;
+    }
+
+    .image-preview {
+        width: 180px;
+        height: 260px;
+    }
+
+    .content h2 {
+        font-size: 1.15rem;
+    }
+}

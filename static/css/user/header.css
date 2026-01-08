@@ -306,6 +306,76 @@
     display: block;
 }
 
+/* ================= MOBILE NAV ================= */
+
+.mobile-menu-toggle {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+}
+
+.mobile-menu-toggle span {
+    width: 26px;
+    height: 3px;
+    background: linear-gradient(90deg, #e7c286, #b68b2d);
+    border-radius: 3px;
+    transition: all 0.4s ease;
+}
+
+/* Animate burger → X */
+.mobile-menu-toggle.active span:nth-child(1) {
+    transform: translateY(8px) rotate(45deg);
+}
+
+.mobile-menu-toggle.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.mobile-menu-toggle.active span:nth-child(3) {
+    transform: translateY(-8px) rotate(-45deg);
+}
+
+@media (max-width: 900px) {
+
+    .nav {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background: white;
+        flex-direction: column;
+        gap: 1.2rem;
+        padding: 1.5rem 0;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.12);
+
+        opacity: 0;
+        transform: translateY(-10px);
+        pointer-events: none;
+
+        transition: opacity 0.35s ease, transform 0.35s ease;
+        z-index: 999;
+    }
+
+    .nav.open {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+    }
+
+    .nav-link {
+        font-size: 1.05rem;
+    }
+
+    .mobile-menu-toggle {
+        display: flex;
+    }
+
+    .header-icons {
+        gap: 0.8rem;
+    }
+}
+
 /* ---------------- UNDERLINE GRADIENT ANIMATION ---------------- */
 .underline-anim {
     position: relative;

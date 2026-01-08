@@ -14,22 +14,139 @@
 
         <div class="stat-card users">
             <i class="fas fa-users"></i>
-            <h3>{{ total_users }}</h3>
+            <h3 id="totalUsers">{{ total_users }}</h3>
             <p>Total Users</p>
         </div>
 
         <div class="stat-card orders">
             <i class="fas fa-box"></i>
-            <h3>{{ total_orders }}</h3>
+            <h3 id="totalOrders">{{ total_orders }}</h3>
             <p>Total Orders</p>
         </div>
 
         <div class="stat-card sales">
             <i class="fas fa-book"></i>
-            <h3>₱{{ "%.2f"|format(total_sales) }}</h3>
+            <h3 id="totalSales">₱{{ "%.2f"|format(total_sales) }}</h3>
             <p>Total Sales</p>
         </div>
     </div>
+
+    <h3 class="section-title">Monthly Sales</h3>
+    <canvas id="salesChart" height="100"></canvas>
+        <div class="dashboard-grid-2">
+
+        <!-- Top Selling Books -->
+        <div class="dashboard-card">
+            <h3><i class="fa-solid fa-fire"></i> Top Selling Books</h3>
+            <table class="dashboard-table">
+                <thead>
+                    <tr>
+                        <th>Book</th>
+                        <th>Sold</th>
+                        <th>Revenue</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for b in top_books %}
+                    <tr>
+                        <td>{{ b.title }}</td>
+                        <td>{{ b.total_sold }}</td>
+                        <td>₱{{ "%.2f"|format(b.revenue) }}</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="3">No sales yet</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Low Stock Alerts -->
+        <div class="dashboard-card">
+            <h3><i class="fa-solid fa-triangle-exclamation"></i> Low Stock Alerts</h3>
+
+            {% if low_stock_books %}
+            <ul class="low-stock-list">
+                {% for book in low_stock_books %}
+                <li>
+                    <span>{{ book.title }}</span>
+                    <span class="stock-badge danger">
+                        {{ book.stock_quantity }} left
+                    </span>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="muted">All books are well stocked 🎉</p>
+            {% endif %}
+        </div>
+
+    </div>
+
 </div>
+
+
+<script id="monthly-sales-data" type="application/json">
+{{ monthly_sales | tojson }}
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+const dataTag = document.getElementById("monthly-sales-data");
+
+let salesData = [];
+if (dataTag) {
+    try {
+        salesData = JSON.parse(dataTag.textContent);
+    } catch (e) {
+        salesData = [];
+    }
+}
+
+const labels = salesData.map(d => d.month);
+const revenue = salesData.map(d => Number(d.revenue || 0));
+
+const canvas = document.getElementById("salesChart");
+if (canvas) {
+    new Chart(canvas, {
+        type: "line",
+        data: {
+            labels,
+            datasets: [{
+                label: "Sales (PHP)",
+                data: revenue,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    ticks: {
+                        callback: v => "₱" + v.toLocaleString()
+                    }
+                }
+            }
+        }
+    });
+}
+</script>
+
+<script>
+setInterval(() => {
+    fetch("/admin/api/dashboard-stats")
+        .then(res => res.json())
+        .then(d => {
+            document.getElementById("totalUsers").textContent = d.total_users;
+            document.getElementById("totalOrders").textContent = d.total_orders;
+            document.getElementById("totalSales").textContent =
+                "₱" + d.total_sales.toFixed(2);
+        });
+}, 10000);
+</script>
 
 {% endblock %}

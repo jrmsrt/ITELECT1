@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/user/floating_chatbot.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/user/header.css') }}">
     <link rel="icon" type="image" href="/static/media/bookhaven-logo.png">
 </head>
@@ -83,22 +84,83 @@
         {% block content %}
         {% endblock %}
     </main>
+
+<!-- ========================= FLOATING CHATBOT ========================= -->
+
+<!-- Floating Button -->
+<div id="ai-chatbot-toggle">
+    <img src="{{ url_for('static', filename='media/bookhavenai.png') }}" alt="AI">
+</div>
+
+<!-- Chat Window -->
+<div id="ai-chatbot-window">
+
+    <!-- HEADER -->
+    <div class="ai-chat-header">
+        <span>BookHaven AI</span>
+        <div class="ai-chat-actions">
+            <button id="ai-chatbot-minimize">—</button>
+            <button id="ai-chatbot-close">×</button>
+        </div>
+    </div>
+
+    <!-- CHAT MESSAGES -->
+    <div id="ai-chatbot-messages"></div>
+
+    <!-- QUICK REPLIES (ABOVE INPUT) -->
+    <div class="ai-quick-replies">
+        <button data-msg="Search catalog">Search catalog</button>
+        <button data-msg="Store hours">Store hours</button>
+        <button data-msg="Pickup info">Pickup info</button>
+        <button data-msg="Delivery info">Delivery info</button>
+        <button data-msg="Payment methods">Payment methods</button>
+        <button data-msg="Store location">Store location</button>
+    </div>
+
+    <!-- INPUT -->
+    <div class="ai-chat-input-row">
+        <input id="ai-chatbot-input" type="text" placeholder="Ask something..." />
+        <button id="ai-chatbot-send">Send</button>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/floating_chatbot.js') }}"></script>
     
-    <script>
-    function toggleUserMenu() {
-        const dropdown = document.getElementById("userDropdown");
-        dropdown.classList.toggle("show");
+<script>
+function toggleUserMenu() {
+    const dropdown = document.getElementById("userDropdown");
+    dropdown.classList.toggle("show");
+}
+
+document.addEventListener("click", function (e) {
+    const menu = document.getElementById("userMenu");
+    const dropdown = document.getElementById("userDropdown");
+
+    if (menu && !menu.contains(e.target)) {
+        dropdown.classList.remove("show");
     }
+});
+</script>
 
-    document.addEventListener("click", function (e) {
-        const menu = document.getElementById("userMenu");
-        const dropdown = document.getElementById("userDropdown");
+<script>
+function toggleMobileMenu() {
+    const nav = document.querySelector(".nav");
+    const burger = document.querySelector(".mobile-menu-toggle");
 
-        if (menu && !menu.contains(e.target)) {
-            dropdown.classList.remove("show");
-        }
+    nav.classList.toggle("open");
+    burger.classList.toggle("active");
+}
+
+document.querySelectorAll(".nav-link").forEach(link => {
+    link.addEventListener("click", () => {
+        const nav = document.querySelector(".nav");
+        const burger = document.querySelector(".mobile-menu-toggle");
+
+        nav.classList.remove("open");
+        burger.classList.remove("active");
     });
-    </script>
+});
+</script>
 
 </body>
 </html>
