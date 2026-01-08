@@ -1,0 +1,11 @@
+Flask
+Flask-Mail
+flask-mysqldb
+mysql-connector-python
+python-dotenv
+requests
+itsdangerous
+Werkzeug
+reportlab
+openpyxl
+openai
