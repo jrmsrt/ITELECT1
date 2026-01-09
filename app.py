@@ -8,7 +8,7 @@ from flask_mail import Mail, Message
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import mysql.connector
-from mysql.connector import pooling
+from flask_mysqldb import MySQL
 from datetime import date, datetime, timedelta
 from dotenv import load_dotenv
 
@@ -48,22 +48,13 @@ mail = Mail(app)
 # =========================
 # DB CONNECTION
 # =========================
-dbconfig = {
-    "host": os.getenv("MYSQLHOST"),
-    "user": os.getenv("MYSQLUSER"),
-    "password": os.getenv("MYSQLPASSWORD"),
-    "database": os.getenv("MYSQLDATABASE"),
-    "port": int(os.getenv("MYSQLPORT", 3306)),
-}
-
-connection_pool = pooling.MySQLConnectionPool(
-    pool_name="bookhaven_pool",
-    pool_size=10,
-    **dbconfig
-)
-
 def get_connection():
-    return connection_pool.get_connection()
+    return mysql.connector.connect(
+        host=os.getenv("DB_HOST"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        database=os.getenv("DB_NAME")
+    )
 
 # =========================
 # HELPERS
@@ -3589,12 +3580,18 @@ def admin_announcement_delete(id):
 # =========================
 #  AI CHATBOT
 # =========================
-from openai import OpenAI, RateLimitError, APIError
 from flask import request, jsonify
-import re
+import requests
+import os
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-client = OpenAI(api_key=OPENAI_API_KEY)
+CEREBRAS_API_KEY = os.getenv("CEREBRAS_API_KEY")
+
+CEREBRAS_URL = "https://api.cerebras.ai/v1/chat/completions"
+
+CEREBRAS_HEADERS = {
+    "Authorization": f"Bearer {CEREBRAS_API_KEY}",
+    "Content-Type": "application/json"
+}
 
 # ---------- MAIN ROUTE ----------
 @app.route("/ai/chat", methods=["POST"])
@@ -3606,30 +3603,41 @@ def ai_chat():
         if not user_message:
             return jsonify({"reply": "Please enter a message."}), 400
 
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
+        payload = {
+            "model": "llama3.1-8b",
+            "messages": [
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": user_message}
             ],
-            temperature=0.7  # slightly higher = more natural
+            "temperature": 0.7,
+            "max_tokens": 400
+        }
+
+        response = requests.post(
+            CEREBRAS_URL,
+            headers=CEREBRAS_HEADERS,
+            json=payload,
+            timeout=20
         )
 
-        return jsonify({
-            "reply": response.choices[0].message.content
-        })
+        if response.status_code != 200:
+            print("CEREBRAS ERROR:", response.text)
+            return jsonify({
+                "reply": "I’m having trouble responding right now. Please try again shortly."
+            }), 502
 
-    except RateLimitError:
-        return jsonify({
-            "reply": "I’m a bit busy right now. Please try again in a moment."
-        }), 429
+        data = response.json()
+        reply = data["choices"][0]["message"]["content"]
 
-    except APIError:
-        return jsonify({
-            "reply": "I’m having trouble responding right now. Please try again shortly."
-        }), 502
+        return jsonify({"reply": reply})
 
-    except Exception:
+    except requests.exceptions.Timeout:
+        return jsonify({
+            "reply": "The response is taking longer than usual. Please try again."
+        }), 504
+
+    except Exception as e:
+        print("AI CHAT ERROR:", e)
         return jsonify({
             "reply": "Something went wrong. Please try again later."
         }), 500
