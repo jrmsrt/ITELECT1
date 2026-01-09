@@ -8,7 +8,7 @@ from flask_mail import Mail, Message
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import mysql.connector
-from flask_mysqldb import MySQL
+from mysql.connector import pooling
 from datetime import date, datetime, timedelta
 from dotenv import load_dotenv
 
@@ -48,13 +48,29 @@ mail = Mail(app)
 # =========================
 # DB CONNECTION
 # =========================
+dbconfig = {
+    "host": os.getenv("MYSQLHOST"),
+    "user": os.getenv("MYSQLUSER"),
+    "password": os.getenv("MYSQLPASSWORD"),
+    "database": os.getenv("MYSQLDATABASE"),
+    "port": int(os.getenv("MYSQLPORT", 3306)),
+}
+
+connection_pool = pooling.MySQLConnectionPool(
+    pool_name="bookhaven_pool",
+    pool_size=10,
+    **dbconfig
+)
+
 def get_connection():
     return mysql.connector.connect(
-        host=os.getenv("DB_HOST"),
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD"),
-        database=os.getenv("DB_NAME")
+        host=os.getenv("MYSQL_HOST"),
+        user=os.getenv("MYSQL_USER"),
+        password=os.getenv("MYSQL_PASSWORD"),
+        database=os.getenv("MYSQL_DATABASE"),
+        port=int(os.getenv("MYSQL_PORT", 3306))
     )
+    return connection_pool.get_connection()
 
 # =========================
 # HELPERS
