@@ -7,9 +7,8 @@ from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 from flask_mail import Mail, Message
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-import mysql.connector
-from mysql.connector import pooling
 from datetime import date, datetime, timedelta
+from flask import send_from_directory
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -21,17 +20,21 @@ app.config["SECRET_KEY"] = app.secret_key
 # =========================
 # UPLOAD FOLDER
 # =========================
-UPLOAD_FOLDER = 'static/uploads'
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+BASE_UPLOAD = "/var/data/uploads"
 
-app.config['ANNOUNCEMENT_FOLDER'] = os.path.join(app.root_path, 'static/uploads/announcements')
-app.config['ANNOUNCEMENT_FOLDER'] = os.path.join(app.root_path, 'static', 'uploads', 'announcements')
-os.makedirs(app.config['ANNOUNCEMENT_FOLDER'], exist_ok=True)
+app.config["UPLOAD_FOLDER"] = BASE_UPLOAD
+app.config["ANNOUNCEMENT_FOLDER"] = f"{BASE_UPLOAD}/announcements"
+app.config["BOOKS_FOLDER"] = f"{BASE_UPLOAD}/books"
+app.config["AVATARS_FOLDER"] = f"{BASE_UPLOAD}/avatars"
 
-app.config['BOOKS_FOLDER'] = os.path.join(app.root_path, 'static/uploads/books')
-app.config['BOOKS_FOLDER'] = os.path.join(app.root_path, 'static', 'uploads', 'books')
-os.makedirs(app.config['BOOKS_FOLDER'], exist_ok=True)
+os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+os.makedirs(app.config["ANNOUNCEMENT_FOLDER"], exist_ok=True)
+os.makedirs(app.config["BOOKS_FOLDER"], exist_ok=True)
+os.makedirs(app.config["AVATARS_FOLDER"], exist_ok=True)
+
+@app.route("/uploads/<path:filename>")
+def uploaded_files(filename):
+    return send_from_directory(BASE_UPLOAD, filename)
 
 # =========================
 # MAIL CONFIG
@@ -48,29 +51,14 @@ mail = Mail(app)
 # =========================
 # DB CONNECTION
 # =========================
-dbconfig = {
-    "host": os.getenv("MYSQLHOST"),
-    "user": os.getenv("MYSQLUSER"),
-    "password": os.getenv("MYSQLPASSWORD"),
-    "database": os.getenv("MYSQLDATABASE"),
-    "port": int(os.getenv("MYSQLPORT", 3306)),
-}
-
-connection_pool = pooling.MySQLConnectionPool(
-    pool_name="bookhaven_pool",
-    pool_size=10,
-    **dbconfig
-)
-
 def get_connection():
     return mysql.connector.connect(
-        host=os.getenv("MYSQL_HOST"),
-        user=os.getenv("MYSQL_USER"),
-        password=os.getenv("MYSQL_PASSWORD"),
-        database=os.getenv("MYSQL_DATABASE"),
-        port=int(os.getenv("MYSQL_PORT", 3306))
+        host=os.getenv("MYSQLHOST"),
+        user=os.getenv("MYSQLUSER"),
+        password=os.getenv("MYSQLPASSWORD"),
+        database=os.getenv("MYSQLDATABASE"),
+        port=int(os.getenv("MYSQLPORT"))
     )
-    return connection_pool.get_connection()
 
 # =========================
 # HELPERS
@@ -465,7 +453,7 @@ def api_upload_profile_picture():
     user_id = session['user_id']
 
     # Where avatars live on disk
-    avatar_dir = os.path.join(app.static_folder, "uploads", "avatars")
+    avatar_dir = app.config["AVATARS_FOLDER"]
     os.makedirs(avatar_dir, exist_ok=True)
 
     conn = get_connection()
@@ -510,7 +498,7 @@ def api_upload_profile_picture():
 
         return jsonify({
             "ok": True,
-            "image_url": url_for('static', filename=new_rel)
+            "image_url": url_for('uploaded_files', filename=f"avatars/{new_filename}")
         })
 
     finally:
@@ -2693,49 +2681,6 @@ def admin_dashboard():
     """)
     paid_orders = cursor.fetchone()["paid_orders"]
 
-    # -------------------------
-    # TOP SELLING BOOKS
-    # -------------------------
-    cursor.execute("""
-        SELECT
-            oi.book_id,
-            oi.title,
-            SUM(oi.quantity) AS total_sold,
-            SUM(oi.line_total) AS revenue
-        FROM order_items oi
-        JOIN orders o ON oi.order_id = o.id
-        WHERE o.payment_status = 'Paid'
-        GROUP BY oi.book_id, oi.title
-        ORDER BY total_sold DESC
-        LIMIT 5
-    """)
-    top_books = cursor.fetchall()
-
-    # -------------------------
-    # LOW STOCK ALERTS
-    # -------------------------
-    cursor.execute("""
-        SELECT id, title, stock_quantity
-        FROM books
-        WHERE stock_quantity <= 5
-        ORDER BY stock_quantity ASC
-    """)
-    low_stock_books = cursor.fetchall()
-
-    # -------------------------
-    # MONTHLY SALES GRAPH
-    # -------------------------
-    cursor.execute("""
-        SELECT
-            DATE_FORMAT(paid_at, '%Y-%m') AS month,
-            SUM(total) AS revenue
-        FROM orders
-        WHERE payment_status = 'Paid'
-        GROUP BY month
-        ORDER BY month
-    """)
-    monthly_sales = cursor.fetchall()
-
     cursor.close()
     conn.close()
 
@@ -2745,46 +2690,8 @@ def admin_dashboard():
         total_orders=total_orders,
         total_sales=total_sales,
         paid_orders=paid_orders,
-        top_books=top_books,
-        low_stock_books=low_stock_books,
-        monthly_sales=monthly_sales,
         active_page='admin_dashboard'
     )
-
-@app.route("/admin/api/dashboard-stats")
-def admin_dashboard_stats():
-    if 'admin' not in session:
-        return jsonify({"error": "unauthorized"}), 403
-
-    conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
-
-    cursor.execute("SELECT COUNT(*) AS total_users FROM users")
-    total_users = cursor.fetchone()["total_users"]
-
-    cursor.execute("""
-        SELECT COUNT(*) AS total_orders
-        FROM orders
-        WHERE status != 'Order Cancelled'
-    """)
-    total_orders = cursor.fetchone()["total_orders"]
-
-    cursor.execute("""
-        SELECT COALESCE(SUM(total), 0) AS total_sales
-        FROM orders
-        WHERE payment_status = 'Paid'
-    """)
-    total_sales = cursor.fetchone()["total_sales"]
-
-    cursor.close()
-    conn.close()
-
-    return jsonify({
-        "total_users": total_users,
-        "total_orders": total_orders,
-        "total_sales": float(total_sales)
-    })
-
 
 # =========================
 #  ADD BOOK ROUTE
@@ -3593,6 +3500,7 @@ def admin_announcement_delete(id):
 
     return redirect(url_for('admin_announcements'))
 
+
 # =========================
 #  AI CHATBOT
 # =========================
@@ -3909,8 +3817,6 @@ Your goal is to help users:
 - Navigate BookHaven confidently
 - Feel assisted, not overwhelmed
 """
-
-
 
 # =========================
 #  LOGOUT ROUTE
