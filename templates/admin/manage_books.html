@@ -62,7 +62,7 @@
 
             <div class="book-cover">
                 {% if book.cover %}
-                    <img src="{{ url_for('uploaded_files', filename='books/' ~ book.cover) }}">
+                    <img src="{{ url_for('static', filename='uploads/books/' ~ book.cover) }}">
                 {% else %}
                     <img src="/static/images/no-cover.png">
                 {% endif %}

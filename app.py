@@ -7,8 +7,9 @@ from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 from flask_mail import Mail, Message
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
+import mysql.connector
+from flask_mysqldb import MySQL
 from datetime import date, datetime, timedelta
-from flask import send_from_directory
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -20,21 +21,17 @@ app.config["SECRET_KEY"] = app.secret_key
 # =========================
 # UPLOAD FOLDER
 # =========================
-BASE_UPLOAD = "/var/data/uploads"
+UPLOAD_FOLDER = 'static/uploads'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-app.config["UPLOAD_FOLDER"] = BASE_UPLOAD
-app.config["ANNOUNCEMENT_FOLDER"] = f"{BASE_UPLOAD}/announcements"
-app.config["BOOKS_FOLDER"] = f"{BASE_UPLOAD}/books"
-app.config["AVATARS_FOLDER"] = f"{BASE_UPLOAD}/avatars"
+app.config['ANNOUNCEMENT_FOLDER'] = os.path.join(app.root_path, 'static/uploads/announcements')
+app.config['ANNOUNCEMENT_FOLDER'] = os.path.join(app.root_path, 'static', 'uploads', 'announcements')
+os.makedirs(app.config['ANNOUNCEMENT_FOLDER'], exist_ok=True)
 
-os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
-os.makedirs(app.config["ANNOUNCEMENT_FOLDER"], exist_ok=True)
-os.makedirs(app.config["BOOKS_FOLDER"], exist_ok=True)
-os.makedirs(app.config["AVATARS_FOLDER"], exist_ok=True)
-
-@app.route("/uploads/<path:filename>")
-def uploaded_files(filename):
-    return send_from_directory(BASE_UPLOAD, filename)
+app.config['BOOKS_FOLDER'] = os.path.join(app.root_path, 'static/uploads/books')
+app.config['BOOKS_FOLDER'] = os.path.join(app.root_path, 'static', 'uploads', 'books')
+os.makedirs(app.config['BOOKS_FOLDER'], exist_ok=True)
 
 # =========================
 # MAIL CONFIG
@@ -57,7 +54,7 @@ def get_connection():
         user=os.getenv("MYSQLUSER"),
         password=os.getenv("MYSQLPASSWORD"),
         database=os.getenv("MYSQLDATABASE"),
-        port=int(os.getenv("MYSQLPORT"))
+        port=int(os.getenv("MYSQLPORT", 3306))
     )
 
 # =========================
@@ -453,7 +450,7 @@ def api_upload_profile_picture():
     user_id = session['user_id']
 
     # Where avatars live on disk
-    avatar_dir = app.config["AVATARS_FOLDER"]
+    avatar_dir = os.path.join(app.static_folder, "uploads", "avatars")
     os.makedirs(avatar_dir, exist_ok=True)
 
     conn = get_connection()
@@ -498,7 +495,7 @@ def api_upload_profile_picture():
 
         return jsonify({
             "ok": True,
-            "image_url": url_for('uploaded_files', filename=f"avatars/{new_filename}")
+            "image_url": url_for('static', filename=new_rel)
         })
 
     finally:

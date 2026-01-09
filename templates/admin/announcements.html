@@ -86,7 +86,7 @@
                         <div class="announcement-content">
                             {% if announcement.photo %}
                             <div class="announcement-photo-wrapper">
-                                <img src="{{ url_for('uploaded_files', filename='announcements/' ~ announcement.photo) }}" alt="Announcement Photo">
+                                <img src="{{ url_for('static', filename='uploads/announcements/' ~ announcement.photo) }}" alt="Announcement Photo">
                             </div>
                             {% endif %}
                             <span>
