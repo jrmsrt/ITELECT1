@@ -86,7 +86,7 @@
 
 
 <script id="monthly-sales-data" type="application/json">
-{{ monthly_sales | tojson }}
+{{ monthly_sales | default([]) | tojson }}
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

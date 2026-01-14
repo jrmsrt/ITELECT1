@@ -50,11 +50,10 @@ mail = Mail(app)
 # =========================
 def get_connection():
     return mysql.connector.connect(
-        host=os.getenv("MYSQLHOST"),
-        user=os.getenv("MYSQLUSER"),
-        password=os.getenv("MYSQLPASSWORD"),
-        database=os.getenv("MYSQLDATABASE"),
-        port=int(os.getenv("MYSQLPORT", 3306))
+        host=os.getenv("DB_HOST"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        database=os.getenv("DB_NAME") 
     )
 
 # =========================
@@ -2649,7 +2648,7 @@ def admin_dashboard():
     total_users = cursor.fetchone()["total_users"]
 
     # -------------------------
-    # TOTAL ORDERS (EXCLUDE CANCELLED)
+    # TOTAL ORDERS (exclude cancelled)
     # -------------------------
     cursor.execute("""
         SELECT COUNT(*) AS total_orders
@@ -2659,7 +2658,7 @@ def admin_dashboard():
     total_orders = cursor.fetchone()["total_orders"]
 
     # -------------------------
-    # TOTAL SALES (PAID ORDERS ONLY)
+    # TOTAL SALES (paid only)
     # -------------------------
     cursor.execute("""
         SELECT COALESCE(SUM(total), 0) AS total_sales
@@ -2669,14 +2668,47 @@ def admin_dashboard():
     total_sales = cursor.fetchone()["total_sales"]
 
     # -------------------------
-    # PAID ONLINE ORDERS COUNT
+    # MONTHLY SALES (for chart)
     # -------------------------
     cursor.execute("""
-        SELECT COUNT(*) AS paid_orders
+        SELECT
+            DATE_FORMAT(MIN(created_at), '%b %Y') AS month,
+            SUM(total) AS revenue
         FROM orders
         WHERE payment_status = 'Paid'
+        GROUP BY YEAR(created_at), MONTH(created_at)
+        ORDER BY YEAR(created_at), MONTH(created_at)
     """)
-    paid_orders = cursor.fetchone()["paid_orders"]
+    monthly_sales = cursor.fetchall() or []
+
+    # -------------------------
+    # TOP SELLING BOOKS
+    # -------------------------
+    cursor.execute("""
+        SELECT
+            MAX(oi.title) AS title,
+            SUM(oi.quantity) AS total_sold,
+            SUM(oi.line_total) AS revenue
+        FROM order_items oi
+        JOIN orders o ON oi.order_id = o.id
+        WHERE o.payment_status = 'Paid'
+        GROUP BY oi.book_id
+        ORDER BY total_sold DESC
+        LIMIT 5
+    """)
+    top_books = cursor.fetchall() or []
+
+    # -------------------------
+    # LOW STOCK BOOKS
+    # -------------------------
+    cursor.execute("""
+        SELECT title, stock_quantity
+        FROM books
+        WHERE stock_quantity <= 5
+        ORDER BY stock_quantity ASC
+        LIMIT 5
+    """)
+    low_stock_books = cursor.fetchall() or []
 
     cursor.close()
     conn.close()
@@ -2686,9 +2718,46 @@ def admin_dashboard():
         total_users=total_users,
         total_orders=total_orders,
         total_sales=total_sales,
-        paid_orders=paid_orders,
+        monthly_sales=monthly_sales,
+        top_books=top_books,
+        low_stock_books=low_stock_books,
         active_page='admin_dashboard'
     )
+
+@app.route("/admin/api/dashboard-stats")
+def admin_dashboard_stats():
+    if 'admin' not in session:
+        return jsonify({}), 403
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("SELECT COUNT(*) AS total_users FROM users")
+    total_users = cursor.fetchone()["total_users"]
+
+    cursor.execute("""
+        SELECT COUNT(*) AS total_orders
+        FROM orders
+        WHERE status != 'Order Cancelled'
+    """)
+    total_orders = cursor.fetchone()["total_orders"]
+
+    cursor.execute("""
+        SELECT COALESCE(SUM(total), 0) AS total_sales
+        FROM orders
+        WHERE payment_status = 'Paid'
+    """)
+    total_sales = cursor.fetchone()["total_sales"]
+
+    cursor.close()
+    conn.close()
+
+    return jsonify({
+        "total_users": total_users,
+        "total_orders": total_orders,
+        "total_sales": float(total_sales)
+    })
+
 
 # =========================
 #  ADD BOOK ROUTE
