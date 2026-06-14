@@ -173,10 +173,21 @@ document.addEventListener("click", e => {
 // FORMATTING
 // ============================================================
 function formatText(text) {
-    const escaped = text
+    if (!text) return "";
+    let escaped = text
         .replace(/&/g, "&amp;")
+        .replace(/&lt;/g, "&amp;lt;")
+        .replace(/&gt;/g, "&amp;gt;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;");
+
+    // Convert escaped versions of allowed HTML tags back to actual HTML tags
+    escaped = escaped
+        .replace(/&lt;b&gt;/gi, "<b>")
+        .replace(/&lt;\/b&gt;/gi, "</b>")
+        .replace(/&lt;i&gt;/gi, "<i>")
+        .replace(/&lt;\/i&gt;/gi, "</i>")
+        .replace(/&lt;br\s*\/?&gt;/gi, "<br>");
 
     return escaped
         // **bold

@@ -3594,7 +3594,7 @@ def ai_chat():
             return jsonify({"reply": "Please enter a message."}), 400
 
         payload = {
-            "model": "llama3.1-8b",
+            "model": "gpt-oss-120b",
             "messages": [
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": user_message}
